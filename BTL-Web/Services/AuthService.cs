@@ -7,6 +7,7 @@ public interface IAuthService
 {
     Task<TaiKhoan?> AuthenticateAsync(string username, string password);
     Task<TaiKhoan?> GetAccountByUsernameAsync(string username);
+    Task<bool> ChangePasswordAsync(string username, string oldPassword, string newPassword);
 }
 
 public class AuthService : IAuthService
@@ -37,5 +38,25 @@ public class AuthService : IAuthService
     {
         return await _context.TaiKhoans
             .FirstOrDefaultAsync(x => x.Username.ToLower() == username.ToLower());
+    }
+
+    public async Task<bool> ChangePasswordAsync(string username, string oldPassword, string newPassword)
+    {
+        var account = await _context.TaiKhoans
+            .FirstOrDefaultAsync(x => x.Username.ToLower() == username.ToLower());
+
+        if (account == null)
+            return false;
+
+        // Kiểm tra mật khẩu cũ
+        if (account.Password != oldPassword)
+            return false;
+
+        // Cập nhật mật khẩu mới
+        account.Password = newPassword;
+        _context.TaiKhoans.Update(account);
+        await _context.SaveChangesAsync();
+
+        return true;
     }
 }

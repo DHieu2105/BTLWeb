@@ -135,6 +135,49 @@ public class AuthController : Controller
         return View();
     }
 
+    [HttpPost]
+    public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword, string confirmPassword)
+    {
+        if (!User.Identity?.IsAuthenticated ?? true)
+            return RedirectToAction("Login");
+
+        var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(role))
+            return RedirectToAction("Login");
+
+        // Validate input
+        if (string.IsNullOrWhiteSpace(oldPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
+        {
+            TempData["Error"] = "Vui lòng điền đủ thông tin";
+            return RedirectToAction("EditProfile");
+        }
+
+        if (newPassword != confirmPassword)
+        {
+            TempData["Error"] = "Mật khẩu mới và xác nhận không khớp";
+            return RedirectToAction("EditProfile");
+        }
+
+        if (newPassword.Length < 6)
+        {
+            TempData["Error"] = "Mật khẩu mới phải ít nhất 6 ký tự";
+            return RedirectToAction("EditProfile");
+        }
+
+        var result = await _authService.ChangePasswordAsync(username, oldPassword, newPassword);
+
+        if (!result)
+        {
+            TempData["Error"] = "Mật khẩu cũ không đúng";
+            return RedirectToAction("EditProfile");
+        }
+
+        TempData["Success"] = "Đổi mật khẩu thành công";
+        return RedirectToAction("EditProfile");
+    }
+
     // DEBUG: Setup Admin Account
     [HttpGet("auth/setup")]
     public IActionResult Setup()
