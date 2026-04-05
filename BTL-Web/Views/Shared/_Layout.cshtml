@@ -93,10 +93,65 @@
 
                         @if (User.IsInRole("Admin"))
                         {
-                            <li class="nav-item">
-                                <a class="nav-link" href="/Home/Index">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <i class="fas fa-sliders-h me-1"></i> Quản Trị
                                 </a>
+                                <ul class="dropdown-menu" aria-labelledby="adminMenu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Quản Lý Người Dùng</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-book me-2"></i>Quản Lý Khóa Học</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-door-open me-2"></i>Quản Lý Phòng Học</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>Báo Cáo & Thống Kê</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("GiaoVien"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="teacherMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-chalkboard-user me-1"></i> Giáo Dục
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="teacherMenu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-book me-2"></i>Lịch Học</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-tasks me-2"></i>Bài Tập</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-star me-2"></i>Đánh Giá Học Viên</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Danh Sách Lớp</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("HocVien"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="studentMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-graduation-cap me-1"></i> Học Tập
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="studentMenu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-book me-2"></i>Khóa Học Của Tôi</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar me-2"></i>Lịch Học</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-tasks me-2"></i>Bài Tập</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Kết Quả Học Tập</a></li>
+                                </ul>
+                            </li>
+                        }
+
+                        @if (User.IsInRole("NhanVien"))
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="staffMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="fas fa-briefcase me-1"></i> Hành Chính
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="staffMenu">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Quản Lý Đăng Ký</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar me-2"></i>Lịch Làm Việc</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-file me-2"></i>Tài Liệu</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>Báo Cáo</a></li>
+                                </ul>
                             </li>
                         }
 
