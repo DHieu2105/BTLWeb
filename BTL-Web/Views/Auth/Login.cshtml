@@ -1,0 +1,55 @@
+@{
+    ViewData["Title"] = "Đăng Nhập";
+}
+
+<div class="min-vh-100 d-flex align-items-center py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-6">
+                <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+                    <!-- Card Header -->
+                    <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="text-center">
+                            <i class="fas fa-graduation-cap" style="font-size: 2.5rem; margin-bottom: 10px; display: block;"></i>
+                            <h3 class="mb-1 fw-bold">English Center</h3>
+                            <p class="mb-0 opacity-75">Hệ Thống Quản Lý Đào Tạo</p>
+                        </div>
+                    </div>
+
+                    <!-- Card Body -->
+                    <div class="card-body p-4">
+                        @if (!string.IsNullOrEmpty(ViewBag.Error))
+                        {
+                            <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                <strong>Lỗi!</strong> @ViewBag.Error
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        }
+
+                        <form method="post" action="/Auth/Login">
+                            <div class="mb-4">
+                                <label for="username" class="form-label fw-semibold"><i class="fas fa-user me-2"></i>Tên Đăng Nhập</label>
+                                <input type="text" class="form-control form-control-lg rounded-3" id="username" name="username" placeholder="Nhập tên đăng nhập" required autofocus>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="password" class="form-label fw-semibold"><i class="fas fa-lock me-2"></i>Mật Khẩu</label>
+                                <input type="password" class="form-control form-control-lg rounded-3" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                            </div>
+
+                            <button type="submit" class="btn btn-lg btn-primary w-100 rounded-3 fw-semibold py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none;">
+                                <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Footer Text -->
+                <p class="text-center text-white mt-4 opacity-75">
+                    <small>&copy; 2026 English Center - All rights reserved</small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

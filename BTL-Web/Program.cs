@@ -1,10 +1,51 @@
+using BTL_Web.Models;
+using BTL_Web.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-builder.Services.AddSession();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
 
+// Add DbContext
+builder.Services.AddDbContext<TtanContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? 
+        "Data Source=DESKTOP-9CKDHNV;Initial Catalog=TTAN;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30"));
 
+// Add custom services
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserInfoService, UserInfoService>();
+
+// Add Authentication
+builder.Services.AddAuthentication("Cookies")
+    .AddCookie("Cookies", options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
+    });
+
+// Add Authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireLogin", policy =>
+        policy.RequireAuthenticatedUser());
+    
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+    
+    options.AddPolicy("GiaoVienOrAdmin", policy =>
+        policy.RequireRole("GiaoVien", "Admin"));
+    
+    options.AddPolicy("HocVienOrAdmin", policy =>
+        policy.RequireRole("HocVien", "Admin"));
+});
 
 var app = builder.Build();
 
@@ -12,13 +53,13 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseSession();
 app.UseAuthorization();
 
