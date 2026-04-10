@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using BTL_Web.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using BTL_Web.Models;
+using X.PagedList; // Thêm using cho PagedList
+using X.PagedList.EF;
 
 namespace BTL_Web.Controllers
 {
@@ -19,10 +21,29 @@ namespace BTL_Web.Controllers
         }
 
         // GET: HocViens
-        public async Task<IActionResult> Index()
+        // Thêm tham số searchString để nhận từ khóa từ người dùng
+        public async Task<IActionResult> Index(string searchString, int? page)
         {
-            var ttanContext = _context.HocViens.Include(h => h.MaNvNavigation);
-            return View(await ttanContext.ToListAsync());
+            ViewData["CurrentFilter"] = searchString;
+
+            var hocViens = from h in _context.HocViens select h;
+
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                hocViens = hocViens.Where(s => s.HoVaTen.Contains(searchString) || s.MaHocVien.Contains(searchString));
+            }
+
+            // 1. Thiết lập phân trang
+            int pageSize = 10; // Mỗi trang hiện 5 học viên (có thể đổi thành 10)
+            int pageNumber = (page ?? 1); // Nếu không có số trang thì mặc định là trang 1
+
+            // 2. Bắt buộc phải sắp xếp (OrderBy) trước khi phân trang
+            hocViens = hocViens.OrderBy(h => h.MaHocVien);
+
+            // 3. Sử dụng ToPagedListAsync thay vì ToListAsync
+            // Bỏ await và đổi ToPagedListAsync thành ToPagedList
+            // Giữ await và dùng ToPagedListAsync
+            return View(await hocViens.ToPagedListAsync(pageNumber, pageSize));
         }
 
         // GET: HocViens/Details/5
@@ -161,3 +182,5 @@ namespace BTL_Web.Controllers
         }
     }
 }
+
+
