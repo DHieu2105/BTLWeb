@@ -1,0 +1,135 @@
+@model IEnumerable<BTL_Web.Models.GiaoVien>
+@{
+    ViewData["Title"] = "Manage Teachers";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Teachers</h2>
+        <p>@(Model?.Count() ?? 0) faculty members across all departments</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Add Teacher
+        </button>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-chalkboard-teacher"></i></div><span class="stat-badge blue">Active</span></div>
+        <div class="stat-label">Total Faculty</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-check"></i></div></div>
+        <div class="stat-label">Active Now</div>
+        <div class="stat-value">32</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-clipboard-list"></i></div></div>
+        <div class="stat-label">Pending Reviews</div>
+        <div class="stat-value">07</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Faculty Records</h5>
+        <a href="/Admin/GiaoVien" class="small" style="color:var(--primary);font-weight:700;text-decoration:none;">View All</a>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Teacher</th>
+                <th>Specialization</th>
+                <th>Phone</th>
+                <th>Classes</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var gv in Model)
+                {
+                    var name = gv.Ten ?? gv.MaGv;
+                    var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    <tr>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar">@initials</div>
+                                <div>
+                                    <div class="user-name">@name</div>
+                                    <div class="user-sub">@gv.MaGv</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>@(gv.ChuyenMon ?? "—")</td>
+                        <td class="user-sub">@(gv.Sdt ?? "—")</td>
+                        <td><span class="chip chip-blue">@gv.LopHocs.Count classes</span></td>
+                        <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <a href="/Admin/TeacherDetail/@gv.MaGv" class="btn-icon btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                                <button class="btn-icon btn-outline btn-sm" onclick="deleteTeacher('@gv.MaGv')">
+                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-chalkboard-teacher"></i><p>No teachers found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) records</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Add New Teacher</h4>
+        <form method="post" action="/Admin/AddGiaoVien">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="Ten" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Specialization</label>
+                    <input type="text" name="ChuyenMon" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="Sdt" class="form-control">
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Add Teacher</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function deleteTeacher(id) {
+    if (confirm('Delete teacher ' + id + '?')) location.href = '/Admin/DeleteGiaoVien/' + id;
+}
+</script>
+}

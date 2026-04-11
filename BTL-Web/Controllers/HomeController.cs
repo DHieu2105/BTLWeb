@@ -8,7 +8,18 @@ namespace BTL_Web.Controllers
     {
         public IActionResult Index()
         {
-            return View();
+            if (!User.Identity?.IsAuthenticated ?? true)
+                return RedirectToAction("Login", "Auth");
+
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            return role switch
+            {
+                "Admin" => RedirectToAction("Index", "Admin"),
+                "NhanVien" => RedirectToAction("Index", "Staff"),
+                "GiaoVien" => RedirectToAction("Index", "Teacher"),
+                "HocVien" => RedirectToAction("Index", "Student"),
+                _ => RedirectToAction("Login", "Auth")
+            };
         }
 
         public IActionResult Privacy()

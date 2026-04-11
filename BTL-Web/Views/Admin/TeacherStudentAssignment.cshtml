@@ -1,0 +1,137 @@
+@{
+    ViewData["Title"] = "Teacher-Student Assignment";
+    var giaoViens = ViewBag.GiaoViens as IEnumerable<BTL_Web.Models.GiaoVien> ?? new List<BTL_Web.Models.GiaoVien>();
+    var hocViens  = ViewBag.HocViens  as IEnumerable<BTL_Web.Models.HocVien>  ?? new List<BTL_Web.Models.HocVien>();
+}
+
+<div class="page-header">
+    <div>
+        <h2>Teacher-Student Assignment</h2>
+        <p>Assign students to teachers for personalized mentoring</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <a class="btn-primary" href="#create-assignment">
+            <i class="fas fa-plus"></i> New Assignment
+        </a>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <!-- Assignment Card -->
+    <div class="card-plain" id="create-assignment" style="padding:32px;border-left:4px solid var(--primary);">
+        <h5 style="margin-bottom:24px;">Create Assignment</h5>
+        <form method="post" action="/Admin/AssignTeacherStudent">
+            @Html.AntiForgeryToken()
+            <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Target Student</label>
+                    <select name="MaHocVien" class="form-control form-select">
+                        <option value="">— Select Student —</option>
+                        @foreach (var sv in hocViens)
+                        {
+                            <option value="@sv.MaHocVien">@sv.HoVaTen (@sv.MaHocVien)</option>
+                        }
+                    </select>
+                </div>
+                <div style="padding-bottom:4px;color:var(--outline);font-size:20px;">→</div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Assigned Mentor</label>
+                    <select name="MaGv" class="form-control form-select">
+                        <option value="">— Select Teacher —</option>
+                        @foreach (var gv in giaoViens)
+                        {
+                            <option value="@gv.MaGv">@gv.Ten (@gv.ChuyenMon)</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" style="margin-top:16px;">
+                <label class="form-label">Assignment Note</label>
+                <input type="text" name="GhiChu" class="form-control" placeholder="Add specific goals for this student...">
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
+                <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Create Assignment</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Teacher Availability -->
+    <div class="card-plain" style="padding:24px;">
+        <div class="section-heading">
+            <h5>Available Teachers</h5>
+            <span class="chip chip-green">@giaoViens.Count() Active</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
+            @foreach (var gv in giaoViens)
+            {
+                var n = gv.Ten ?? gv.MaGv;
+                var ini = string.Join("", n.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-low);border-radius:8px;">
+                    <div class="user-row">
+                        <div class="avatar avatar-sm">@ini</div>
+                        <div>
+                            <div class="user-name" style="font-size:13px;">@n</div>
+                            <div class="user-sub">@(gv.ChuyenMon ?? "—") • @gv.LopHocs.Count classes</div>
+                        </div>
+                    </div>
+                    <span class="chip chip-green" style="font-size:10px;">Available</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Recent Assignments Table -->
+<div class="card-plain" style="padding:0;margin-top:24px;">
+    <div class="card-header-plain">
+        <h5>Recent Assignments</h5>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Assigned Teacher</th>
+                <th>Specialization</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var gv in giaoViens.Take(5))
+            {
+                @foreach (var sv in gv.MaHocViens.Take(2))
+                {
+                    var sn = sv.HoVaTen ?? sv.MaHocVien;
+                    var si = string.Join("", sn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    <tr>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar">@si</div>
+                                <div>
+                                    <div class="user-name">@sn</div>
+                                    <div class="user-sub">@sv.MaHocVien</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar avatar-sm">@(string.Join("", (gv.Ten ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper())))</div>
+                                <div class="user-name" style="font-size:13px;">@gv.Ten</div>
+                            </div>
+                        </td>
+                        <td class="user-sub">@(gv.ChuyenMon ?? "—")</td>
+                        <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                        </td>
+                    </tr>
+                }
+            }
+            @if (!giaoViens.Any(g => g.MaHocViens.Any()))
+            {
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-plus"></i><p>No assignments yet</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+</div>

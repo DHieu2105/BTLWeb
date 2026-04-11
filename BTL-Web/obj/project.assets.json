@@ -6149,23 +6149,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\AD MIN\\.nuget\\packages\\": {},
+    "C:\\Users\\NGO VAN TUAN\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\AD MIN\\source\\repos\\BTL-Web\\BTL-Web\\BTL-Web.csproj",
+      "projectUniqueName": "C:\\Users\\NGO VAN TUAN\\source\\repos\\BTLWeb\\BTL-Web\\BTL-Web.csproj",
       "projectName": "BTL-Web",
-      "projectPath": "C:\\Users\\AD MIN\\source\\repos\\BTL-Web\\BTL-Web\\BTL-Web.csproj",
-      "packagesPath": "C:\\Users\\AD MIN\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\AD MIN\\source\\repos\\BTL-Web\\BTL-Web\\obj\\",
+      "projectPath": "C:\\Users\\NGO VAN TUAN\\source\\repos\\BTLWeb\\BTL-Web\\BTL-Web.csproj",
+      "packagesPath": "C:\\Users\\NGO VAN TUAN\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\NGO VAN TUAN\\source\\repos\\BTLWeb\\BTL-Web\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\AD MIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\NGO VAN TUAN\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -6236,7 +6236,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.104/PortableRuntimeIdentifierGraph.json",
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.102/PortableRuntimeIdentifierGraph.json",
         "packagesToPrune": {
           "Microsoft.AspNetCore": "(,10.0.32767]",
           "Microsoft.AspNetCore.Antiforgery": "(,10.0.32767]",

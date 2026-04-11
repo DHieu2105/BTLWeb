@@ -41,13 +41,13 @@ public partial class TtanContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-9CKDHNV;Initial Catalog=TTAN;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30");
+        => optionsBuilder.UseSqlServer("Data Source=LAPTOP-IJARC7AM\\SQLEXPRESS;Initial Catalog=TTAN;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DangKi>(entity =>
         {
-            entity.HasKey(e => new { e.MaKhoaHoc, e.MaHocVien }).HasName("PK__DangKi__FE754F7ECEF4B953");
+            entity.HasKey(e => new { e.MaKhoaHoc, e.MaHocVien }).HasName("PK__DangKi__FE754F7E99207292");
 
             entity.ToTable("DangKi");
 
@@ -71,7 +71,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<GiaoVien>(entity =>
         {
-            entity.HasKey(e => e.MaGv).HasName("PK__GiaoVien__2725AEF309AD95F4");
+            entity.HasKey(e => e.MaGv).HasName("PK__GiaoVien__2725AEF3FEABB3BE");
 
             entity.ToTable("GiaoVien");
 
@@ -119,7 +119,7 @@ public partial class TtanContext : DbContext
                         .HasConstraintName("FK__GiangDay__MaGV__6C190EBB"),
                     j =>
                     {
-                        j.HasKey("MaGv", "MaHocVien").HasName("PK__GiangDay__91A01E15EB37CBA4");
+                        j.HasKey("MaGv", "MaHocVien").HasName("PK__GiangDay__91A01E15E8042A7C");
                         j.ToTable("GiangDay");
                         j.IndexerProperty<string>("MaGv")
                             .HasMaxLength(10)
@@ -133,7 +133,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<HocVien>(entity =>
         {
-            entity.HasKey(e => e.MaHocVien).HasName("PK__HocVien__685B0E6A251E8644");
+            entity.HasKey(e => e.MaHocVien).HasName("PK__HocVien__685B0E6ACF443644");
 
             entity.ToTable("HocVien");
 
@@ -161,7 +161,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<KetQua>(entity =>
         {
-            entity.HasKey(e => new { e.MaHocVien, e.MaKhoaHoc }).HasName("PK__KetQua__FCD401939F591DE8");
+            entity.HasKey(e => new { e.MaHocVien, e.MaKhoaHoc }).HasName("PK__KetQua__FCD401931AA64DD1");
 
             entity.ToTable("KetQua");
 
@@ -186,7 +186,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<KhoaHoc>(entity =>
         {
-            entity.HasKey(e => e.MaKhoaHoc).HasName("PK__KhoaHoc__48F0FF9833D36681");
+            entity.HasKey(e => e.MaKhoaHoc).HasName("PK__KhoaHoc__48F0FF982E013632");
 
             entity.ToTable("KhoaHoc");
 
@@ -207,7 +207,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<LichHoc>(entity =>
         {
-            entity.HasKey(e => e.MaLichHoc).HasName("PK__LichHoc__150EBC21B5236A5A");
+            entity.HasKey(e => e.MaLichHoc).HasName("PK__LichHoc__150EBC215B6F6B42");
 
             entity.ToTable("LichHoc");
 
@@ -225,7 +225,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<LopHoc>(entity =>
         {
-            entity.HasKey(e => e.MaLop).HasName("PK__LopHoc__3B98D273EBD5909A");
+            entity.HasKey(e => e.MaLop).HasName("PK__LopHoc__3B98D27328CA66FD");
 
             entity.ToTable("LopHoc");
 
@@ -271,7 +271,7 @@ public partial class TtanContext : DbContext
                         .HasConstraintName("FK__ThamGia__MaLop__6FE99F9F"),
                     j =>
                     {
-                        j.HasKey("MaLop", "MaHocVien").HasName("PK__ThamGia__8D1D6295254B26F4");
+                        j.HasKey("MaLop", "MaHocVien").HasName("PK__ThamGia__8D1D62950EC8EBA4");
                         j.ToTable("ThamGia");
                         j.IndexerProperty<string>("MaLop")
                             .HasMaxLength(10)
@@ -284,7 +284,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<NhanVien>(entity =>
         {
-            entity.HasKey(e => e.MaNv).HasName("PK__NhanVien__2725D70ACF98D531");
+            entity.HasKey(e => e.MaNv).HasName("PK__NhanVien__2725D70AA0C21636");
 
             entity.ToTable("NhanVien");
 
@@ -322,7 +322,7 @@ public partial class TtanContext : DbContext
                         .HasConstraintName("FK__PhanCong__MaNV__68487DD7"),
                     j =>
                     {
-                        j.HasKey("MaNv", "MaGv").HasName("PK__PhanCong__05578DE5B8948E66");
+                        j.HasKey("MaNv", "MaGv").HasName("PK__PhanCong__05578DE512B9101A");
                         j.ToTable("PhanCong");
                         j.IndexerProperty<string>("MaNv")
                             .HasMaxLength(10)
@@ -337,7 +337,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<PhongHoc>(entity =>
         {
-            entity.HasKey(e => e.MaPhong).HasName("PK__PhongHoc__20BD5E5B310B184E");
+            entity.HasKey(e => e.MaPhong).HasName("PK__PhongHoc__20BD5E5B11689E05");
 
             entity.ToTable("PhongHoc");
 
@@ -368,7 +368,7 @@ public partial class TtanContext : DbContext
                         .HasConstraintName("FK__SuDung__MaPhong__73BA3083"),
                     j =>
                     {
-                        j.HasKey("MaPhong", "MaThietBi").HasName("PK__SuDung__48139944B9A9350A");
+                        j.HasKey("MaPhong", "MaThietBi").HasName("PK__SuDung__481399445EC97593");
                         j.ToTable("SuDung");
                         j.IndexerProperty<string>("MaPhong")
                             .HasMaxLength(10)
@@ -381,7 +381,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<TaiKhoan>(entity =>
         {
-            entity.HasKey(e => e.Username).HasName("PK__TaiKhoan__536C85E5449E6CA0");
+            entity.HasKey(e => e.Username).HasName("PK__TaiKhoan__536C85E5F778AC5A");
 
             entity.ToTable("TaiKhoan");
 
@@ -421,7 +421,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<ThietBi>(entity =>
         {
-            entity.HasKey(e => e.MaThietBi).HasName("PK__ThietBi__8AEC71F7C398EEFC");
+            entity.HasKey(e => e.MaThietBi).HasName("PK__ThietBi__8AEC71F7956DE5EB");
 
             entity.ToTable("ThietBi");
 
@@ -435,7 +435,7 @@ public partial class TtanContext : DbContext
 
         modelBuilder.Entity<TrungTam>(entity =>
         {
-            entity.HasKey(e => e.MaTrungTam).HasName("PK__TrungTam__54A2B84F543220C8");
+            entity.HasKey(e => e.MaTrungTam).HasName("PK__TrungTam__54A2B84F5DF09F6E");
 
             entity.ToTable("TrungTam");
 

@@ -1,0 +1,176 @@
+@model IEnumerable<BTL_Web.Models.TrungTam>
+@{
+    ViewData["Title"] = "Manage Centers";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Centers</h2>
+        <p>Academic center locations and branch management</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Add Center
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header">
+            <div class="stat-icon blue"><i class="fas fa-building"></i></div>
+            <span class="stat-badge blue">+1</span>
+        </div>
+        <div class="stat-label">Total Centers</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-users"></i></div></div>
+        <div class="stat-label">Active Staff</div>
+        <div class="stat-value">142</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-line"></i></div></div>
+        <div class="stat-label">Avg. Utilization</div>
+        <div class="stat-value">87%</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Center Directory</h5>
+        <div style="display:flex;gap:8px;">
+            <button class="btn-outline btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            <button class="btn-outline btn-sm"><i class="fas fa-edit"></i> Edit</button>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Center</th>
+                <th>Address</th>
+                <th>Contact</th>
+                <th>Manager</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var tt in Model)
+                {
+                    var initials = string.Join("", (tt.TenTrungTam ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div class="avatar" style="background:rgba(219,225,255,0.3);color:var(--primary);font-size:12px;">
+                                    @initials
+                                </div>
+                                <div>
+                                    <div class="user-name">@tt.TenTrungTam</div>
+                                    <div class="user-sub">@tt.MaTrungTam</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-name">@(tt.DiaChi ?? "—")</div>
+                            <div class="user-sub">@(tt.MaTrungTam ?? "—")</div>
+                        </td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:6px;" class="user-sub">
+                                <i class="fas fa-phone" style="font-size:11px;"></i> @(tt.Sdt ?? "—")
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar avatar-sm">M</div>
+                                <div class="user-name" style="font-size:13px;">Manager</div>
+                            </div>
+                        </td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-outline btn-sm" onclick="deleteCenter('@tt.MaTrungTam')">
+                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-building"></i><p>No centers found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) centers</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Info Banner -->
+<div class="card-plain" style="padding:32px;background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));color:white;margin-top:24px;display:flex;align-items:center;justify-content:space-between;">
+    <div>
+        <h4 style="color:white;margin-bottom:8px;">Expand Your Network</h4>
+        <p style="color:rgba(255,255,255,0.75);font-size:14px;max-width:500px;">
+            Add new branch locations to extend your academic reach. Each center can have its own rooms, staff, and course offerings.
+        </p>
+    </div>
+    <button class="btn-primary" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);white-space:nowrap;"
+            onclick="document.getElementById('addModal').style.display='flex'">
+        <i class="fas fa-plus"></i> Add New Center
+    </button>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Add New Center</h4>
+        <form method="post" action="/Admin/AddTrungTam">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Center Name</label>
+                <input type="text" name="TenTrungTam" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                <input type="text" name="DiaChi" class="form-control">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" name="ThanhPho" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="Sdt" class="form-control">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email</label>
+                <input type="email" name="Email" class="form-control">
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Add Center</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function deleteCenter(id) {
+    if (confirm('Delete center ' + id + '?')) location.href = '/Admin/DeleteTrungTam/' + id;
+}
+</script>
+}
