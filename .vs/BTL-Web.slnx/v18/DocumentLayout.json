@@ -40,7 +40,7 @@
               "RelativeDocumentMoniker": "BTL-Web\\Views\\Admin\\KhoaHoc.cshtml",
               "ToolTip": "C:\\Users\\NGO VAN TUAN\\source\\repos\\BTLWeb\\BTL-Web\\Views\\Admin\\KhoaHoc.cshtml",
               "RelativeToolTip": "BTL-Web\\Views\\Admin\\KhoaHoc.cshtml",
-              "ViewState": "AgIAAGYAAAAAAAAAAAAnwHMAAABMAAAAAAAAAA==",
+              "ViewState": "AgIAAGYAAAAAAAAAAAAnwHMAAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
               "WhenOpened": "2026-04-11T15:27:33.439Z",
               "EditorCaption": ""
@@ -67,8 +67,7 @@
               "RelativeToolTip": "BTL-Web\\appsettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAFAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-04-08T16:05:35.865Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-04-08T16:05:35.865Z"
             },
             {
               "$type": "Document",

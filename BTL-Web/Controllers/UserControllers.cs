@@ -10,7 +10,7 @@ namespace BTL_Web.Controllers
     // ═══════════════════════════════════════════════════════════════
     //  STAFF CONTROLLER
     // ═══════════════════════════════════════════════════════════════
-    [Authorize]
+    [Authorize(Roles = "NhanVien")]
     public class StaffController : Controller
     {
         private readonly TtanContext _db;
@@ -134,7 +134,7 @@ namespace BTL_Web.Controllers
     // ═══════════════════════════════════════════════════════════════
     //  TEACHER CONTROLLER
     // ═══════════════════════════════════════════════════════════════
-    [Authorize]
+    [Authorize(Roles = "GiaoVien")]
     public class TeacherController : Controller
     {
         private readonly TtanContext _db;
@@ -202,7 +202,7 @@ namespace BTL_Web.Controllers
     // ═══════════════════════════════════════════════════════════════
     //  STUDENT CONTROLLER
     // ═══════════════════════════════════════════════════════════════
-    [Authorize]
+    [Authorize(Roles = "HocVien")]
     public class StudentController : Controller
     {
         private readonly TtanContext _db;

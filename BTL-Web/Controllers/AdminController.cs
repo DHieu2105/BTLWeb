@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BTL_Web.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class AdminController : Controller
     {
         private readonly TtanContext _db;
