@@ -1,0 +1,35 @@
+@model BTL_Web.Models.KhoaHoc
+
+@{
+    ViewData["Title"] = "Chi tiết Khóa học";
+}
+
+<div class="container py-4">
+    <h2 class="mb-3">Chi tiết Khóa học</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Mã khóa học</dt>
+                <dd class="col-sm-9">@Model.MaKhoaHoc</dd>
+
+                <dt class="col-sm-3">Tên khóa học</dt>
+                <dd class="col-sm-9">@Model.TenKhoaHoc</dd>
+
+                <dt class="col-sm-3">Thời lượng</dt>
+                <dd class="col-sm-9">@Model.ThoiLuong</dd>
+
+                <dt class="col-sm-3">Học phí</dt>
+                <dd class="col-sm-9">@Model.HocPhi</dd>
+
+                <dt class="col-sm-3">Trung tâm</dt>
+                <dd class="col-sm-9">@(Model.MaTrungTamNavigation?.TenTrungTam ?? Model.MaTrungTam)</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Edit" asp-route-id="@Model.MaKhoaHoc" class="btn btn-warning">Sửa</a>
+        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+    </div>
+</div>
