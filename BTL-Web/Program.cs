@@ -14,9 +14,11 @@ builder.Services.AddSession(options =>
 });
 
 // Add DbContext
+var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Missing connection string: DefaultConnection");
+
 builder.Services.AddDbContext<TtanContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection") ?? 
-        "Data Source=DESKTOP-9CKDHNV;Initial Catalog=TTAN;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30"));
+    options.UseSqlServer(defaultConnection));
 
 // Add custom services
 builder.Services.AddScoped<IAuthService, AuthService>();
