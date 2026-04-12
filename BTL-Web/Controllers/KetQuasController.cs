@@ -152,6 +152,7 @@ namespace BTL_Web.Controllers
                 {
                     // Kiểm tra xem bản ghi có tồn tại không
                     var existingRecord = await _context.KetQuas
+                        .AsNoTracking()
                         .FirstOrDefaultAsync(k => k.MaHocVien == maHocVien && k.MaKhoaHoc == maKhoaHoc);
 
                     if (existingRecord == null)
@@ -159,13 +160,19 @@ namespace BTL_Web.Controllers
                         return NotFound();
                     }
 
-                    // Cập nhật chỉ 2 field: DiemListening và DiemReading
-                    existingRecord.DiemListening = ketQua.DiemListening;
-                    existingRecord.DiemReading = ketQua.DiemReading;
-                    // DiemTong sẽ tính tự động từ DB computed column
+                    // Tạo object mới để update (tránh tracking conflict)
+                    var updatedRecord = new KetQua
+                    {
+                        MaHocVien = maHocVien,
+                        MaKhoaHoc = maKhoaHoc,
+                        DiemListening = ketQua.DiemListening,
+                        DiemReading = ketQua.DiemReading
+                        // DiemTong sẽ tính tự động từ DB computed column
+                    };
 
-                    _context.Update(existingRecord);
+                    _context.Update(updatedRecord);
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -178,8 +185,15 @@ namespace BTL_Web.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Error: {ex.Message}");
+                }
             }
+
+            // Nếu ModelState không valid hoặc có error, reload form với data
+            ViewData["MaHocVien"] = new SelectList(_context.HocViens, "MaHocVien", "MaHocVien", ketQua.MaHocVien);
+            ViewData["MaKhoaHoc"] = new SelectList(_context.KhoaHocs, "MaKhoaHoc", "MaKhoaHoc", ketQua.MaKhoaHoc);
             return View(ketQua);
         }
 
