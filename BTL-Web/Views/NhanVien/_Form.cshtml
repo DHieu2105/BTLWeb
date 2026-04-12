@@ -1,0 +1,61 @@
+@model BTL_Web.ViewModels.NhanVienFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+@{
+    var isReadOnlyMaNv = ViewData["ReadOnlyMaNv"] as bool? == true;
+}
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <label asp-for="MaNv" class="form-label"></label>
+        @if (isReadOnlyMaNv)
+        {
+            <input asp-for="MaNv" class="form-control" readonly />
+        }
+        else
+        {
+            <input asp-for="MaNv" class="form-control" />
+        }
+        <span asp-validation-for="MaNv" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="HoVaTen" class="form-label"></label>
+        <input asp-for="HoVaTen" class="form-control" />
+        <span asp-validation-for="HoVaTen" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="ChucVu" class="form-label"></label>
+        <input asp-for="ChucVu" class="form-control" />
+        <span asp-validation-for="ChucVu" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="GioiTinh" class="form-label"></label>
+        <select asp-for="GioiTinh" class="form-select">
+            <option value="">-- Chọn giới tính --</option>
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+            <option value="Khác">Khác</option>
+        </select>
+        <span asp-validation-for="GioiTinh" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="MaTrungTam" class="form-label"></label>
+        <select asp-for="MaTrungTam" asp-items="ViewBag.TrungTamList" class="form-select">
+            <option value="">-- Chọn trung tâm --</option>
+        </select>
+        <span asp-validation-for="MaTrungTam" class="text-danger"></span>
+    </div>
+
+    <div class="col-md-6">
+        <label asp-for="SelectedUsername" class="form-label"></label>
+        <select asp-for="SelectedUsername" asp-items="ViewBag.AccountList" class="form-select">
+            <option value="">-- Chưa gán tài khoản --</option>
+        </select>
+        <span asp-validation-for="SelectedUsername" class="text-danger"></span>
+    </div>
+</div>

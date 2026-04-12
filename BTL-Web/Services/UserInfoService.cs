@@ -11,9 +11,9 @@ public interface IUserInfoService
 
 public class UserInfoService : IUserInfoService
 {
-    private readonly TtanContext _context;
+    private readonly TtamContext _context;
 
-    public UserInfoService(TtanContext context)
+    public UserInfoService(TtamContext context)
     {
         _context = context;
     }
