@@ -2,49 +2,96 @@
 
 @{
     ViewData["Title"] = "Score Details";
+    var diemTong = Model?.DiemTong ?? 0;
+    var statusClass = diemTong >= 70 ? "chip-green" : diemTong >= 60 ? "chip-yellow" : "chip-red";
+    var statusText = diemTong >= 60 ? "Passed" : "Failed";
 }
 
-<h1>Score Details</h1>
-
-<div>
-    <h4>Score Information</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DiemListening)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DiemListening)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DiemReading)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DiemReading)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.DiemTong)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.DiemTong)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaHocVienNavigation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaHocVienNavigation.MaHocVien)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaKhoaHocNavigation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaKhoaHocNavigation.MaKhoaHoc)
-        </dd>
-    </dl>
+<div class="page-header">
+    <div>
+        <a href="/KetQuas/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <h2>Score Details</h2>
+        <p>@(Model?.MaHocVienNavigation?.HoVaTen ?? "Student") - @(Model?.MaKhoaHocNavigation?.TenKhoaHoc ?? "Course")</p>
+    </div>
 </div>
-<div>
-    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
-    <a asp-action="Index">Back to List</a>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <div class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:24px;">Score Information</h5>
+
+        <div style="display:grid;gap:20px;">
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Student</div>
+                <div style="font-size:16px;font-weight:500;">
+                    @(Model?.MaHocVienNavigation?.HoVaTen ?? Model?.MaHocVien)
+                    <div style="font-size:13px;color:var(--on-surface-variant);margin-top:4px;">ID: @Model?.MaHocVien</div>
+                </div>
+            </div>
+
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Course</div>
+                <div style="font-size:16px;font-weight:500;">
+                    @(Model?.MaKhoaHocNavigation?.TenKhoaHoc ?? Model?.MaKhoaHoc)
+                    <div style="font-size:13px;color:var(--on-surface-variant);margin-top:4px;">Code: @Model?.MaKhoaHoc</div>
+                </div>
+            </div>
+
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Listening Score</div>
+                <div style="font-size:20px;font-weight:600;color:var(--primary);">@(Model?.DiemListening ?? 0)</div>
+            </div>
+
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Reading Score</div>
+                <div style="font-size:20px;font-weight:600;color:var(--primary);">@(Model?.DiemReading ?? 0)</div>
+            </div>
+
+            <div style="padding:16px;background:var(--surface-low);border-radius:8px;">
+                <div class="form-label" style="margin-bottom:8px;">Total Score</div>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="font-size:28px;font-weight:700;color:var(--primary);">@diemTong</span>
+                    <span class="chip @statusClass">@statusText</span>
+                </div>
+                <div class="progress-bar-wrap" style="margin-top:8px;">
+                    <div class="progress-bar-fill" style="width:@(Math.Min(diemTong, 100))%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:32px;">
+            <a href="/KetQuas/Index" class="btn-outline">Close</a>
+            <a href="/KetQuas/Edit?maHocVien=@Model?.MaHocVien&maKhoaHoc=@Model?.MaKhoaHoc" class="btn-primary">
+                <i class="fas fa-edit"></i> Edit Score
+            </a>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:16px;"><i class="fas fa-chart-bar"></i> Score Grade</div>
+            <div style="font-size:13px;color:var(--on-surface-variant);line-height:2;">
+                <div><strong>90-100:</strong> <span style="color:#10b981;">Excellent</span></div>
+                <div><strong>70-89:</strong> <span style="color:#3b82f6;">Good</span></div>
+                <div><strong>60-69:</strong> <span style="color:#f59e0b;">Average</span></div>
+                <div><strong>Below 60:</strong> <span style="color:#ef4444;">Fail</span></div>
+            </div>
+        </div>
+
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-info-circle"></i> Actions</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <a href="/KetQuas/Edit?maHocVien=@Model?.MaHocVien&maKhoaHoc=@Model?.MaKhoaHoc" class="btn-primary btn-sm">
+                    <i class="fas fa-edit"></i> Edit
+                </a>
+                <a href="/KetQuas/Delete?maHocVien=@Model?.MaHocVien&maKhoaHoc=@Model?.MaKhoaHoc" class="btn-danger btn-sm" onclick="return confirm('Delete this score?')">
+                    <i class="fas fa-trash"></i> Delete
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {

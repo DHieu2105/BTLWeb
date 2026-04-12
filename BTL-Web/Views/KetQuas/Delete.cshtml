@@ -15,38 +15,70 @@
 </div>
 
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
-    <div class="card-plain" style="padding:32px;">
+    <div class="card-plain" style="padding:32px;border-left:4px solid #dc2626;">
         <div style="background:#fef3cd;border-left:4px solid #ffc107;padding:16px;border-radius:8px;margin-bottom:24px;">
             <strong><i class="fas fa-exclamation-triangle"></i> Warning:</strong> This action cannot be undone!
         </div>
 
         <h5 style="margin-bottom:20px;">Record Information</h5>
-        <dl class="row">
-            <dt class="col-sm-4">Student ID:</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.MaHocVien)</dd>
 
-            <dt class="col-sm-4">Student Name:</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.MaHocVienNavigation.HoVaTen)</dd>
+        <div style="display:grid;gap:20px;margin-bottom:32px;">
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Student</div>
+                <div style="font-size:16px;font-weight:500;">
+                    @(Model?.MaHocVienNavigation?.HoVaTen ?? Model?.MaHocVien)
+                    <div style="font-size:13px;color:var(--on-surface-variant);margin-top:4px;">ID: @Model?.MaHocVien</div>
+                </div>
+            </div>
 
-            <dt class="col-sm-4">Course:</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.MaKhoaHoc)</dd>
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Course</div>
+                <div style="font-size:16px;font-weight:500;">
+                    @(Model?.MaKhoaHocNavigation?.TenKhoaHoc ?? Model?.MaKhoaHoc)
+                </div>
+            </div>
 
-            <dt class="col-sm-4">Listening Score:</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.DiemListening)/100</dd>
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Listening Score</div>
+                <div style="font-size:16px;font-weight:500;">@(Model?.DiemListening ?? 0)</div>
+            </div>
 
-            <dt class="col-sm-4">Reading Score:</dt>
-            <dd class="col-sm-8">@Html.DisplayFor(model => model.DiemReading)/100</dd>
+            <div style="padding-bottom:16px;border-bottom:1px solid var(--outline);">
+                <div class="form-label" style="margin-bottom:8px;">Reading Score</div>
+                <div style="font-size:16px;font-weight:500;">@(Model?.DiemReading ?? 0)</div>
+            </div>
 
-            <dt class="col-sm-4">Total Score:</dt>
-            <dd class="col-sm-8"><strong>@Html.DisplayFor(model => model.DiemTong)</strong></dd>
-        </dl>
+            <div style="padding:16px;background:#fee2e2;border-radius:8px;">
+                <div class="form-label" style="margin-bottom:8px;">Total Score</div>
+                <div style="font-size:24px;font-weight:700;color:#dc2626;">@(Model?.DiemTong ?? 0)</div>
+            </div>
+        </div>
 
-        <form asp-action="Delete" method="post" style="margin-top:32px;display:flex;gap:12px;">
+        <form asp-action="DeleteConfirmed" method="post">
             <input type="hidden" asp-for="MaHocVien" />
             <input type="hidden" asp-for="MaKhoaHoc" />
-            <button type="submit" class="btn-danger"><i class="fas fa-trash"></i> Delete</button>
-            <a asp-action="Index" class="btn-outline"><i class="fas fa-times"></i> Cancel</a>
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <a href="/KetQuas/Index" class="btn-outline">Cancel</a>
+                <button type="submit" class="btn-danger">
+                    <i class="fas fa-trash"></i> Delete Score
+                </button>
+            </div>
         </form>
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:16px;"><i class="fas fa-info-circle"></i> Info</div>
+            <div style="font-size:13px;color:var(--on-surface-variant);line-height:1.8;">
+                <p>Deleting this score record will:</p>
+                <ul style="margin:8px 0 0 20px;">
+                    <li>Remove the record permanently</li>
+                    <li>Update student statistics</li>
+                    <li>Cannot be recovered</li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 
