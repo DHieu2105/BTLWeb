@@ -2,6 +2,28 @@
     ViewData["Title"] = "Thông Tin Cá Nhân";
 }
 
+@functions {
+    // Safe property accessor for dynamic-like account objects (avoids RuntimeBinderException)
+    private string? GetPropAsString(object? obj, string name)
+    {
+        if (obj == null) return null;
+        var t = obj.GetType();
+        var p = t.GetProperty(name);
+        if (p != null)
+        {
+            var v = p.GetValue(obj);
+            return v?.ToString();
+        }
+        var dict = obj as System.Collections.IDictionary;
+        if (dict != null && dict.Contains(name))
+        {
+            var v = dict[name];
+            return v?.ToString();
+        }
+        return null;
+    }
+}
+
 <div class="container py-5">
     <!-- Header -->
     <div class="row mb-5">
@@ -72,62 +94,71 @@
 
                         @if (Model?.Account != null)
                         {
-                            var account = (dynamic)Model.Account;
+                            var account = Model.Account;
+                            var sdt = GetPropAsString(account, "Sdt");
+                            var gioiTinh = GetPropAsString(account, "GioiTinh");
+                            var chucVu = GetPropAsString(account, "ChucVu");
+                            var chuyenMon = GetPropAsString(account, "ChuyenMon");
+                            var maTrungTam = GetPropAsString(account, "MaTrungTam");
+                            var ngayDangKiStr = GetPropAsString(account, "NgayDangKi");
+
                             <div class="row mb-4 pb-3 border-bottom">
-                                @if (account.Sdt != null)
+                                @if (!string.IsNullOrEmpty(sdt))
                                 {
                                     <div class="col-md-6 mb-3 mb-md-0">
                                         <h6 class="text-muted mb-2"><i class="fas fa-phone me-2 text-primary"></i>Số Điện Thoại</h6>
-                                        <p class="h6 fw-semibold">@account.Sdt</p>
+                                        <p class="h6 fw-semibold">@sdt</p>
                                     </div>
                                 }
 
-                                @if (account.GioiTinh != null)
+                                @if (!string.IsNullOrEmpty(gioiTinh))
                                 {
                                     <div class="col-md-6">
                                         <h6 class="text-muted mb-2"><i class="fas fa-venus-mars me-2 text-primary"></i>Giới Tính</h6>
-                                        <p class="h6 fw-semibold">@account.GioiTinh</p>
+                                        <p class="h6 fw-semibold">@gioiTinh</p>
                                     </div>
                                 }
                             </div>
 
-                            @if (account.ChucVu != null || account.ChuyenMon != null || account.MaTrungTam != null)
+                            @if (!string.IsNullOrEmpty(chucVu) || !string.IsNullOrEmpty(chuyenMon) || !string.IsNullOrEmpty(maTrungTam))
                             {
                                 <div class="row mb-4 pb-3 border-bottom">
-                                    @if (account.ChucVu != null)
+                                    @if (!string.IsNullOrEmpty(chucVu))
                                     {
                                         <div class="col-md-6 mb-3 mb-md-0">
                                             <h6 class="text-muted mb-2"><i class="fas fa-briefcase me-2 text-primary"></i>Chức Vụ</h6>
-                                            <p class="h6 fw-semibold">@account.ChucVu</p>
+                                            <p class="h6 fw-semibold">@chucVu</p>
                                         </div>
                                     }
 
-                                    @if (account.ChuyenMon != null)
+                                    @if (!string.IsNullOrEmpty(chuyenMon))
                                     {
                                         <div class="col-md-6">
                                             <h6 class="text-muted mb-2"><i class="fas fa-graduation-cap me-2 text-primary"></i>Chuyên Môn</h6>
-                                            <p class="h6 fw-semibold">@account.ChuyenMon</p>
+                                            <p class="h6 fw-semibold">@chuyenMon</p>
                                         </div>
                                     }
                                 </div>
                             }
 
-                            @if (account.MaTrungTam != null || account.NgayDangKi != null)
+                            @if (!string.IsNullOrEmpty(maTrungTam) || !string.IsNullOrEmpty(ngayDangKiStr))
                             {
                                 <div class="row">
-                                    @if (account.MaTrungTam != null)
+                                    @if (!string.IsNullOrEmpty(maTrungTam))
                                     {
                                         <div class="col-md-6 mb-3 mb-md-0">
                                             <h6 class="text-muted mb-2"><i class="fas fa-building me-2 text-primary"></i>Trung Tâm</h6>
-                                            <p class="h6 fw-semibold">@account.MaTrungTam</p>
+                                            <p class="h6 fw-semibold">@maTrungTam</p>
                                         </div>
                                     }
 
-                                    @if (account.NgayDangKi != null)
+                                    @if (!string.IsNullOrEmpty(ngayDangKiStr))
                                     {
+                                        DateTime dt;
+                                        var parsed = DateTime.TryParse(ngayDangKiStr, out dt);
                                         <div class="col-md-6">
                                             <h6 class="text-muted mb-2"><i class="fas fa-calendar-alt me-2 text-primary"></i>Ngày Đăng Ký</h6>
-                                            <p class="h6 fw-semibold">@((DateTime)account.NgayDangKi).ToString("dd/MM/yyyy")</p>
+                                            <p class="h6 fw-semibold">@(parsed ? dt.ToString("dd/MM/yyyy") : ngayDangKiStr)</p>
                                         </div>
                                     }
                                 </div>

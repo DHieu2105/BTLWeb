@@ -3,78 +3,172 @@
 @model IPagedList<BTL_Web.Models.HocVien>
 
 @{
-	ViewData["Title"] = "Danh sách Học viên";
+	ViewData["Title"] = "Student Management";
 }
 
-<h1 class="mt-4">Quản lý Học viên</h1>
+<div class="page-header">
+	<div>
+		<h2>Student Management</h2>
+		<p>Manage student information and scores</p>
+	</div>
+	<div class="page-actions">
+		<button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+		<button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+			<i class="fas fa-plus"></i> Add Student
+		</button>
+	</div>
+</div>
 
-<p>
-	<a asp-action="Create" class="btn btn-success">Thêm học viên mới</a>
-</p>
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+	<div class="stat-card blue">
+		<div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+5%</span></div>
+		<div class="stat-label">Total Students</div>
+		<div class="stat-value">@(Model?.Count() ?? 0)</div>
+	</div>
+	<div class="stat-card teal">
+		<div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-check"></i></div></div>
+		<div class="stat-label">Registered</div>
+		<div class="stat-value">@(Model?.Count(m => m.NgayDangKi != null) ?? 0)</div>
+	</div>
+	<div class="stat-card orange">
+		<div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-line"></i></div></div>
+		<div class="stat-label">Completion Rate</div>
+		<div class="stat-value">75%</div>
+	</div>
+</div>
 
-<form asp-action="Index" method="get" class="mb-3 mt-3">
-	<div class="row">
-		<div class="col-md-6">
-			<div class="input-group">
-				<input type="text" name="searchString" value="@ViewData["CurrentFilter"]"
-					   class="form-control" placeholder="Tìm kiếm theo Tên hoặc Mã học viên..." />
-				<button type="submit" class="btn btn-primary">Tìm kiếm</button>
-				<a asp-action="Index" class="btn btn-outline-secondary">Xóa lọc</a>
-			</div>
-		</div>
+<!-- Search Form -->
+<form asp-action="Index" method="get" class="mb-3">
+	<div style="display:flex;gap:8px;margin-bottom:16px;">
+		<input type="text" name="searchString" value="@ViewData["CurrentFilter"]"
+			   class="form-control" placeholder="Search by name or student ID..." />
+		<button type="submit" class="btn-primary"><i class="fas fa-search"></i> Search</button>
+		<a asp-action="Index" class="btn-outline"><i class="fas fa-times"></i> Clear Filter</a>
 	</div>
 </form>
 
-<table class="table table-striped table-hover mt-3">
-	<thead>
-		<tr>
-			<th>
-				@Html.DisplayNameFor(model => model.FirstOrDefault().HoVaTen)
-			</th>
-			<th>
-				@Html.DisplayNameFor(model => model.FirstOrDefault().Sdt)
-			</th>
-			<th>
-				@Html.DisplayNameFor(model => model.FirstOrDefault().NgayDangKi)
-			</th>
-			<th>
-				@Html.DisplayNameFor(model => model.FirstOrDefault().GioiTinh)
-			</th>
-			<th>Thao tác</th>
-		</tr>
-	</thead>
-	<tbody>
-		@foreach (var item in Model)
-		{
+<!-- Table -->
+<div class="card-plain" style="padding:0;">
+	<div class="card-header-plain">
+		<h5>Student List</h5>
+		<div style="display:flex;gap:8px;">
+            <button class="btn-outline btn-sm"><i class="fas fa-filter"></i> Filter</button>
+			<button id="btnAddStudentTop" data-url="@Url.Action("Create","HocViens")" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add New</button>
+		</div>
+	</div>
+	<table class="data-table">
+		<thead>
 			<tr>
-				<td>
-					@Html.DisplayFor(modelItem => item.HoVaTen)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.Sdt)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.NgayDangKi)
-				</td>
-				<td>
-					@Html.DisplayFor(modelItem => item.GioiTinh)
-				</td>
-				<td>
-					<a asp-action="Edit" asp-route-id="@item.MaHocVien" class="btn btn-sm btn-info">Sửa</a>
-					<a asp-action="Details" asp-route-id="@item.MaHocVien" class="btn btn-sm btn-warning">Xem</a>
-					<a asp-action="Delete" asp-route-id="@item.MaHocVien" class="btn btn-sm btn-danger">Xóa</a>
-				</td>
+				<th>Full Name</th>
+				<th>Phone Number</th>
+				<th>Registration Date</th>
+				<th>Gender</th>
+				<th style="text-align:right;">Actions</th>
 			</tr>
-		}
-	</tbody>
-</table>
-
-<div class="d-flex justify-content-center mt-4">
-	@Html.PagedListPager(Model, page => Url.Action("Index",
-		new { page, searchString = ViewData["CurrentFilter"] }),
-		new PagedListRenderOptions
-		{
-			LiElementClasses = new string[] { "page-item" },
-			PageClasses = new string[] { "page-link" }
-		})
+		</thead>
+		<tbody>
+			@foreach (var item in Model)
+			{
+				var ini = string.Join("", (item.HoVaTen ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+				<tr>
+					<td>
+						<div class="user-row">
+							<div class="avatar">@ini</div>
+							<div>
+								<div class="user-name">@Html.DisplayFor(modelItem => item.HoVaTen)</div>
+								<div class="user-sub">@item.MaHocVien</div>
+							</div>
+						</div>
+					</td>
+					<td>@Html.DisplayFor(modelItem => item.Sdt)</td>
+					<td class="user-sub">@Html.DisplayFor(modelItem => item.NgayDangKi)</td>
+					<td>@Html.DisplayFor(modelItem => item.GioiTinh)</td>
+					<td style="text-align:right;">
+						<a asp-action="Edit" asp-route-id="@item.MaHocVien" class="btn-outline btn-sm"><i class="fas fa-edit"></i> Edit</a>
+						<a asp-action="Details" asp-route-id="@item.MaHocVien" class="btn-outline btn-sm"><i class="fas fa-eye"></i> View</a>
+						<a asp-action="Delete" asp-route-id="@item.MaHocVien" class="btn-outline btn-sm text-danger"><i class="fas fa-trash"></i> Delete</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+	<div style="display:flex;justify-content:center;padding:16px;border-top:1px solid var(--surface-high);">
+		@Html.PagedListPager(Model, page => Url.Action("Index",
+			new { page, searchString = ViewData["CurrentFilter"] }),
+			new PagedListRenderOptions
+			{
+				UlElementClasses = new string[] { "pagination" },
+				LiElementClasses = new string[] { "page-item" },
+				PageClasses = new string[] { "page-link" }
+			})
+	</div>
 </div>
+
+<!-- Add Modal -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+	<div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;max-height:90vh;overflow-y:auto;">
+		<h4 style="margin-bottom:24px;">Add New Student</h4>
+		<form method="post" action="@Url.Action("Create", "HocViens")">
+			@Html.AntiForgeryToken()
+			<div class="form-group" style="margin-bottom:16px;">
+				<label class="form-label">Student ID</label>
+				<input type="text" name="MaHocVien" class="form-control" placeholder="Example: HV001" required>
+			</div>
+
+			<div class="form-group" style="margin-bottom:16px;">
+				<label class="form-label">Full Name</label>
+				<input type="text" name="HoVaTen" class="form-control" placeholder="Enter full name" required>
+			</div>
+
+			<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+				<div class="form-group">
+					<label class="form-label">Phone Number</label>
+					<input type="text" name="Sdt" class="form-control" placeholder="0123456789">
+				</div>
+				<div class="form-group">
+					<label class="form-label">Gender</label>
+					<input type="text" name="GioiTinh" class="form-control" placeholder="Male / Female">
+				</div>
+			</div>
+
+			<div class="form-group" style="margin-bottom:16px;">
+				<label class="form-label">Registration Date</label>
+				<input type="date" name="NgayDangKi" class="form-control">
+			</div>
+
+			<div class="form-group" style="margin-bottom:24px;">
+				<label class="form-label">Staff In Charge</label>
+				<select name="MaNv" class="form-control form-select">
+					<option value="">-- Select Staff --</option>
+					@if (ViewBag.MaNv != null)
+					{
+						foreach (var nv in (SelectList)ViewBag.MaNv)
+						{
+							<option value="@nv.Value">@nv.Text</option>
+						}
+					}
+				</select>
+			</div>
+
+			<div style="display:flex;gap:12px;justify-content:flex-end;">
+				<button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+				<button type="submit" class="btn-primary">
+					<i class="fas fa-save"></i> Add Student
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+@section Scripts {
+	<script>
+		document.getElementById('btnAddStudent')?.addEventListener('click', function(){
+			document.getElementById('addModal').style.display = 'flex';
+		});
+		document.getElementById('btnAddStudentTop')?.addEventListener('click', function(){
+			document.getElementById('addModal').style.display = 'flex';
+		});
+	</script>
+	@{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

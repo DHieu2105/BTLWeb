@@ -1,0 +1,170 @@
+@{
+    ViewData["Title"] = "Add Student to Class";
+    var lopHocs  = ViewBag.LopHocs  as IEnumerable<BTL_Web.Models.LopHoc>  ?? new List<BTL_Web.Models.LopHoc>();
+    var hocViens = ViewBag.HocViens as IEnumerable<BTL_Web.Models.HocVien> ?? new List<BTL_Web.Models.HocVien>();
+}
+
+<div class="page-header">
+    <div>
+        <a href="/Staff/ClassManagement" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Classes
+        </a>
+        <h2>Add Student to Class</h2>
+        <p>Assign enrolled students to specific class sessions</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:3fr 2fr;gap:24px;">
+    <!-- Form -->
+    <div class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:24px;display:flex;align-items:center;gap:10px;">
+            <div class="stat-icon blue" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;"><i class="fas fa-chalkboard"></i></div>
+            Select Class & Student
+        </h5>
+        <form method="post" action="/Staff/AddStudentToClassSubmit">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Target Class</label>
+                <select name="MaLop" class="form-control form-select" onchange="updateClassInfo(this)">
+                    <option value="">— Select Class —</option>
+                    @foreach (var lop in lopHocs)
+                    {
+                        <option value="@lop.MaLop" data-course="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")" data-count="@lop.MaHocViens.Count">
+                            @(lop.TenLop ?? lop.MaLop) — @(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <!-- Class Info -->
+            <div id="classInfo" style="display:none;padding:16px;background:rgba(219,225,255,0.15);border-radius:8px;border:1px solid rgba(43,84,191,0.2);margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div class="user-name" id="classCourseName">—</div>
+                        <div class="user-sub" id="classStudentCount">— students enrolled</div>
+                    </div>
+                    <span class="chip chip-green">Active</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Student</label>
+                <select name="MaHocVien" class="form-control form-select">
+                    <option value="">— Select Student —</option>
+                    @foreach (var sv in hocViens)
+                    {
+                        <option value="@sv.MaHocVien">@sv.HoVaTen (@sv.MaHocVien)</option>
+                    }
+                </select>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Enrollment Date</label>
+                    <input type="date" name="NgayDangKi" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Schedule</label>
+                    <div style="display:flex;gap:8px;">
+                        <button type="button" class="filter-btn active">Online</button>
+                        <button type="button" class="filter-btn">Offline</button>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;margin-top:8px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" name="SendNotif" value="true">
+                    <span class="small">Send enrollment notification</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" name="TrialMode" value="true">
+                    <span class="small">Trial mode (no payment required)</span>
+                </label>
+            </div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <a href="/Staff/ClassManagement" class="btn-outline">Cancel</a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-plus"></i> Add to Class
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Class Spotlight -->
+        <div class="card-plain" style="padding:24px;border-left:4px solid var(--primary);">
+            <div class="stat-label" style="margin-bottom:12px;">Class Spotlight</div>
+            <div id="spotlightClass" style="text-align:center;padding:16px;">
+                <div class="avatar" style="width:64px;height:64px;border-radius:16px;font-size:24px;margin:0 auto 12px;background:rgba(219,225,255,0.3);color:var(--primary);">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div class="user-sub">Select a class to see details</div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card-plain" style="padding:24px;">
+            <div class="section-heading">
+                <h5>Recent Additions</h5>
+            </div>
+            @foreach (var sv in hocViens.Take(4))
+            {
+                var n = sv.HoVaTen ?? sv.MaHocVien;
+                var ini = string.Join("", n.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px;background:var(--surface-low);border-radius:8px;margin-bottom:6px;">
+                    <div class="user-row">
+                        <div class="avatar avatar-sm">@ini</div>
+                        <div>
+                            <div class="user-name" style="font-size:12px;">@n</div>
+                            <div class="user-sub">@sv.MaHocVien</div>
+                        </div>
+                    </div>
+                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-plus"></i></button>
+                </div>
+            }
+        </div>
+
+        <!-- Class Insights -->
+        <div class="card-plain" style="padding:24px;background:rgba(219,225,255,0.1);border:1px solid rgba(43,84,191,0.15);">
+            <div class="stat-label" style="margin-bottom:12px;">Class Insights</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;justify-content:space-between;">
+                    <span class="small">Class Diversity</span>
+                    <span class="small fw-bold">6 backgrounds</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;">
+                    <span class="small">Average GPA</span>
+                    <span class="small fw-bold" style="color:#10b981;">3.72 ↑</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function updateClassInfo(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    if (sel.value) {
+        document.getElementById('classInfo').style.display = 'block';
+        document.getElementById('classCourseName').textContent = opt.dataset.course || '—';
+        document.getElementById('classStudentCount').textContent = (opt.dataset.count || 0) + ' students enrolled';
+        document.getElementById('spotlightClass').innerHTML = `
+            <div class="user-name" style="font-size:16px;margin-bottom:4px;">${opt.text.split('—')[0].trim()}</div>
+            <div class="user-sub">${opt.dataset.course || '—'}</div>
+            <div class="chip chip-green" style="margin-top:8px;">Active</div>`;
+    } else {
+        document.getElementById('classInfo').style.display = 'none';
+    }
+}
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        this.closest('div').querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+</script>
+}

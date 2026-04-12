@@ -1,0 +1,65 @@
+@model BTL_Web.Models.KetQua
+
+<h5 style="margin-bottom:20px;">Score Information</h5>
+<form asp-action="Create" method="post" id="addKetQuaForm">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="text-danger" style="padding:12px;background:#fee;border-radius:8px;margin-bottom:16px;"></div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="form-group">
+            <label asp-for="MaHocVien" class="form-label">Student</label>
+            <select asp-for="MaHocVien" class="form-control form-select" asp-items="ViewBag.MaHocVien">
+                <option value="">-- Select Student --</option>
+            </select>
+            <span asp-validation-for="MaHocVien" class="text-danger" style="font-size:12px;"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="MaKhoaHoc" class="form-label">Course</label>
+            <select asp-for="MaKhoaHoc" class="form-control form-select" asp-items="ViewBag.MaKhoaHoc">
+                <option value="">-- Select Course --</option>
+            </select>
+            <span asp-validation-for="MaKhoaHoc" class="text-danger" style="font-size:12px;"></span>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div class="form-group">
+            <label asp-for="DiemListening" class="form-label">Listening Score</label>
+            <input asp-for="DiemListening" class="form-control" placeholder="Enter listening score" type="number" />
+            <span asp-validation-for="DiemListening" class="text-danger" style="font-size:12px;"></span>
+        </div>
+        <div class="form-group">
+            <label asp-for="DiemReading" class="form-label">Reading Score</label>
+            <input asp-for="DiemReading" class="form-control" placeholder="Enter reading score" type="number" />
+            <span asp-validation-for="DiemReading" class="text-danger" style="font-size:12px;"></span>
+        </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:24px;">
+        <label class="form-label">Total Score (Auto-calculated)</label>
+        <div style="padding:12px;background:var(--surface-low);border-radius:8px;font-size:18px;font-weight:600;color:var(--primary);">
+            <span id="DiemTong">0</span>
+        </div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:flex-end;">
+        <button type="button" class="btn-outline" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-save"></i> Add Score
+        </button>
+    </div>
+
+    <script>
+        (function(){
+            function updateTotal(){
+                var l = parseInt($("#DiemListening").val() || 0);
+                var r = parseInt($("#DiemReading").val() || 0);
+                var t = (isNaN(l)?0:l) + (isNaN(r)?0:r);
+                // Chỉ hiển thị preview, không gửi lên server
+                // DB sẽ tính thông qua computed column
+                $("#DiemTong").text(t);
+            }
+            $(document).on('input', '#DiemListening, #DiemReading', updateTotal);
+        })();
+    </script>
+</form>

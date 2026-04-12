@@ -1,0 +1,157 @@
+@model IEnumerable<BTL_Web.Models.KetQua>
+@{
+    ViewData["Title"] = "Manage Results";
+    var avgScore = Model?.Any() == true ? Model.Average(k => k.DiemTong ?? 0) : 0;
+    var passRate = Model?.Any() == true ? (double)Model.Count(k => (k.DiemTong ?? 0) >= 60) / Model.Count() * 100 : 0;
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Results</h2>
+        <p>Student assessment results and performance tracking</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-download"></i> Export</button>
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Add Result
+        </button>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-percentage"></i></div><span class="stat-badge blue">↑</span></div>
+        <div class="stat-label">Pass Rate</div>
+        <div class="stat-value">@passRate.ToString("F0")%</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-star"></i></div></div>
+        <div class="stat-label">Avg. Score</div>
+        <div class="stat-value">@avgScore.ToString("F1")</div>
+    </div>
+    <div class="stat-card highlighted" style="background:var(--sidebar-bg);">
+        <div class="stat-card-header"><div class="stat-icon white"><i class="fas fa-trophy"></i></div></div>
+        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Total Records</div>
+        <div class="stat-value" style="color:white;">@(Model?.Count() ?? 0)</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Assessment Results</h5>
+        <div style="display:flex;gap:8px;">
+            <button class="btn-outline btn-sm"><i class="fas fa-filter"></i> Filter</button>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Listening</th>
+                <th>Reading</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var kq in Model)
+                {
+                    var total = kq.DiemTong ?? 0;
+                    var chipClass = total >= 70 ? "chip-green" : total >= 60 ? "chip-yellow" : "chip-red";
+                    var name = kq.MaHocVienNavigation?.HoVaTen ?? kq.MaHocVien;
+                    var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    <tr>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar">@initials</div>
+                                <div>
+                                    <div class="user-name">@name</div>
+                                    <div class="user-sub">@kq.MaHocVien</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-name">@(kq.MaKhoaHocNavigation?.TenKhoaHoc ?? kq.MaKhoaHoc)</div>
+                        </td>
+                        <td><span style="font-size:16px;font-weight:700;">@(kq.DiemListening ?? 0)</span></td>
+                        <td><span style="font-size:16px;font-weight:700;">@(kq.DiemReading ?? 0)</span></td>
+                        <td>
+                            <span style="font-size:20px;font-weight:800;color:var(--primary);">@total</span>
+                            <div class="progress-bar-wrap" style="width:60px;margin-top:4px;">
+                                <div class="progress-bar-fill" style="width:@(Math.Min(total, 100))%;"></div>
+                            </div>
+                        </td>
+                        <td><span class="chip @chipClass">@(total >= 60 ? "Passed" : "Failed")</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-poll-h"></i><p>No results found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) results</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Add Result</h4>
+        <form method="post" action="/Admin/AddKetQua">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Student</label>
+                <select name="MaHocVien" class="form-control form-select">
+                    @if (ViewBag.HocViens != null)
+                    {
+                        @foreach (var sv in (IEnumerable<BTL_Web.Models.HocVien>)ViewBag.HocViens)
+                        {
+                            <option value="@sv.MaHocVien">@sv.HoVaTen (@sv.MaHocVien)</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Course</label>
+                <select name="MaKhoaHoc" class="form-control form-select">
+                    @if (ViewBag.LopHocs != null)
+                    {
+                        @foreach (var kh in (IEnumerable<BTL_Web.Models.KhoaHoc>)ViewBag.LopHocs)
+                        {
+                            <option value="@kh.MaKhoaHoc">@kh.TenKhoaHoc</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Listening Score</label>
+                    <input type="number" name="DiemListening" class="form-control" min="0" max="100">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Reading Score</label>
+                    <input type="number" name="DiemReading" class="form-control" min="0" max="100">
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Save Result</button>
+            </div>
+        </form>
+    </div>
+</div>

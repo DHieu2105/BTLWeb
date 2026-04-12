@@ -1,48 +1,103 @@
-﻿@model BTL_Web.Models.HocVien
+@model BTL_Web.Models.HocVien
 
 @{
-    ViewData["Title"] = "Details";
+	ViewData["Title"] = "Student Details";
 }
 
-<h1>Details</h1>
-
-<div>
-    <h4>HocVien</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HoVaTen)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HoVaTen)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Sdt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Sdt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayDangKi)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayDangKi)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GioiTinh)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GioiTinh)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaNvNavigation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaNvNavigation.MaNv)
-        </dd>
-    </dl>
+<div class="page-header">
+	<div>
+		<a href="/HocViens/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+			<i class="fas fa-arrow-left"></i> Back to List
+		</a>
+		<h2>@Model?.HoVaTen</h2>
+		<p>@Model?.MaHocVien • Registration Date: @Model?.NgayDangKi?.ToString("dd/MM/yyyy")</p>
+	</div>
+	<div class="page-actions">
+		<a asp-action="Edit" asp-route-id="@Model?.MaHocVien" class="btn-primary">
+			<i class="fas fa-edit"></i> Edit
+		</a>
+		<a asp-action="Delete" asp-route-id="@Model?.MaHocVien" class="btn-outline text-danger">
+			<i class="fas fa-trash"></i> Delete
+		</a>
+	</div>
 </div>
-<div>
-    <a asp-action="Edit" asp-route-id="@Model?.MaHocVien">Edit</a> |
-    <a asp-action="Index">Back to List</a>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+	<div class="card-plain" style="padding:32px;">
+		<h5 style="margin-bottom:24px;">Detailed Information</h5>
+		
+		<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+			<div>
+				<div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Full Name</div>
+				<div style="font-size:16px;font-weight:600;">@Model?.HoVaTen</div>
+			</div>
+			<div>
+				<div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Student ID</div>
+				<div style="font-size:16px;font-weight:600;">@Model?.MaHocVien</div>
+			</div>
+		</div>
+
+		<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px;">
+			<div>
+				<div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Phone Number</div>
+				<div style="font-size:16px;font-weight:600;">@Model?.Sdt</div>
+			</div>
+			<div>
+				<div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Gender</div>
+				<div style="font-size:16px;font-weight:600;">@Model?.GioiTinh</div>
+			</div>
+		</div>
+
+		<div style="margin-bottom:24px;">
+			<div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Registration Date</div>
+			<div style="font-size:16px;font-weight:600;">@Model?.NgayDangKi?.ToString("dd/MM/yyyy")</div>
+		</div>
+
+		<div style="padding:16px;background:var(--surface-low);border-radius:8px;border-left:4px solid var(--primary);">
+			<div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Staff In Charge</div>
+			<div style="font-size:14px;font-weight:600;">
+				@(Model?.MaNvNavigation?.MaNv ?? "Not assigned")
+			</div>
+		</div>
+	</div>
+
+	<!-- Sidebar -->
+	<div style="display:flex;flex-direction:column;gap:16px;">
+		<!-- Profile Card -->
+		<div class="card-plain" style="padding:24px;">
+			<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+				<div class="avatar" style="width:48px;height:48px;font-size:18px;">
+					@{
+						var ini = string.Join("", (Model?.HoVaTen ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+					}
+					@ini
+				</div>
+				<div>
+					<div style="font-weight:600;">@Model?.HoVaTen</div>
+					<div style="font-size:12px;color:var(--on-surface-variant);">@Model?.MaHocVien</div>
+				</div>
+			</div>
+				<button class="btn-outline" style="width:100%;justify-content:center;">
+					<i class="fas fa-message"></i> Contact
+				</button>
+			</div>
+
+			<!-- Actions -->
+			<div class="card-plain" style="padding:24px;">
+				<div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-cog"></i> Actions</div>
+				<div style="display:flex;flex-direction:column;gap:8px;">
+					<a href="#" class="btn-outline btn-sm"><i class="fas fa-file-pdf"></i> Download Profile</a>
+					<a href="#" class="btn-outline btn-sm"><i class="fas fa-print"></i> Print Details</a>
+					<a asp-action="Edit" asp-route-id="@Model?.MaHocVien" class="btn-outline btn-sm"><i class="fas fa-edit"></i> Edit</a>
+			</div>
+		</div>
+
+		<!-- Related Info -->
+		<div class="card-plain" style="padding:24px;">
+			<div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-book"></i> Courses</div>
+			<p style="font-size:13px;color:var(--on-surface-variant);">
+				Courses Registered: <strong>0</strong>
+			</p>
+		</div>
+	</div>
 </div>

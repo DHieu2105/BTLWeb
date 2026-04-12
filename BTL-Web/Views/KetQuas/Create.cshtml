@@ -1,0 +1,114 @@
+﻿@model BTL_Web.Models.KetQua
+
+@{
+    ViewData["Title"] = "Add Score";
+}
+
+<div class="page-header">
+    <div>
+        <a href="/KetQuas/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <h2>Add New Score</h2>
+        <p>Enter student score for the course</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <div class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:20px;">Score Information</h5>
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="padding:12px;background:#fee;border-radius:8px;margin-bottom:16px;"></div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                <div class="form-group">
+                    <label asp-for="MaHocVien" class="form-label">Student</label>
+                    <select asp-for="MaHocVien" class="form-control form-select" asp-items="ViewBag.MaHocVien">
+                        <option value="">-- Select Student --</option>
+                    </select>
+                    <span asp-validation-for="MaHocVien" class="text-danger" style="font-size:12px;"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="MaKhoaHoc" class="form-label">Course</label>
+                    <select asp-for="MaKhoaHoc" class="form-control form-select" asp-items="ViewBag.MaKhoaHoc">
+                        <option value="">-- Select Course --</option>
+                    </select>
+                    <span asp-validation-for="MaKhoaHoc" class="text-danger" style="font-size:12px;"></span>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                <div class="form-group">
+                    <label asp-for="DiemListening" class="form-label">Listening Score</label>
+                    <input asp-for="DiemListening" class="form-control" placeholder="0 - 100" type="number" min="0" max="100" />
+                    <span asp-validation-for="DiemListening" class="text-danger" style="font-size:12px;"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="DiemReading" class="form-label">Reading Score</label>
+                    <input asp-for="DiemReading" class="form-control" placeholder="0 - 100" type="number" min="0" max="100" />
+                    <span asp-validation-for="DiemReading" class="text-danger" style="font-size:12px;"></span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label class="form-label">Total Score (Auto-calculated)</label>
+                <div style="padding:12px;background:var(--surface-low);border-radius:8px;font-size:18px;font-weight:600;color:var(--primary);">
+                    <span id="DiemTong">0</span> / 200
+                </div>
+            </div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <a href="/KetQuas/Index" class="btn-outline">Cancel</a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Add Score
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:16px;"><i class="fas fa-info-circle"></i> Guide</div>
+            <ul style="font-size:13px;line-height:1.8;color:var(--on-surface-variant);">
+                <li>Select student from the list</li>
+                <li>Select corresponding course</li>
+                <li>Enter Listening score (0-100)</li>
+                <li>Enter Reading score (0-100)</li>
+                <li>Total score will be calculated automatically</li>
+            </ul>
+        </div>
+
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-book"></i> Thang điểm</div>
+            <div style="font-size:13px;color:var(--on-surface-variant);line-height:1.8;">
+                <div><strong>Excellent:</strong> 160-200</div>
+                <div><strong>Good:</strong> 120-159</div>
+                <div><strong>Average:</strong> 80-119</div>
+                <div><strong>Below Average:</strong> 0-79</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        $(document).ready(function () {
+            function tinhTong() {
+                let listening = parseInt($("#DiemListening").val()) || 0;
+                let reading = parseInt($("#DiemReading").val()) || 0;
+                let tong = listening + reading;
+
+                // Chỉ hiển thị preview ở giao diện, không gửi lên server
+                // DB sẽ tính thông qua computed column
+                $("#DiemTong").text(tong);
+            }
+
+            $("#DiemListening, #DiemReading").on("input", function () {
+                tinhTong();
+            });
+        });
+    </script>
+}

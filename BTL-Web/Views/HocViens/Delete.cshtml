@@ -1,51 +1,107 @@
 ﻿@model BTL_Web.Models.HocVien
 
 @{
-    ViewData["Title"] = "Delete";
+    ViewData["Title"] = "Delete Student";
 }
 
-<h1>Delete</h1>
+<div class="page-header">
+    <div>
+        <a href="/HocViens/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <h2>Delete Student</h2>
+        <p>Are you sure you want to delete <strong>@Model?.HoVaTen</strong>?</p>
+    </div>
+</div>
 
-<h3>Are you sure you want to delete this?</h3>
-<div>
-    <h4>HocVien</h4>
-    <hr />
-    <dl class="row">
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.HoVaTen)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.HoVaTen)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.Sdt)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.Sdt)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.NgayDangKi)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.NgayDangKi)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.GioiTinh)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.GioiTinh)
-        </dd>
-        <dt class = "col-sm-2">
-            @Html.DisplayNameFor(model => model.MaNvNavigation)
-        </dt>
-        <dd class = "col-sm-10">
-            @Html.DisplayFor(model => model.MaNvNavigation.MaNv)
-        </dd>
-    </dl>
-    
-    <form asp-action="Delete">
-        <input type="hidden" asp-for="MaHocVien" />
-        <input type="submit" value="Delete" class="btn btn-danger" /> |
-        <a asp-action="Index">Back to List</a>
-    </form>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <div class="card-plain" style="padding:32px;border-left:4px solid #dc2626;">
+        <h5 style="margin-bottom:24px;color:#dc2626;">
+            <i class="fas fa-exclamation-triangle"></i> Warning - This action cannot be undone
+        </h5>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+            <div>
+                <div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Full Name</div>
+                <div style="font-size:16px;font-weight:600;">@Model?.HoVaTen</div>
+            </div>
+            <div>
+                <div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Student ID</div>
+                <div style="font-size:16px;font-weight:600;">@Model?.MaHocVien</div>
+            </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px;">
+            <div>
+                <div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Phone Number</div>
+                <div style="font-size:16px;font-weight:600;">@Model?.Sdt</div>
+            </div>
+            <div>
+                <div style="font-size:12px;color:var(--on-surface-variant);margin-bottom:4px;">Gender</div>
+                <div style="font-size:16px;font-weight:600;">@Model?.GioiTinh</div>
+            </div>
+        </div>
+
+        <div style="padding:16px;background:#fee2e2;border-radius:8px;margin-bottom:32px;">
+            <div style="font-size:13px;color:#991b1b;line-height:1.6;">
+                <strong><i class="fas fa-info-circle"></i> Information:</strong><br/>
+                When deleting this student, all related data will be permanently deleted, including:
+                <ul style="margin:8px 0 0 20px;">
+                    <li>Personal information</li>
+                    <li>Course registration</li>
+                    <li>Scores and grade sheets</li>
+                    <li>Transaction history</li>
+                </ul>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="MaHocVien" />
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <a href="/HocViens/Index" class="btn-outline">Cancel</a>
+                <button type="submit" class="btn-danger">
+                    <i class="fas fa-trash"></i> Delete Student
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sidebar -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Profile Card -->
+        <div class="card-plain" style="padding:24px;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div class="avatar" style="width:48px;height:48px;font-size:18px;">
+                    @{
+                        var ini = string.Join("", (Model?.HoVaTen ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    }
+                    @ini
+                </div>
+                <div>
+                    <div style="font-weight:600;">@Model?.HoVaTen</div>
+                    <div style="font-size:12px;color:var(--on-surface-variant);">@Model?.MaHocVien</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alternative Options -->
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-lightbulb"></i> Lựa chọn khác</div>
+            <p style="font-size:13px;color:var(--on-surface-variant);margin-bottom:12px;">
+                Ngoài xóa, bạn cũng có thể:
+            </p>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <a href="#" class="btn-outline btn-sm"><i class="fas fa-ban"></i> Khóa tài khoản</a>
+                <a href="#" class="btn-outline btn-sm"><i class="fas fa-archive"></i> Lưu trữ</a>
+            </div>
+        </div>
+
+        <!-- Help -->
+        <div class="card-plain" style="padding:24px;background:#fef3c7;">
+            <div style="font-size:13px;color:var(--on-surface);line-height:1.6;">
+                <i class="fas fa-question-circle"></i> <strong>Cần giúp?</strong><br/>
+                Liên hệ với quản trị viên nếu bạn thay đổi ý định.
+            </div>
+        </div>
+    </div>
 </div>

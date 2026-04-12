@@ -1,0 +1,173 @@
+@model BTL_Web.Models.HocVien
+@{
+    ViewData["Title"] = "Student Detail";
+    var name = Model?.HoVaTen ?? "Unknown";
+    var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+}
+
+<div class="page-header">
+    <div>
+        <a href="/Admin/HocVien" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Students
+        </a>
+        <h2>Student Profile</h2>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-edit"></i> Edit</button>
+        <button class="btn-primary"><i class="fas fa-file-alt"></i> Report</button>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <div class="empty-state"><i class="fas fa-user-graduate"></i><p>Student not found</p></div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
+        <!-- Profile Card -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+            <div class="card-plain" style="padding:32px;text-align:center;">
+                <div class="avatar" style="width:80px;height:80px;border-radius:20px;font-size:28px;margin:0 auto 16px;">@initials</div>
+                <h3 style="font-size:20px;margin-bottom:4px;">@name</h3>
+                <p class="text-muted small">@Model.MaHocVien</p>
+                <span class="chip chip-green" style="margin-top:8px;">Active Student</span>
+                <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;text-align:left;">
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
+                        <span class="small text-muted">Phone</span>
+                        <span class="small fw-semibold">@(Model.Sdt ?? "—")</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
+                        <span class="small text-muted">Gender</span>
+                        <span class="small fw-semibold">@(Model.GioiTinh ?? "—")</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
+                        <span class="small text-muted">Enrolled</span>
+                        <span class="small fw-semibold">@(Model.NgayDangKi?.ToString("dd/MM/yyyy") ?? "—")</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                        <span class="small text-muted">Staff Advisor</span>
+                        <span class="small fw-semibold">@(Model.MaNvNavigation?.HoVaTen ?? "—")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="card-plain" style="padding:16px;text-align:center;">
+                    <div class="stat-value" style="font-size:24px;">@Model.DangKis.Count</div>
+                    <div class="stat-label">Courses</div>
+                </div>
+                <div class="card-plain" style="padding:16px;text-align:center;">
+                    <div class="stat-value" style="font-size:24px;">@Model.MaLops.Count</div>
+                    <div class="stat-label">Classes</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div style="display:flex;flex-direction:column;gap:24px;">
+            <!-- Enrolled Courses -->
+            <div class="card-plain" style="padding:0;">
+                <div class="card-header-plain">
+                    <h5>Enrolled Courses</h5>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Enrolled Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.DangKis.Any())
+                        {
+                            @foreach (var dk in Model.DangKis)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="user-name">@(dk.MaKhoaHocNavigation?.TenKhoaHoc ?? dk.MaKhoaHoc)</div>
+                                        <div class="user-sub">@dk.MaKhoaHoc</div>
+                                    </td>
+                                    <td class="user-sub">@(dk.NgayDangKi?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                    <td><span class="chip chip-green">Active</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="3"><div class="empty-state" style="padding:24px;"><i class="fas fa-book"></i><p>No courses enrolled</p></div></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Results -->
+            <div class="card-plain" style="padding:0;">
+                <div class="card-header-plain">
+                    <h5>Assessment Results</h5>
+                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th>Listening</th>
+                            <th>Reading</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.KetQuas.Any())
+                        {
+                            @foreach (var kq in Model.KetQuas)
+                            {
+                                var total = kq.DiemTong ?? 0;
+                                <tr>
+                                    <td class="user-name">@(kq.MaKhoaHocNavigation?.TenKhoaHoc ?? kq.MaKhoaHoc)</td>
+                                    <td><span style="font-weight:700;">@(kq.DiemListening ?? 0)</span></td>
+                                    <td><span style="font-weight:700;">@(kq.DiemReading ?? 0)</span></td>
+                                    <td><span style="font-size:18px;font-weight:800;color:var(--primary);">@total</span></td>
+                                    <td><span class="chip @(total >= 60 ? "chip-green" : "chip-red")">@(total >= 60 ? "Passed" : "Failed")</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="5"><div class="empty-state" style="padding:24px;"><i class="fas fa-poll-h"></i><p>No results yet</p></div></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Classes -->
+            <div class="card-plain" style="padding:0;">
+                <div class="card-header-plain"><h5>Enrolled Classes</h5></div>
+                <table class="data-table">
+                    <thead>
+                        <tr><th>Class</th><th>Course</th><th>Teacher</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.MaLops.Any())
+                        {
+                            @foreach (var lop in Model.MaLops)
+                            {
+                                <tr>
+                                    <td><div class="user-name">@(lop.TenLop ?? lop.MaLop)</div></td>
+                                    <td class="user-sub">@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</td>
+                                    <td class="user-sub">@(lop.MaGvNavigation?.Ten ?? "—")</td>
+                                    <td><span class="chip chip-green">Active</span></td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="4"><div class="empty-state" style="padding:24px;"><i class="fas fa-graduation-cap"></i><p>No classes</p></div></td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}

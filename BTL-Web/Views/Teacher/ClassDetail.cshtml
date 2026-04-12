@@ -1,0 +1,192 @@
+@model BTL_Web.Models.LopHoc
+@{
+    ViewData["Title"] = "Class Detail";
+}
+
+<div class="page-header">
+    <div>
+        <a href="/Teacher/MyClasses" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to My Classes
+        </a>
+        @if (Model != null)
+        {
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                <span class="chip chip-green">Active</span>
+                <span class="chip chip-blue">@(Model.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</span>
+            </div>
+            <h2>@(Model.TenLop ?? Model.MaLop)</h2>
+            <p>Room: @(Model.MaPhongNavigation?.TenPhong ?? "—") • @Model.MaHocViens.Count students enrolled</p>
+        }
+        else
+        {
+            <h2>Class Detail</h2>
+        }
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-edit"></i> Edit Class</button>
+        <button class="btn-primary"><i class="fas fa-file-alt"></i> Export Report</button>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <div class="empty-state"><i class="fas fa-graduation-cap"></i><p>Class not found</p></div>
+}
+else
+{
+    <!-- Stats -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+        <div class="card-plain" style="padding:20px;">
+            <div class="stat-label">Average Attendance</div>
+            <div style="display:flex;align-items:baseline;gap:4px;margin-top:4px;">
+                <div class="stat-value">94</div>
+                <span class="small text-muted">%</span>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;"><div class="progress-bar-fill" style="width:94%;"></div></div>
+        </div>
+        <div class="card-plain" style="padding:20px;">
+            <div class="stat-label">Class Progress</div>
+            <div style="display:flex;align-items:baseline;gap:4px;margin-top:4px;">
+                <div class="stat-value">67</div>
+                <span class="small text-muted">%</span>
+            </div>
+            <div class="progress-bar-wrap" style="margin-top:8px;"><div class="progress-bar-fill" style="width:67%;"></div></div>
+        </div>
+        <div class="card-plain" style="padding:20px;border-left:4px solid var(--primary);">
+            <div class="stat-label">Total Students</div>
+            <div class="stat-value" style="margin-top:4px;">@Model.MaHocViens.Count</div>
+            <div class="progress-bar-wrap" style="margin-top:8px;"><div class="progress-bar-fill" style="width:@(Model.MaHocViens.Count * 5)%;"></div></div>
+        </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+        <!-- Student Roster -->
+        <div class="card-plain" style="padding:0;">
+            <div class="card-header-plain">
+                <h5>Student Roster</h5>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-filter"></i></button>
+                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-download"></i></button>
+                </div>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Level</th>
+                        <th>Attendance</th>
+                        <th>Progress</th>
+                        <th style="text-align:right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.MaHocViens.Any())
+                    {
+                        @foreach (var sv in Model.MaHocViens)
+                        {
+                            var name = sv.HoVaTen ?? sv.MaHocVien;
+                            var ini = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                            var score = sv.KetQuas.FirstOrDefault(k => k.MaKhoaHoc == Model.MaKhoaHoc)?.DiemTong ?? 0;
+                            <tr>
+                                <td>
+                                    <div class="user-row">
+                                        <div class="avatar">@ini</div>
+                                        <div>
+                                            <div class="user-name">@name</div>
+                                            <div class="user-sub">@sv.MaHocVien</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="chip chip-blue" style="font-size:11px;">B2</span></td>
+                                <td>
+                                    <div class="progress-bar-wrap" style="width:60px;margin-bottom:2px;">
+                                        <div class="progress-bar-fill" style="width:94%;"></div>
+                                    </div>
+                                    <span class="smaller text-muted">94%</span>
+                                </td>
+                                <td>
+                                    <span style="font-size:16px;font-weight:700;color:var(--primary);">@score</span>
+                                </td>
+                                <td style="text-align:right;">
+                                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5"><div class="empty-state" style="padding:24px;"><i class="fas fa-users"></i><p>No students enrolled</p></div></td></tr>
+                    }
+                </tbody>
+            </table>
+            <div class="pagination-bar">
+                <span class="pagination-info">@Model.MaHocViens.Count students</span>
+                <a href="/Teacher/MyClasses" class="btn-outline btn-sm">View All Classes</a>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <!-- Teacher Card -->
+            <div class="card-plain" style="padding:24px;">
+                <div class="stat-label" style="margin-bottom:12px;">Assigned Faculty</div>
+                <div class="user-row" style="margin-bottom:16px;">
+                    <div class="avatar avatar-lg">@(string.Join("", (Model.MaGvNavigation?.Ten ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper())))</div>
+                    <div>
+                        <div class="user-name">@(Model.MaGvNavigation?.Ten ?? "—")</div>
+                        <div class="user-sub">@(Model.MaGvNavigation?.ChuyenMon ?? "—")</div>
+                    </div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
+                        <span class="small text-muted">Phone</span>
+                        <span class="small fw-semibold">@(Model.MaGvNavigation?.Sdt ?? "—")</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                        <span class="small text-muted">Classes</span>
+                        <span class="small fw-semibold">@(Model.MaGvNavigation?.LopHocs.Count ?? 0)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Card -->
+            <div class="card-plain" style="padding:24px;">
+                <div class="stat-label" style="margin-bottom:12px;">Class Schedule</div>
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <div style="display:flex;gap:12px;padding:12px;background:var(--surface-low);border-radius:8px;">
+                        <div style="width:48px;height:48px;background:white;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:var(--shadow-card);">
+                            <div class="smaller text-muted">MON</div>
+                            <div class="user-name">@DateTime.Now.Day</div>
+                        </div>
+                        <div>
+                            <div class="user-name">Main Lecture</div>
+                            <div class="user-sub">10:00 AM — 12:30 PM</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:12px;padding:12px;background:var(--surface-low);border-radius:8px;">
+                        <div style="width:48px;height:48px;background:white;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:var(--shadow-card);">
+                            <div class="smaller text-muted">WED</div>
+                            <div class="user-name">@(DateTime.Now.Day + 2)</div>
+                        </div>
+                        <div>
+                            <div class="user-name">Workshop Session</div>
+                            <div class="user-sub">10:00 AM — 11:30 AM</div>
+                        </div>
+                    </div>
+                </div>
+                <a href="/Teacher/Schedule" class="btn-outline" style="width:100%;justify-content:center;margin-top:16px;">
+                    View Full Schedule
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notes Section -->
+    <div class="card-plain" style="padding:32px;margin-top:24px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <h5>Private Class Notes</h5>
+            <button class="btn-outline btn-sm"><i class="fas fa-save"></i> Save Notes</button>
+        </div>
+        <textarea class="form-control" rows="4" placeholder="Add private class notes here... (e.g. Student needs extra focus on phonemes, room projector needs bulb replacement)"></textarea>
+    </div>
+}

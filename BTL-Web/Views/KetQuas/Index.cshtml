@@ -1,0 +1,203 @@
+﻿@model IEnumerable<BTL_Web.Models.KetQua>
+
+@{
+	ViewData["Title"] = "Score Management";
+}
+
+<div class="page-header">
+	<div>
+		<h2>Score Management</h2>
+		<p>Manage student learning results</p>
+	</div>
+
+<!-- Simple modal (consistent with other modules) -->
+<div id="addModalScore" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+	<div style="background:white;border-radius:12px;padding:24px;width:760px;max-width:95vw;">
+		<div id="addModalScoreContent"><!-- injected --></div>
+	</div>
+</div>
+
+<!-- DEBUG: show current user and role flags (local dev) -->
+<div style="margin-bottom:12px;font-size:13px;color:var(--on-surface-variant);">
+	<strong>Debug:</strong>
+	User = @User.Identity?.Name ?? "(not authenticated)";
+	IsAdmin = @(User.IsInRole("Admin") ? "yes" : "no");
+	IsGiaoVien = @(User.IsInRole("GiaoVien") ? "yes" : "no");
+	IsNhanVien = @(User.IsInRole("NhanVien") ? "yes" : "no");
+</div>
+
+@section Scripts {
+	<script>
+		(function(){
+			function openAddScore(url){
+				$.ajax({
+					url: url,
+					method: 'GET',
+					headers: { 'X-Requested-With': 'XMLHttpRequest' }
+				}).done(function(html){
+					$('#addModalScoreContent').html(html);
+					$('#addModalScore').css('display','flex');
+
+					// remove previous handlers
+					$('#addModalScoreContent').off('submit', '#addKetQuaForm');
+
+					// bind submit
+					$('#addModalScoreContent').on('submit', '#addKetQuaForm', function(e){
+						e.preventDefault();
+						var $form = $(this);
+						$.ajax({
+							url: $form.attr('action'),
+							method: $form.attr('method') || 'post',
+							data: $form.serialize(),
+							headers: { 'X-Requested-With': 'XMLHttpRequest' },
+							success: function(res){
+								if (typeof res === 'object' && res.success){
+									// close and reload
+									$('#addModalScore').hide();
+									location.reload();
+									return;
+								}
+								// show validation partial
+								$('#addModalScoreContent').html(res);
+							},
+							error: function(){ alert('Error saving score'); }
+						});
+					});
+
+					// close on cancel button
+					$('#addModalScoreContent').on('click', '[data-bs-dismiss="modal"], .btn-outline', function(e){
+						e.preventDefault();
+						$('#addModalScore').hide();
+					});
+				}).fail(function(){ alert('Unable to load form'); });
+			}
+
+			$(document).on('click', '#btnAddScoreTop, #btnAddScoreHeader', function(e){
+				e.preventDefault();
+				var url = $(this).data('url');
+				if(url) openAddScore(url);
+			});
+
+			// hide when clicking outside
+			$('#addModalScore').on('click', function(e){ if (e.target.id === 'addModalScore') $(this).hide(); });
+		})();
+	</script>
+}
+    <div class="page-actions">
+	   <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+		<button id="btnAddScoreHeader" data-url="@Url.Action("Create","KetQuas")" class="btn-primary btn-open-add-score">
+			<i class="fas fa-plus"></i> Add Score
+		</button>
+	</div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+	<div class="stat-card blue">
+		<div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-score"></i></div><span class="stat-badge blue">+3%</span></div>
+		<div class="stat-label">Total Records</div>
+		<div class="stat-value">@(Model?.Count() ?? 0)</div>
+	</div>
+	<div class="stat-card teal">
+		<div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-check-circle"></i></div></div>
+		<div class="stat-label">Completed</div>
+		<div class="stat-value">@(Model?.Count(m => m.DiemTong > 0) ?? 0)</div>
+	</div>
+	<div class="stat-card orange">
+		<div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-star"></i></div></div>
+		<div class="stat-label">Average Score</div>
+		<div class="stat-value">@(Model?.Where(m => m.DiemTong > 0).Average(m => m.DiemTong)?.ToString("0.0") ?? "—")</div>
+	</div>
+</div>
+
+<!-- Search & Filter Section -->
+<div class="card-plain" style="padding:20px;margin-bottom:20px;">
+	<form asp-action="Index" method="get" style="display:grid;grid-template-columns:2fr 1.5fr 150px;gap:12px;align-items:end;">
+		<div>
+			<label class="form-label">Search (Name/Student ID)</label>
+			<input type="text" name="searchString" class="form-control" placeholder="Example: John Doe or HV001" value="@ViewData["CurrentFilter"]" />
+		</div>
+		<div>
+			<label class="form-label">Filter by Course</label>
+			<select name="filterKhoaHoc" class="form-control form-select">
+				<option value="">-- All Courses --</option>
+				@if (ViewBag.KhoaHocList != null)
+				{
+					foreach (var khoaHoc in ViewBag.KhoaHocList)
+					{
+						<option value="@khoaHoc.Value" selected="@(khoaHoc.Value == ViewData["CurrentKhoaHocFilter"]?.ToString() ? "selected" : "")">@khoaHoc.Text</option>
+					}
+				}
+			</select>
+		</div>
+		<button type="submit" class="btn-primary" style="width:100%;"><i class="fas fa-search"></i> Search</button>
+	</form>
+</div>
+
+<!-- Table -->
+<div class="card-plain" style="padding:0;">
+	<div class="card-header-plain">
+		<h5>Score Table</h5>
+		<div style="display:flex;gap:8px;">
+           <button id="btnAddScoreTop" data-url="@Url.Action("Create","KetQuas")" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add New</button>
+		</div>
+	</div>
+	<table class="data-table">
+		<thead>
+			<tr>
+				<th>Student</th>
+				<th>Course</th>
+				<th>Listening</th>
+				<th>Reading</th>
+				<th>Total Score</th>
+				<th style="text-align:right;">Actions</th>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var item in Model)
+			{
+				var ini = string.Join("", (item.MaHocVienNavigation?.HoVaTen ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+				var diemTong = item.DiemTong ?? 0;
+				var diemMau = diemTong >= 70 ? "green" : diemTong >= 50 ? "yellow" : "red";
+				<tr>
+					<td>
+						<div class="user-row">
+							<div class="avatar">@ini</div>
+							<div>
+								<div class="user-name">@Html.DisplayFor(modelItem => item.MaHocVienNavigation.HoVaTen)</div>
+								<div class="user-sub">@item.MaHocVien</div>
+							</div>
+						</div>
+					</td>
+					<td>
+						<div>@Html.DisplayFor(modelItem => item.MaKhoaHocNavigation.TenKhoaHoc)</div>
+						<div class="user-sub">@item.MaKhoaHoc</div>
+					</td>
+                    <td>
+						<div class="user-name">@Html.DisplayFor(modelItem => item.DiemListening)</div>
+					</td>
+                    <td>
+						<div class="user-name">@Html.DisplayFor(modelItem => item.DiemReading)</div>
+					</td>
+					<td>
+						<span class="chip chip-@diemMau" style="font-weight:600;">@diemTong</span>
+					</td>
+					<td style="text-align:right;">
+						<a asp-action="Edit"
+						   asp-route-maHocVien="@item.MaHocVien"
+						   asp-route-maKhoaHoc="@item.MaKhoaHoc"
+						   class="btn-outline btn-sm"><i class="fas fa-edit"></i> Edit</a>
+						<a asp-action="Details"
+						   asp-route-maHocVien="@item.MaHocVien"
+						   asp-route-maKhoaHoc="@item.MaKhoaHoc"
+						   class="btn-outline btn-sm"><i class="fas fa-eye"></i> View</a>
+						<a asp-action="Delete"
+						   asp-route-maHocVien="@item.MaHocVien"
+						   asp-route-maKhoaHoc="@item.MaKhoaHoc"
+						   class="btn-outline btn-sm text-danger"><i class="fas fa-trash"></i> Delete</a>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
