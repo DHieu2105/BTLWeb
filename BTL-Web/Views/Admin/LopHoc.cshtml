@@ -1,0 +1,170 @@
+@model IEnumerable<BTL_Web.Models.LopHoc>
+@{
+    ViewData["Title"] = "Manage Classes";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Classes</h2>
+        <p>Schedule and manage all active class sessions</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Schedule New Class
+        </button>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div><span class="stat-badge blue">+5%</span></div>
+        <div class="stat-label">Total Classes</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-hourglass-half"></i></div></div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">@(Model?.Sum(l => l.MaHocViens.Count) ?? 0)</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-pie"></i></div></div>
+        <div class="stat-label">Avg. Capacity</div>
+        <div class="stat-value">88%</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <div style="padding:16px 24px;border-bottom:1px solid var(--surface-low);display:flex;align-items:center;gap:8px;">
+        <button class="filter-btn active">All Classes</button>
+        <button class="filter-btn">Active</button>
+        <button class="filter-btn">Completed</button>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Class ID</th>
+                <th>Class Name</th>
+                <th>Course</th>
+                <th>Teacher</th>
+                <th>Room</th>
+                <th>Students</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var lh in Model)
+                {
+                    <tr>
+                        <td><span class="chip chip-gray">@lh.MaLop</span></td>
+                        <td><div class="user-name">@(lh.TenLop ?? "—")</div></td>
+                        <td class="user-sub">@(lh.MaKhoaHocNavigation?.TenKhoaHoc ?? lh.MaKhoaHoc ?? "—")</td>
+                        <td>@(lh.MaGvNavigation?.Ten ?? lh.MaGv ?? "—")</td>
+                        <td class="user-sub">@(lh.MaPhongNavigation?.TenPhong ?? lh.MaPhong ?? "—")</td>
+                        <td>
+                            <div class="progress-bar-wrap" style="width:60px;margin-bottom:4px;">
+                                <div class="progress-bar-fill" style="width:70%;"></div>
+                            </div>
+                            <span class="smaller text-muted">@lh.MaHocViens.Count</span>
+                        </td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <a href="/Admin/StudentsInClass/@lh.MaLop" class="btn-icon btn-outline btn-sm" title="Students"><i class="fas fa-users"></i></a>
+                                <button class="btn-icon btn-outline btn-sm" onclick="deleteClass('@lh.MaLop')">
+                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-graduation-cap"></i><p>No classes found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) classes</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;max-height:90vh;overflow-y:auto;">
+        <h4 style="margin-bottom:24px;">Schedule New Class</h4>
+        <form method="post" action="/Admin/AddLopHoc">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Class Name</label>
+                <input type="text" name="TenLop" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Course</label>
+                    <select name="MaKhoaHoc" class="form-control form-select">
+                        <option value="">— Select —</option>
+                        @if (ViewBag.KhoaHocs != null)
+                        {
+                            @foreach (var kh in (IEnumerable<BTL_Web.Models.KhoaHoc>)ViewBag.KhoaHocs)
+                            {
+                                <option value="@kh.MaKhoaHoc">@kh.TenKhoaHoc</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teacher</label>
+                    <select name="MaGv" class="form-control form-select">
+                        <option value="">— Select —</option>
+                        @if (ViewBag.GiaoViens != null)
+                        {
+                            @foreach (var gv in (IEnumerable<BTL_Web.Models.GiaoVien>)ViewBag.GiaoViens)
+                            {
+                                <option value="@gv.MaGv">@gv.Ten</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Room</label>
+                <select name="MaPhong" class="form-control form-select">
+                    <option value="">— Select —</option>
+                    @if (ViewBag.PhongHocs != null)
+                    {
+                        @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
+                        {
+                            <option value="@ph.MaPhong">@ph.TenPhong</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Create Class</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+function deleteClass(id) {
+    if (confirm('Delete class ' + id + '?')) location.href = '/Admin/DeleteLopHoc/' + id;
+}
+</script>
+}

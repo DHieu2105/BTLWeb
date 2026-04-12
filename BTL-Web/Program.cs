@@ -13,10 +13,9 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// Add DbContext
+// Sửa lại dòng này trong Program.cs
 builder.Services.AddDbContext<TtanContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 // Add custom services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();

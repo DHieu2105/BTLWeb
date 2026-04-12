@@ -1,57 +1,103 @@
 ﻿@model BTL_Web.Models.HocVien
 
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Add Student";
 }
 
-<h1>Create</h1>
-
-<h4>HocVien</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="MaHocVien" class="control-label"></label>
-                <input asp-for="MaHocVien" class="form-control" />
-                <span asp-validation-for="MaHocVien" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="HoVaTen" class="control-label"></label>
-                <input asp-for="HoVaTen" class="form-control" />
-                <span asp-validation-for="HoVaTen" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Sdt" class="control-label"></label>
-                <input asp-for="Sdt" class="form-control" />
-                <span asp-validation-for="Sdt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="NgayDangKi" class="control-label"></label>
-                <input asp-for="NgayDangKi" class="form-control" />
-                <span asp-validation-for="NgayDangKi" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="MaNv" class="control-label"></label>
-                <select asp-for="MaNv" class ="form-control" asp-items="ViewBag.MaNv"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="GioiTinh" class="control-label"></label>
-                <input asp-for="GioiTinh" class="form-control" />
-                <span asp-validation-for="GioiTinh" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="page-header">
+    <div>
+        <a href="/HocViens/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <h2>Add New Student</h2>
+        <p>Enter new student information into the system</p>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <div class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:20px;">Student Information</h5>
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger" style="padding:12px;background:#fee;border-radius:8px;margin-bottom:16px;"></div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label asp-for="MaHocVien" class="form-label">Student ID</label>
+                <input asp-for="MaHocVien" class="form-control" placeholder="Example: HV001" />
+                <span asp-validation-for="MaHocVien" class="text-danger" style="font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label asp-for="HoVaTen" class="form-label">Full Name</label>
+                <input asp-for="HoVaTen" class="form-control" placeholder="Enter full name" />
+                <span asp-validation-for="HoVaTen" class="text-danger" style="font-size:12px;"></span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+                <div class="form-group">
+                    <label asp-for="Sdt" class="form-label">Phone Number</label>
+                    <input asp-for="Sdt" class="form-control" placeholder="0123456789" />
+                    <span asp-validation-for="Sdt" class="text-danger" style="font-size:12px;"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="GioiTinh" class="form-label">Gender</label>
+                    <select asp-for="GioiTinh" class="form-control form-select">
+                        <option value="">-- Select Gender --</option>
+                        <option value="Nam">Nam (Male)</option>
+                        <option value="Nu">Nữ (Female)</option>
+                    </select>
+                    <span asp-validation-for="GioiTinh" class="text-danger" style="font-size:12px;"></span>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:16px;">
+                <label asp-for="NgayDangKi" class="form-label">Registration Date</label>
+                <input asp-for="NgayDangKi" class="form-control" type="date" />
+                <span asp-validation-for="NgayDangKi" class="text-danger" style="font-size:12px;"></span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:24px;">
+                <label asp-for="MaNv" class="form-label">Staff In Charge</label>
+                <select asp-for="MaNv" class="form-control form-select" asp-items="ViewBag.MaNv">
+                    <option value="">-- Select Staff --</option>
+                </select>
+                <span asp-validation-for="MaNv" class="text-danger" style="font-size:12px;"></span>
+            </div>
+
+            <div style="display:flex;gap:12px;justify-content:flex-end;">
+                <a href="/HocViens/Index" class="btn-outline">Cancel</a>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-save"></i> Add Student
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Sidebar Info -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:16px;"><i class="fas fa-info-circle"></i> Hướng dẫn</div>
+            <ul style="font-size:13px;line-height:1.8;color:var(--on-surface-variant);">
+                <li>Mã học viên phải duy nhất</li>
+                <li>Số điện thoại hợp lệ (10 số)</li>
+                <li>Chọn nhân viên phụ trách</li>
+                <li>Ngày đăng ký không được sau hôm nay</li>
+            </ul>
+        </div>
+
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-graduation-cap"></i> Ghi chú</div>
+            <p style="font-size:13px;color:var(--on-surface-variant);line-height:1.6;">
+                Sau khi thêm học viên, bạn sẽ có thể gán họ vào các khóa học và lớp học.
+            </p>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
 }
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+

@@ -1,0 +1,94 @@
+@using System.Security.Claims
+@{
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var controller = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
+    var navSection = controller switch
+    {
+        "Admin" => "Admin",
+        "Staff" => "NhanVien",
+        "Teacher" => "GiaoVien",
+        "Student" => "HocVien",
+        _ => role
+    };
+    var roleDisplay = navSection switch {
+        "Admin" => "Quản Trị Viên",
+        "NhanVien" => "Nhân Viên",
+        "GiaoVien" => "Giáo Viên",
+        "HocVien" => "Học Viên",
+        _ => "Người Dùng"
+    };
+    var name = User.Identity?.Name ?? "User";
+    var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+    var overviewUrl = navSection switch
+    {
+        "Admin" => "/Admin/Index",
+        "NhanVien" => "/Staff/Index",
+        "GiaoVien" => "/Teacher/Index",
+        "HocVien" => "/Student/Index",
+        _ => "/Home/Index"
+    };
+    var featureUrl = navSection switch
+    {
+        "Admin" => "/Admin/TrungTam",
+        "NhanVien" => "/Staff/StudentManagement",
+        "GiaoVien" => "/Teacher/MyClasses",
+        "HocVien" => "/Student/MyCourses",
+        _ => "/Home/Index"
+    };
+    var reportsUrl = navSection switch
+    {
+        "Admin" => "/Admin/KetQua",
+        "NhanVien" => "/Staff/CourseManagement",
+        "GiaoVien" => "/Teacher/Schedule",
+        "HocVien" => "/Student/Results",
+        _ => "/Home/Index"
+    };
+    var featureLabel = navSection switch
+    {
+        "Admin" => "Trung tâm & CSVC",
+        "NhanVien" => "Học viên",
+        "GiaoVien" => "Lớp của tôi",
+        "HocVien" => "Khóa học",
+        _ => "Tính năng"
+    };
+    var reportsLabel = navSection switch
+    {
+        "Admin" => "Báo cáo",
+        "NhanVien" => "Báo cáo",
+        "GiaoVien" => "Lịch dạy",
+        "HocVien" => "Kết quả",
+        _ => "Báo cáo"
+    };
+}
+
+<nav class="top-navbar">
+    <div style="display:flex;align-items:center;gap:24px;flex:1;">
+        <div class="search-box" style="max-width:360px;">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search students, staff or resources...">
+        </div>
+        <div class="navbar-nav-links">
+            <a href="@overviewUrl" class="active">Dashboard</a>
+            <a href="@featureUrl">@featureLabel</a>
+            <a href="@reportsUrl">@reportsLabel</a>
+        </div>
+    </div>
+
+    <div class="navbar-actions">
+        <a class="navbar-btn" title="Notifications" href="@overviewUrl">
+            <i class="far fa-bell" style="font-size:16px;"></i>
+            <span class="badge-dot"></span>
+        </a>
+        <a class="navbar-btn" title="Messages" href="/Auth/Profile">
+            <i class="far fa-comment-alt" style="font-size:16px;"></i>
+        </a>
+        <div class="navbar-divider"></div>
+        <a class="user-info" href="/Auth/Profile" style="text-decoration:none;color:inherit;">
+            <div class="user-text">
+                <div class="user-name">@name</div>
+                <div class="user-role">@roleDisplay</div>
+            </div>
+            <div class="user-avatar">@initials</div>
+        </a>
+    </div>
+</nav>

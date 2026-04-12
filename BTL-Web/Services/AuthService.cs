@@ -21,7 +21,7 @@ public class AuthService : IAuthService
 
     public async Task<TaiKhoan?> AuthenticateAsync(string username, string password)
     {
-        var account = await _context.TaiKhoans
+      var account = await _context.TaiKhoans
             .FirstOrDefaultAsync(x => x.Username.ToLower() == username.ToLower());
 
         if (account == null)

@@ -1,0 +1,206 @@
+@{
+    ViewData["Title"] = "Staff-Teacher Assignment";
+    var nhanViens = ViewBag.NhanViens as IEnumerable<BTL_Web.Models.NhanVien> ?? new List<BTL_Web.Models.NhanVien>();
+    var giaoViens = ViewBag.GiaoViens as IEnumerable<BTL_Web.Models.GiaoVien> ?? new List<BTL_Web.Models.GiaoVien>();
+}
+
+<div class="page-header">
+    <div>
+        <h2>Staff-Teacher Assignment</h2>
+        <p>Assign teachers to staff supervisors for management oversight</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-primary" onclick="document.getElementById('assignModal').style.display='flex'">
+            <i class="fas fa-plus"></i> New Assignment
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Total Staff</div>
+        <div class="stat-value">@nhanViens.Count()</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Total Teachers</div>
+        <div class="stat-value">@giaoViens.Count()</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Unassigned Teachers</div>
+        <div class="stat-value" style="color:#f97316;">@giaoViens.Count(g => !g.MaNvs.Any())</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Efficiency Rating</div>
+        <div class="stat-value" style="color:#10b981;">94%</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <!-- Active Staff Panel -->
+    <div class="card-plain" style="padding:0;">
+        <div class="card-header-plain">
+            <h5>Staff Assignments</h5>
+            <span class="chip chip-blue">@nhanViens.Count() Staff Members</span>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Staff Member</th>
+                    <th>Assigned Teachers</th>
+                    <th>Workload</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var nv in nhanViens)
+                {
+                    var name = nv.HoVaTen ?? nv.MaNv;
+                    var ini = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    var assignedCount = nv.MaGvs.Count;
+                    <tr>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar">@ini</div>
+                                <div>
+                                    <div class="user-name">@name</div>
+                                    <div class="user-sub">@(nv.ChucVu ?? nv.MaNv)</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display:flex;gap:-4px;">
+                                @foreach (var gv in nv.MaGvs.Take(3))
+                                {
+                                    var gn = gv.Ten ?? "?";
+                                    var gi = string.Join("", gn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                                    <div class="avatar avatar-sm" style="margin-right:-8px;border:2px solid white;">@gi</div>
+                                }
+                                @if (assignedCount > 3)
+                                {
+                                    <div class="avatar avatar-sm" style="margin-right:-8px;border:2px solid white;background:var(--surface-high);color:var(--on-surface-variant);font-size:10px;">+@(assignedCount-3)</div>
+                                }
+                            </div>
+                            <span class="smaller text-muted" style="margin-top:4px;display:block;">@assignedCount teachers</span>
+                        </td>
+                        <td>
+                            <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
+                                <div class="progress-bar-fill" style="width:@(Math.Min(assignedCount * 20, 100))%;"></div>
+                            </div>
+                            <span class="smaller text-muted">@(assignedCount * 20)%</span>
+                        </td>
+                        <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                        </td>
+                    </tr>
+                }
+                @if (!nhanViens.Any())
+                {
+                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-users-cog"></i><p>No staff found</p></div></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Right Panel -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <!-- Search & Filter -->
+        <div class="card-plain" style="padding:24px;">
+            <h5 style="margin-bottom:16px;"><i class="fas fa-filter" style="color:var(--primary);margin-right:8px;"></i>Filter</h5>
+            <div class="form-group">
+                <label class="form-label">Department</label>
+                <select class="form-control form-select">
+                    <option>All Departments</option>
+                    @foreach (var nv in nhanViens.Select(n => n.MaTrungTam).Distinct())
+                    {
+                        <option>@nv</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Staff Seniority</label>
+                <div style="display:flex;gap:8px;">
+                    <button class="filter-btn active">All</button>
+                    <button class="filter-btn">Senior</button>
+                    <button class="filter-btn">Junior</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="card-plain" style="padding:24px;">
+            <h5 style="margin-bottom:16px;">Recent Activity</h5>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                @foreach (var gv in giaoViens.Take(3))
+                {
+                    var gn = gv.Ten ?? gv.MaGv;
+                    var gi = string.Join("", gn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    <div style="display:flex;gap:12px;padding:10px;background:var(--surface-low);border-radius:8px;border-left:3px solid var(--primary);">
+                        <div class="avatar avatar-sm">@gi</div>
+                        <div>
+                            <div class="user-name" style="font-size:13px;">@gn assigned</div>
+                            <div class="user-sub">@(gv.ChuyenMon ?? "—")</div>
+                            <div class="activity-time">Recently</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Intelligent Matching -->
+        <div class="card-plain" style="padding:24px;">
+            <h5 style="margin-bottom:8px;">Intelligent Matching</h5>
+            <p class="small text-muted" style="margin-bottom:16px;">Our algorithm suggests pairing teachers with staff based on schedule overlap.</p>
+            <button class="btn-outline" style="width:100%;justify-content:center;">
+                <i class="fas fa-magic"></i> Auto-Match
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Modal -->
+<div id="assignModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Assign Teacher to Staff</h4>
+        <form method="post" action="/Admin/AssignStaffTeacher">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Staff Member</label>
+                <select name="MaNv" class="form-control form-select">
+                    <option value="">— Select Staff —</option>
+                    @foreach (var nv in nhanViens)
+                    {
+                        <option value="@nv.MaNv">@nv.HoVaTen (@nv.ChucVu)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Teacher</label>
+                <select name="MaGv" class="form-control form-select">
+                    <option value="">— Select Teacher —</option>
+                    @foreach (var gv in giaoViens)
+                    {
+                        <option value="@gv.MaGv">@gv.Ten (@gv.ChuyenMon)</option>
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('assignModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Assign</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+</script>
+}

@@ -1,0 +1,175 @@
+@{
+    ViewData["Title"] = "Register Student";
+    var hocViens = ViewBag.HocViens as IEnumerable<BTL_Web.Models.HocVien> ?? new List<BTL_Web.Models.HocVien>();
+    var khoaHocs = ViewBag.KhoaHocs as IEnumerable<BTL_Web.Models.KhoaHoc> ?? new List<BTL_Web.Models.KhoaHoc>();
+    var lopHocs  = ViewBag.LopHocs  as IEnumerable<BTL_Web.Models.LopHoc>  ?? new List<BTL_Web.Models.LopHoc>();
+}
+
+<div class="page-header">
+    <div>
+        <a href="/Staff/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <h2>Register Student to Course</h2>
+        <p>Enroll a student into a course and assign to a class</p>
+    </div>
+</div>
+
+<!-- Progress Steps -->
+<div style="display:flex;align-items:center;gap:8px;margin-bottom:32px;">
+    <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">1</div>
+        <span class="small fw-semibold">Student Profile</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--surface-high);max-width:48px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;background:var(--surface-high);color:var(--on-surface-variant);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">2</div>
+        <span class="small text-muted">Course Selection</span>
+    </div>
+    <div style="flex:1;height:2px;background:var(--surface-high);max-width:48px;"></div>
+    <div style="display:flex;align-items:center;gap:8px;">
+        <div style="width:32px;height:32px;background:var(--surface-high);color:var(--on-surface-variant);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">3</div>
+        <span class="small text-muted">Payment Info</span>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <div style="display:flex;flex-direction:column;gap:24px;">
+        <!-- Step 1 -->
+        <div class="card-plain" style="padding:32px;border-left:4px solid var(--primary);">
+            <h5 style="margin-bottom:20px;">1. Student Profile</h5>
+            <div class="form-group">
+                <label class="form-label">Find or Create Student</label>
+                <select id="studentSel" class="form-control form-select" onchange="pickStudent(this)">
+                    <option value="">— Search or select student —</option>
+                    @foreach (var sv in hocViens)
+                    {
+                        <option value="@sv.MaHocVien" data-name="@sv.HoVaTen" data-phone="@sv.Sdt">
+                            @sv.HoVaTen (@sv.MaHocVien)
+                        </option>
+                    }
+                </select>
+            </div>
+            <div id="svInfo" style="display:none;padding:16px;background:var(--surface-low);border-radius:8px;margin-top:12px;">
+                <div class="user-row">
+                    <div class="avatar" id="svAvatar">?</div>
+                    <div>
+                        <div class="user-name" id="svName">—</div>
+                        <div class="user-sub" id="svPhone">—</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="card-plain" style="padding:32px;border-left:4px solid #0891b2;">
+            <h5 style="margin-bottom:20px;">2. Course Selection</h5>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                @foreach (var kh in khoaHocs)
+                {
+                    <label style="cursor:pointer;">
+                        <input type="radio" name="selCourse" value="@kh.MaKhoaHoc" style="display:none;" onchange="pickCourse('@kh.MaKhoaHoc','@kh.TenKhoaHoc','@kh.ThoiLuong')">
+                        <div id="kh-@kh.MaKhoaHoc" style="padding:16px;border:2px solid var(--surface-high);border-radius:8px;transition:all 0.15s;">
+                            <div class="user-name">@kh.TenKhoaHoc</div>
+                            <div class="user-sub">@kh.ThoiLuong weeks • @(kh.HocPhi?.ToString("N0") ?? "—") VND</div>
+                            <div style="display:flex;gap:8px;margin-top:8px;">
+                                <span class="chip chip-blue" style="font-size:10px;">@kh.LopHocs.Count classes</span>
+                                <span class="chip chip-green" style="font-size:10px;">@kh.DangKis.Count enrolled</span>
+                            </div>
+                        </div>
+                    </label>
+                }
+            </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="card-plain" style="padding:32px;border-left:4px solid #f97316;">
+            <h5 style="margin-bottom:20px;">3. Payment Information</h5>
+            <form method="post" action="/Staff/RegisterStudentSubmit" id="regForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="MaHocVien" id="hidSv">
+                <input type="hidden" name="MaKhoaHoc" id="hidKh">
+                <div style="margin-bottom:16px;">
+                    <label class="form-label">Payment Status</label>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <label style="cursor:pointer;"><input type="radio" name="TrangThai" value="Paid"> <span class="chip chip-green">Paid in Full</span></label>
+                        <label style="cursor:pointer;"><input type="radio" name="TrangThai" value="Partial"> <span class="chip chip-yellow">Partial</span></label>
+                        <label style="cursor:pointer;"><input type="radio" name="TrangThai" value="Pending" checked> <span class="chip chip-gray">Pending</span></label>
+                        <label style="cursor:pointer;"><input type="radio" name="TrangThai" value="Trial"> <span class="chip chip-blue">Trial</span></label>
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                    <a href="/Staff/Index" class="btn-outline">Cancel</a>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-check"></i> Complete Registration
+                        <i class="fas fa-arrow-right" style="font-size:10px;margin-left:4px;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Summary -->
+    <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:12px;">Enrollment Summary</div>
+            <div id="sumSv" style="padding:12px;background:var(--surface-low);border-radius:8px;margin-bottom:8px;">
+                <div class="user-sub">No student selected</div>
+            </div>
+            <div id="sumKh" style="padding:12px;background:var(--surface-low);border-radius:8px;margin-bottom:16px;">
+                <div class="user-sub">No course selected</div>
+            </div>
+            <button class="btn-primary" style="width:100%;justify-content:center;" onclick="document.getElementById('regForm').submit()">
+                <i class="fas fa-check"></i> Complete Registration
+            </button>
+            <p class="smaller text-muted" style="text-align:center;margin-top:8px;">Student will be notified</p>
+        </div>
+
+        <!-- Recently Registered -->
+        <div class="card-plain" style="padding:24px;">
+            <div class="stat-label" style="margin-bottom:12px;">Recently Registered</div>
+            @foreach (var sv in hocViens.Take(3))
+            {
+                var n = sv.HoVaTen ?? sv.MaHocVien;
+                var ini = string.Join("", n.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:8px;background:var(--surface-low);border-radius:8px;margin-bottom:6px;">
+                    <div class="user-row">
+                        <div class="avatar avatar-sm">@ini</div>
+                        <div>
+                            <div class="user-name" style="font-size:12px;">@n</div>
+                            <div class="user-sub">@sv.MaHocVien</div>
+                        </div>
+                    </div>
+                    <span class="chip chip-green" style="font-size:10px;">Active</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function pickStudent(sel) {
+    const opt = sel.options[sel.selectedIndex];
+    const id = sel.value, name = opt.dataset.name || '', phone = opt.dataset.phone || '';
+    document.getElementById('hidSv').value = id;
+    if (id) {
+        document.getElementById('svInfo').style.display = 'block';
+        document.getElementById('svName').textContent = name;
+        document.getElementById('svPhone').textContent = phone || id;
+        document.getElementById('svAvatar').textContent = name.split(' ').slice(-2).map(w=>w[0]).join('').toUpperCase();
+        document.getElementById('sumSv').innerHTML = `<div class="user-name">${name}</div><div class="user-sub">${id}</div>`;
+    } else {
+        document.getElementById('svInfo').style.display = 'none';
+        document.getElementById('sumSv').innerHTML = '<div class="user-sub">No student selected</div>';
+    }
+}
+function pickCourse(id, name, dur) {
+    document.querySelectorAll('[id^="kh-"]').forEach(c => { c.style.border = '2px solid var(--surface-high)'; c.style.background = ''; });
+    const el = document.getElementById('kh-' + id);
+    if (el) { el.style.border = '2px solid var(--primary)'; el.style.background = 'rgba(219,225,255,0.15)'; }
+    document.getElementById('hidKh').value = id;
+    document.getElementById('sumKh').innerHTML = `<div class="user-name">${name}</div><div class="user-sub">${dur} weeks • ${id}</div>`;
+}
+</script>
+}

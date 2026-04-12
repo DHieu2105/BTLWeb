@@ -1,0 +1,40 @@
+@model BTL_Web.Models.KetQua
+
+@{
+    ViewData["Title"] = "Edit Score";
+}
+
+<h1>Edit Score</h1>
+
+<h4>Score Information</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="MaHocVien" />
+            <input type="hidden" asp-for="MaKhoaHoc" />
+            <div class="form-group">
+                <label asp-for="DiemListening" class="control-label">Listening Score</label>
+                <input asp-for="DiemListening" class="form-control" />
+                <span asp-validation-for="DiemListening" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DiemReading" class="control-label">Reading Score</label>
+                <input asp-for="DiemReading" class="form-control" />
+                <span asp-validation-for="DiemReading" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Save" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
