@@ -99,6 +99,10 @@
                 $("#TotalDisplay").text(total);
             }
 
+            // Cập nhật lần đầu khi load form
+            updateTotal();
+
+            // Cập nhật khi user thay đổi input
             $("#DiemListening, #DiemReading").on("input", function () {
                 updateTotal();
             });
