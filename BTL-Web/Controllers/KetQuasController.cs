@@ -150,13 +150,33 @@ namespace BTL_Web.Controllers
             {
                 try
                 {
-                    // KHÔNG tính DiemTong ở đây - để DB tính toán thông qua computed column
-                    _context.Update(ketQua);
+                    // Kiểm tra xem bản ghi có tồn tại không
+                    var existingRecord = await _context.KetQuas
+                        .FirstOrDefaultAsync(k => k.MaHocVien == maHocVien && k.MaKhoaHoc == maKhoaHoc);
+
+                    if (existingRecord == null)
+                    {
+                        return NotFound();
+                    }
+
+                    // Cập nhật chỉ 2 field: DiemListening và DiemReading
+                    existingRecord.DiemListening = ketQua.DiemListening;
+                    existingRecord.DiemReading = ketQua.DiemReading;
+                    // DiemTong sẽ tính tự động từ DB computed column
+
+                    _context.Update(existingRecord);
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    // Code xử lý lỗi của Minh...
+                    if (!KetQuaExists(maHocVien, maKhoaHoc))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
