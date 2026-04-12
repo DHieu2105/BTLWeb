@@ -12,9 +12,9 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
-    private readonly TtanContext _context;
+    private readonly TtamContext _context;
 
-    public AuthService(TtanContext context)
+    public AuthService(TtamContext context)
     {
         _context = context;
     }

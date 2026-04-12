@@ -1,0 +1,43 @@
+@model BTL_Web.Models.NhanVien
+
+@{
+    ViewData["Title"] = "Chi tiết nhân viên";
+    var account = Model.TaiKhoans.FirstOrDefault();
+    var isAdmin = User.IsInRole(BTL_Web.Constants.AppRoles.Admin);
+}
+
+<div class="container py-4">
+    <h2 class="mb-3">Chi tiết nhân viên</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Mã nhân viên</dt>
+                <dd class="col-sm-9">@Model.MaNv</dd>
+
+                <dt class="col-sm-3">Họ và tên</dt>
+                <dd class="col-sm-9">@Model.HoVaTen</dd>
+
+                <dt class="col-sm-3">Chức vụ</dt>
+                <dd class="col-sm-9">@Model.ChucVu</dd>
+
+                <dt class="col-sm-3">Giới tính</dt>
+                <dd class="col-sm-9">@Model.GioiTinh</dd>
+
+                <dt class="col-sm-3">Trung tâm</dt>
+                <dd class="col-sm-9">@(Model.MaTrungTamNavigation?.TenTrungTam ?? Model.MaTrungTam)</dd>
+
+                <dt class="col-sm-3">Tài khoản</dt>
+                <dd class="col-sm-9">@(account?.Username ?? "Chưa gán")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        @if (isAdmin)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.MaNv" class="btn btn-primary">Sửa</a>
+        }
+        <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+    </div>
+</div>
