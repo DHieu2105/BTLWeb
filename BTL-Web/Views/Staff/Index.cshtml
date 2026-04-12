@@ -1,0 +1,146 @@
+@{
+    ViewData["Title"] = "Staff Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Staff Dashboard</h2>
+        <p>Welcome back, @User.Identity?.Name. Manage students and classes efficiently.</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Staff/RegisterStudent" class="btn-primary">
+            <i class="fas fa-user-plus"></i> Register Student
+        </a>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+8%</span></div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">@(ViewBag.TotalStudents ?? 342)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-clock"></i></div></div>
+        <div class="stat-label">Pending Trials</div>
+        <div class="stat-value">42</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-bar"></i></div></div>
+        <div class="stat-label">Staff Utilization</div>
+        <div class="stat-value">94%</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div></div>
+        <div class="stat-label">Active Classes</div>
+        <div class="stat-value">@(ViewBag.TotalClasses ?? 18)</div>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
+    <!-- Recent Registrations -->
+    <div class="card-plain" style="padding:0;">
+        <div class="card-header-plain">
+            <h5>Pending Registrations</h5>
+            <a href="/Staff/StudentManagement" class="small" style="color:var(--primary);font-weight:700;text-decoration:none;">View All</a>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th style="text-align:right;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (ViewBag.RecentRegistrations != null)
+                {
+                    @foreach (var reg in (IEnumerable<dynamic>)ViewBag.RecentRegistrations)
+                    {
+                        <tr>
+                            <td>
+                                <div class="user-row">
+                                    <div class="avatar">@(reg.HoTen?.ToString().Substring(0,2).ToUpper() ?? "?")</div>
+                                    <div>
+                                        <div class="user-name">@reg.HoTen</div>
+                                        <div class="user-sub">@reg.MaHocVien</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>@reg.TenKhoaHoc</td>
+                            <td class="user-sub">@reg.NgayDangKy</td>
+                            <td><span class="chip chip-yellow">Pending</span></td>
+                            <td style="text-align:right;">
+                                <button class="btn-outline btn-sm">Approve</button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td><div class="user-row"><div class="avatar">SJ</div><div><div class="user-name">Sarah Jenkins</div><div class="user-sub">HV001</div></div></div></td>
+                        <td>IELTS Prep B2</td>
+                        <td class="user-sub">Today</td>
+                        <td><span class="chip chip-yellow">Pending</span></td>
+                        <td style="text-align:right;"><button class="btn-outline btn-sm">Approve</button></td>
+                    </tr>
+                    <tr>
+                        <td><div class="user-row"><div class="avatar">MO</div><div><div class="user-name">Marc Oliver</div><div class="user-sub">HV002</div></div></div></td>
+                        <td>Business English</td>
+                        <td class="user-sub">Yesterday</td>
+                        <td><span class="chip chip-green">Enrolled</span></td>
+                        <td style="text-align:right;"><button class="btn-outline btn-sm">View</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Quick Actions + Inquiries -->
+    <div style="display:flex;flex-direction:column;gap:24px;">
+        <div class="card-plain" style="padding:24px;">
+            <h5 style="margin-bottom:16px;">Quick Actions</h5>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+                <a href="/Staff/RegisterStudent" class="btn-outline" style="justify-content:flex-start;">
+                    <i class="fas fa-user-plus"></i> Register Student to Course
+                </a>
+                <a href="/Staff/AddStudentToClass" class="btn-outline" style="justify-content:flex-start;">
+                    <i class="fas fa-chalkboard"></i> Add Student to Class
+                </a>
+                <a href="/Staff/ClassManagement" class="btn-outline" style="justify-content:flex-start;">
+                    <i class="fas fa-list"></i> View All Classes
+                </a>
+                <a href="/Staff/ScheduleManagement" class="btn-outline" style="justify-content:flex-start;">
+                    <i class="fas fa-calendar"></i> Manage Schedules
+                </a>
+            </div>
+        </div>
+
+        <div class="card-plain" style="padding:24px;">
+            <div class="section-heading">
+                <h5>Recent Inquiries</h5>
+                <a href="/Staff/StudentManagement">See All</a>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon blue"><i class="fas fa-comment"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">Elena Rodriguez</div>
+                    <div class="activity-desc">Interested in evening TOEFL prep course...</div>
+                    <div class="activity-time">2 minutes ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon orange"><i class="fas fa-comment"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">Kenji Tanaka</div>
+                    <div class="activity-desc">Need to reschedule oral assessment...</div>
+                    <div class="activity-time">1 hour ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

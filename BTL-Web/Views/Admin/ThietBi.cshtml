@@ -1,0 +1,166 @@
+@model IEnumerable<BTL_Web.Models.ThietBi>
+@{
+    ViewData["Title"] = "Manage Equipment";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Equipment</h2>
+        <p>Track and manage all academic equipment and assets</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Add Equipment
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header">
+            <div class="stat-icon blue"><i class="fas fa-laptop"></i></div>
+            <span class="stat-badge blue">+3</span>
+        </div>
+        <div class="stat-label">Total Assets</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-check-circle"></i></div></div>
+        <div class="stat-label">Active In Use</div>
+        <div class="stat-value">94</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-tools"></i></div></div>
+        <div class="stat-label">Maintenance Due</div>
+        <div class="stat-value">06</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-chart-line"></i></div></div>
+        <div class="stat-label">Operational Rate</div>
+        <div class="stat-value">98.2%</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Equipment Inventory</h5>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <span class="small text-muted">Sort by:</span>
+            <select class="form-control form-select" style="width:140px;padding:6px 12px;font-size:13px;">
+                <option>All Types</option>
+                <option>Projectors</option>
+                <option>Computers</option>
+                <option>Audio</option>
+            </select>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Equipment</th>
+                <th>Type</th>
+                <th>Assigned Room</th>
+                <th>Condition</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var tb in Model)
+                {
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div class="avatar" style="background:rgba(219,225,255,0.3);color:var(--primary);">
+                                    <i class="fas fa-laptop"></i>
+                                </div>
+                                <div>
+                                    <div class="user-name">@tb.TenThietBi</div>
+                                    <div class="user-sub">@tb.MaThietBi</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>General</td>
+                        <td>@(tb.MaPhongs.FirstOrDefault()?.TenPhong ?? "Unassigned")</td>
+                        <td>
+                            <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
+                                <div class="progress-bar-fill" style="width:85%;"></div>
+                            </div>
+                            <span class="smaller text-muted">Good</span>
+                        </td>
+                        <td><span class="chip chip-green">Operational</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon btn-outline btn-sm" onclick="deleteEquip('@tb.MaThietBi')">
+                                <i class="fas fa-trash" style="color:#ef4444;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-laptop"></i><p>No equipment found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) items</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Add New Equipment</h4>
+        <form method="post" action="/Admin/AddThietBi">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Equipment Name</label>
+                <input type="text" name="TenThietBi" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <input type="text" name="LoaiThietBi" class="form-control" placeholder="Projector, PC...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Assign to Room</label>
+                    <select name="MaPhong" class="form-control form-select">
+                        <option value="">— Unassigned —</option>
+                        @if (ViewBag.PhongHocs != null)
+                        {
+                            @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
+                            {
+                                <option value="@ph.MaPhong">@ph.TenPhong</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Add Equipment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function deleteEquip(id) {
+    if (confirm('Delete equipment ' + id + '?')) location.href = '/Admin/DeleteThietBi/' + id;
+}
+</script>
+}

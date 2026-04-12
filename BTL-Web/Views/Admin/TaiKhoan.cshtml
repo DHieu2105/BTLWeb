@@ -1,0 +1,208 @@
+@model IEnumerable<BTL_Web.Models.TaiKhoan>
+@{
+    ViewData["Title"] = "Manage Accounts";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Accounts</h2>
+        <p>User accounts, roles and access control management</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Create Account
+        </button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+5%</span></div>
+        <div class="stat-label">Total Accounts</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-users-cog"></i></div></div>
+        <div class="stat-label">Active Staff</div>
+        <div class="stat-value">@(Model?.Count(x => x.Role == "NhanVien") ?? 0)</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chalkboard-teacher"></i></div></div>
+        <div class="stat-label">Pending Teachers</div>
+        <div class="stat-value">@(Model?.Count(x => x.Role == "GiaoVien") ?? 0)</div>
+    </div>
+    <div class="stat-card green">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-clock"></i></div></div>
+        <div class="stat-label">Avg. Session</div>
+        <div class="stat-value">48m</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Account Directory</h5>
+        <div style="display:flex;gap:8px;">
+            <button class="btn-icon btn-outline" title="Export"><i class="fas fa-filter"></i></button>
+            <button class="btn-icon btn-outline" title="Settings"><i class="fas fa-cog"></i></button>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Account</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var tk in Model)
+                {
+                    var roleChip = tk.Role switch {
+                        "Admin" => "chip-red",
+                        "GiaoVien" => "chip-blue",
+                        "HocVien" => "chip-green",
+                        "NhanVien" => "chip-yellow",
+                        _ => "chip-gray"
+                    };
+                    var roleLabel = tk.Role switch {
+                        "Admin" => "Admin",
+                        "GiaoVien" => "Teacher",
+                        "HocVien" => "Student",
+                        "NhanVien" => "Staff",
+                        _ => tk.Role
+                    };
+                    var initials = tk.Username?.Length > 0 ? tk.Username.Substring(0, Math.Min(2, tk.Username.Length)).ToUpper() : "?";
+                    <tr>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar">@initials</div>
+                                <div>
+                                    <div class="user-name">@tk.Username</div>
+                                    <div class="user-sub">
+                                        @if (!string.IsNullOrEmpty(tk.MaNv)) { <span>Staff: @tk.MaNv</span> }
+                                        @if (!string.IsNullOrEmpty(tk.MaGv)) { <span>Teacher: @tk.MaGv</span> }
+                                        @if (!string.IsNullOrEmpty(tk.MaHocVien)) { <span>Student: @tk.MaHocVien</span> }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><code style="background:var(--surface-low);padding:2px 8px;border-radius:4px;font-size:13px;">@tk.Username</code></td>
+                        <td><span class="chip @roleChip">@roleLabel</span></td>
+                        <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <button class="btn-icon btn-outline btn-sm" title="Edit"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-outline btn-sm" title="Delete" onclick="deleteAccount('@tk.Username')">
+                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-shield"></i><p>No accounts found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) accounts</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Role Distribution -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
+    <div class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:24px;">Role Distribution</h5>
+        @{
+            var total = Model?.Count() ?? 1;
+            var adminCount = Model?.Count(x => x.Role == "Admin") ?? 0;
+            var staffCount = Model?.Count(x => x.Role == "NhanVien") ?? 0;
+            var teacherCount = Model?.Count(x => x.Role == "GiaoVien") ?? 0;
+            var studentCount = Model?.Count(x => x.Role == "HocVien") ?? 0;
+        }
+        <div style="display:flex;flex-direction:column;gap:16px;">
+            <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                    <span class="small fw-semibold">Students</span>
+                    <span class="small fw-bold">@((studentCount * 100 / total))%</span>
+                </div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((studentCount * 100 / total))%;"></div></div>
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                    <span class="small fw-semibold">Teachers</span>
+                    <span class="small fw-bold">@((teacherCount * 100 / total))%</span>
+                </div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((teacherCount * 100 / total))%;background:#f97316;"></div></div>
+            </div>
+            <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                    <span class="small fw-semibold">Staff</span>
+                    <span class="small fw-bold">@((staffCount * 100 / total))%</span>
+                </div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((staffCount * 100 / total))%;background:#0891b2;"></div></div>
+            </div>
+        </div>
+    </div>
+    <div class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:16px;">Access Logs</h5>
+        <p class="small text-muted" style="margin-bottom:24px;">Review the latest security logs and login attempts across all accounts.</p>
+        <a href="/Admin/Index" class="btn-outline" style="display:inline-flex;">
+            <i class="fas fa-shield-alt"></i> View Security Logs
+            <i class="fas fa-arrow-right" style="font-size:10px;margin-left:4px;"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Add Modal -->
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Create Account</h4>
+        <form method="post" action="/Admin/AddTaiKhoan">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Username</label>
+                <input type="text" name="Username" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="Password" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Role</label>
+                <select name="Role" class="form-control form-select">
+                    <option value="Admin">Admin</option>
+                    <option value="NhanVien">Staff (NhanVien)</option>
+                    <option value="GiaoVien">Teacher (GiaoVien)</option>
+                    <option value="HocVien">Student (HocVien)</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Create Account</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function deleteAccount(username) {
+    if (confirm('Delete account: ' + username + '?')) location.href = '/Admin/DeleteTaiKhoan/' + username;
+}
+</script>
+}

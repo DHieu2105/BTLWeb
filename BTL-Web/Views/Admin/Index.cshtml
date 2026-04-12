@@ -1,0 +1,203 @@
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Centre Insights</h2>
+        <p>Welcome back, @User.Identity?.Name. Here's what's happening today.</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline">
+            <i class="far fa-file-alt"></i> Export Report
+        </button>
+        <a href="/Admin/CourseRegistration" class="btn-primary">
+            <i class="fas fa-plus"></i> Quick Enroll
+        </a>
+    </div>
+</div>
+
+<!-- Stats Grid -->
+<div class="stats-grid">
+    <div class="stat-card blue">
+        <div class="stat-card-header">
+            <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+            <span class="stat-badge blue">+12%</span>
+        </div>
+        <div class="stat-label">Total Students</div>
+        <div class="stat-value">@(ViewBag.TotalStudents ?? 1248)</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header">
+            <div class="stat-icon orange"><i class="fas fa-chalkboard-teacher"></i></div>
+            <span class="stat-badge orange">Active</span>
+        </div>
+        <div class="stat-label">Total Teachers</div>
+        <div class="stat-value">@(ViewBag.TotalTeachers ?? 42)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header">
+            <div class="stat-icon teal"><i class="fas fa-book-open"></i></div>
+            <span class="stat-badge teal">18 Today</span>
+        </div>
+        <div class="stat-label">Active Classes</div>
+        <div class="stat-value">@(ViewBag.TotalClasses ?? 86)</div>
+    </div>
+    <div class="stat-card highlighted">
+        <div class="stat-card-header">
+            <div class="stat-icon white"><i class="fas fa-dollar-sign"></i></div>
+            <span class="stat-badge white">+4.2%</span>
+        </div>
+        <div class="stat-label">Monthly Revenue</div>
+        <div class="stat-value">$52,490</div>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;margin-bottom:24px;">
+    <!-- Bar Chart Card -->
+    <div class="card-plain" style="padding:32px;">
+        <div class="section-heading">
+            <div>
+                <h4 style="margin-bottom:4px;">Student Registrations</h4>
+                <p class="small text-muted">New enrollments over the last 6 months</p>
+            </div>
+            <button class="btn-icon btn-outline"><i class="fas fa-ellipsis-h"></i></button>
+        </div>
+        <div class="bar-chart" style="height:200px;margin-top:24px;">
+            <div class="bar-item">
+                <div class="bar" style="height:50%;"></div>
+                <span class="bar-label">JAN</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height:62%;"></div>
+                <span class="bar-label">FEB</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height:75%;"></div>
+                <span class="bar-label">MAR</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height:56%;"></div>
+                <span class="bar-label">APR</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar" style="height:87%;"></div>
+                <span class="bar-label">MAY</span>
+            </div>
+            <div class="bar-item">
+                <div class="bar active" style="height:100%;"></div>
+                <span class="bar-label">JUN</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card-plain" style="padding:32px;">
+        <div class="section-heading">
+            <h4>Recent Events</h4>
+            <a href="/Admin/NhanVien">SEE ALL</a>
+        </div>
+        <div>
+            <div class="activity-item">
+                <div class="activity-icon blue"><i class="fas fa-user-plus"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">New Student Enrolled</div>
+                    <div class="activity-desc">Sarah Jenkins joined <strong>IELTS Prep B2</strong></div>
+                    <div class="activity-time">2 minutes ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon orange"><i class="fas fa-credit-card"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">Payment Received</div>
+                    <div class="activity-desc">Tuition fee for <strong>Marc Oliver</strong> processed</div>
+                    <div class="activity-time">45 minutes ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon purple"><i class="fas fa-file-alt"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">Exam Results Published</div>
+                    <div class="activity-desc">Final results for <strong>C1 Advanced Group 3</strong></div>
+                    <div class="activity-time">2 hours ago</div>
+                </div>
+            </div>
+            <div class="activity-item">
+                <div class="activity-icon red"><i class="fas fa-times-circle"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">Class Canceled</div>
+                    <div class="activity-desc">Business English <strong>Room 402</strong> (Instructor ill)</div>
+                    <div class="activity-time">5 hours ago</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Department Leads Table -->
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Department Leads</h5>
+        <a href="/Admin/NhanVien" class="small" style="color:var(--primary);font-weight:700;text-decoration:none;">
+            View Directory <i class="fas fa-arrow-right" style="font-size:10px;"></i>
+        </a>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Staff Member</th>
+                <th>Department</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <div class="user-row">
+                        <div class="avatar">ER</div>
+                        <div>
+                            <div class="user-name">Elena Rodriguez</div>
+                            <div class="user-sub">e.rodriguez@center.edu</div>
+                        </div>
+                    </div>
+                </td>
+                <td>Head of Examinations</td>
+                <td>
+                    <div class="progress-bar-wrap" style="width:100px;margin-bottom:4px;">
+                        <div class="progress-bar-fill" style="width:85%;"></div>
+                    </div>
+                    <span class="smaller text-muted">85% Loaded</span>
+                </td>
+                <td><span class="chip chip-blue">On Campus</span></td>
+                <td style="text-align:right;">
+                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="user-row">
+                        <div class="avatar">MC</div>
+                        <div>
+                            <div class="user-name">Marcus Chen</div>
+                            <div class="user-sub">m.chen@center.edu</div>
+                        </div>
+                    </div>
+                </td>
+                <td>Curriculum Development</td>
+                <td>
+                    <div class="progress-bar-wrap" style="width:100px;margin-bottom:4px;">
+                        <div class="progress-bar-fill" style="width:42%;"></div>
+                    </div>
+                    <span class="smaller text-muted">42% Loaded</span>
+                </td>
+                <td><span class="chip chip-yellow">Remote</span></td>
+                <td style="text-align:right;">
+                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

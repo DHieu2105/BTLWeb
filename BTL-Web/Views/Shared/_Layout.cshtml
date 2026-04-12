@@ -1,211 +1,25 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewData["Title"] - English Center</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <title>@ViewData["Title"] - Academic Editorial</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        html, body {
-            height: 100%;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-            background-color: #f8f9fa;
-        }
-
-        .navbar {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.2);
-            padding: 1rem 0;
-        }
-
-        .navbar-brand {
-            font-weight: bold;
-            font-size: 1.5rem;
-            letter-spacing: 0.5px;
-        }
-
-        .nav-link {
-            font-weight: 500;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-
-        .nav-link:hover {
-            color: #fff !important;
-            transform: translateY(-2px);
-        }
-
-        .dropdown-menu {
-            border: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-radius: 0.5rem;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f0f0f0;
-            border-left: 3px solid #667eea;
-        }
-
-        main {
-            flex: 1;
-        }
-
-        footer {
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            border-top: 1px solid #dee2e6;
-            margin-top: auto;
-            padding: 2rem 0 !important;
-        }
-
-        footer p {
-            margin: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="/Home/Index">
-                <i class="fas fa-graduation-cap me-2"></i>English Center
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    @if (User.Identity?.IsAuthenticated ?? false)
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link" href="/Home/Index">
-                                <i class="fas fa-home me-1"></i> Trang Chủ
-                            </a>
-                        </li>
-
-                        @if (User.IsInRole("Admin"))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="adminMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-sliders-h me-1"></i> Quản Trị
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="adminMenu">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Quản Lý Người Dùng</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-book me-2"></i>Quản Lý Khóa Học</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-door-open me-2"></i>Quản Lý Phòng Học</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>Báo Cáo & Thống Kê</a></li>
-                                </ul>
-                            </li>
-                        }
-
-                        @if (User.IsInRole("GiaoVien"))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="teacherMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-chalkboard-user me-1"></i> Giáo Dục
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="teacherMenu">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-book me-2"></i>Lịch Học</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-tasks me-2"></i>Bài Tập</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-star me-2"></i>Đánh Giá Học Viên</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Danh Sách Lớp</a></li>
-                                </ul>
-                            </li>
-                        }
-
-                        @if (User.IsInRole("HocVien"))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="studentMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-graduation-cap me-1"></i> Học Tập
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="studentMenu">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-book me-2"></i>Khóa Học Của Tôi</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar me-2"></i>Lịch Học</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-tasks me-2"></i>Bài Tập</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-line me-2"></i>Kết Quả Học Tập</a></li>
-                                </ul>
-                            </li>
-                        }
-
-                        @if (User.IsInRole("NhanVien"))
-                        {
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="staffMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-briefcase me-1"></i> Hành Chính
-                                </a>
-                                <ul class="dropdown-menu" aria-labelledby="staffMenu">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-users me-2"></i>Quản Lý Đăng Ký</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-calendar me-2"></i>Lịch Làm Việc</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-file me-2"></i>Tài Liệu</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-chart-bar me-2"></i>Báo Cáo</a></li>
-                                </ul>
-                            </li>
-                        }
-
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <i class="fas fa-user-circle me-1"></i>
-                                @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-                                <li><a class="dropdown-item" href="/Auth/EditProfile"><i class="fas fa-id-card me-2"></i>Hồ Sơ Cá Nhân</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li>
-                                    <form method="post" action="/Auth/Logout" style="display:inline;">
-                                        <button type="submit" class="dropdown-item text-danger">
-                                            <i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất
-                                        </button>
-                                    </form>
-                                </li>
-                            </ul>
-                        </li>
-                    }
-                    else
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link btn btn-light btn-sm px-3" href="/Auth/Login">
-                                <i class="fas fa-sign-in-alt me-1"></i>Đăng Nhập
-                            </a>
-                        </li>
-                    }
-                </ul>
-            </div>
+    <div class="app-wrapper">
+        @await Html.PartialAsync("_Sidebar")
+        
+        <div class="main-content">
+            @await Html.PartialAsync("_Navbar")
+            
+            <main class="page-content">
+                @RenderBody()
+            </main>
         </div>
-    </nav>
+    </div>
 
-    <!-- Main Content -->
-    <main class="container-fluid">
-        @RenderBody()
-    </main>
-
-    <!-- Footer -->
-    <footer class="mt-auto">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <p class="text-muted mb-0">
-                        <i class="fas fa-copyright me-1"></i>2026 English Center Management System. All rights reserved.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
-
 </body>
 </html>

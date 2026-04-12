@@ -1,0 +1,150 @@
+@model IEnumerable<BTL_Web.Models.LichHoc>
+@{
+    ViewData["Title"] = "Manage Schedules";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Manage Schedules</h2>
+        <p>Weekly class schedule and session management</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-calendar-week"></i> Week View</button>
+        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+            <i class="fas fa-plus"></i> Add Schedule
+        </button>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div><span class="stat-badge blue">Live</span></div>
+        <div class="stat-label">Total Sessions</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-door-open"></i></div></div>
+        <div class="stat-label">Room Occupancy</div>
+        <div class="stat-value">75%</div>
+    </div>
+    <div class="stat-card highlighted" style="background:var(--sidebar-bg);">
+        <div class="stat-card-header"><div class="stat-icon white"><i class="fas fa-bell"></i></div></div>
+        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Next Session</div>
+        <div class="stat-value" style="color:white;font-size:18px;">IELTS B2 — 10:00 AM</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Schedule List</h5>
+        <div style="display:flex;gap:8px;">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Morning</button>
+            <button class="filter-btn">Afternoon</button>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Schedule ID</th>
+                <th>Date</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Room</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var lh in Model)
+                {
+                    <tr>
+                        <td><span class="chip chip-gray">@lh.MaLichHoc</span></td>
+                        <td class="user-name">@(lh.NgayHoc?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td class="user-name">@(lh.GioBatDau?.ToString(@"hh\:mm") ?? "—")</td>
+                        <td class="user-sub">@(lh.GioKetThuc?.ToString(@"hh\:mm") ?? "—")</td>
+                        <td>@(lh.MaPhongNavigation?.TenPhong ?? lh.MaPhong ?? "—")</td>
+                        <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-outline btn-sm" onclick="deleteSched('@lh.MaLichHoc')">
+                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No schedules found</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) sessions</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Add Schedule</h4>
+        <form method="post" action="/Admin/AddLichHoc">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Room</label>
+                <select name="MaPhong" class="form-control form-select">
+                    <option value="">— Select Room —</option>
+                    @if (ViewBag.PhongHocs != null)
+                    {
+                        @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
+                        {
+                            <option value="@ph.MaPhong">@ph.TenPhong</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Date</label>
+                    <input type="date" name="NgayHoc" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Start Time</label>
+                    <input type="time" name="GioBatDau" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Time</label>
+                    <input type="time" name="GioKetThuc" class="form-control">
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Add Schedule</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+function deleteSched(id) {
+    if (confirm('Delete schedule ' + id + '?')) location.href = '/Admin/DeleteLichHoc/' + id;
+}
+</script>
+}

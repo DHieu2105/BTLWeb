@@ -1,0 +1,85 @@
+@model BTL_Web.Models.LopHoc
+@{
+    ViewData["Title"] = "Class Detail";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Class Detail</h2>
+        <p>Overview and enrolled students for this class</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Staff/ClassManagement" class="btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <div class="card-plain" style="padding:32px;">
+        <div class="empty-state"><i class="fas fa-chalkboard"></i><p>Class not found</p></div>
+    </div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+        <div class="card-plain" style="padding:20px;">
+            <div class="stat-label">Class</div>
+            <div class="stat-value" style="font-size:24px;">@(Model.TenLop ?? Model.MaLop)</div>
+        </div>
+        <div class="card-plain" style="padding:20px;">
+            <div class="stat-label">Course</div>
+            <div class="stat-value" style="font-size:18px;">@(Model.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</div>
+        </div>
+        <div class="card-plain" style="padding:20px;">
+            <div class="stat-label">Students</div>
+            <div class="stat-value" style="font-size:24px;">@(Model.MaHocViens?.Count ?? 0)</div>
+        </div>
+    </div>
+
+    <div class="card-plain" style="padding:0;">
+        <div class="card-header-plain">
+            <h5>Student Roster</h5>
+            <a href="/Staff/AddStudentToClass" class="btn-outline btn-sm"><i class="fas fa-user-plus"></i> Add Student</a>
+        </div>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Phone</th>
+                    <th>Gender</th>
+                    <th style="text-align:right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.MaHocViens != null && Model.MaHocViens.Any())
+                {
+                    @foreach (var sv in Model.MaHocViens)
+                    {
+                        <tr>
+                            <td>
+                                <div class="user-name">@(sv.HoVaTen ?? sv.MaHocVien)</div>
+                                <div class="user-sub">@sv.MaHocVien</div>
+                            </td>
+                            <td>@(sv.Sdt ?? "—")</td>
+                            <td>@(sv.GioiTinh ?? "—")</td>
+                            <td style="text-align:right;">
+                                <form method="post" action="/Staff/AddStudentToClassSubmit" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="MaLop" value="@Model.MaLop" />
+                                    <input type="hidden" name="MaHocVien" value="@sv.MaHocVien" />
+                                    <button type="button" class="btn-icon btn-outline btn-sm" disabled title="Student already in class">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="4"><div class="empty-state"><i class="fas fa-users"></i><p>No students enrolled</p></div></td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

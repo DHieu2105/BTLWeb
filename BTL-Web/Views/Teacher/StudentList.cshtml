@@ -1,0 +1,139 @@
+@model IEnumerable<BTL_Web.Models.HocVien>
+@{
+    ViewData["Title"] = "My Students";
+}
+
+<div class="page-header">
+    <div>
+        <h2>My Students</h2>
+        <p>All students assigned to your classes</p>
+    </div>
+    <div class="page-actions">
+        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button class="btn-outline"><i class="fas fa-download"></i> Export</button>
+    </div>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">Active</span></div>
+        <div class="stat-label">Total Enrolled</div>
+        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-graduation-cap"></i></div></div>
+        <div class="stat-label">Advanced Level</div>
+        <div class="stat-value">42</div>
+    </div>
+    <div class="stat-card highlighted" style="background:var(--sidebar-bg);">
+        <div class="stat-card-header"><div class="stat-icon white"><i class="fas fa-chart-line"></i></div></div>
+        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Avg. Attendance</div>
+        <div class="stat-value" style="color:white;">94.2%</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Student Roster</h5>
+        <div style="display:flex;gap:8px;">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Advanced</button>
+            <button class="filter-btn">Intermediate</button>
+        </div>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Level</th>
+                <th>Attendance</th>
+                <th>Progress</th>
+                <th>Status</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var sv in Model)
+                {
+                    var name = sv.HoVaTen ?? sv.MaHocVien;
+                    var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                    var avgScore = sv.KetQuas.Any() ? sv.KetQuas.Average(k => k.DiemTong ?? 0) : 0;
+                    <tr>
+                        <td>
+                            <div class="user-row">
+                                <div class="avatar">@initials</div>
+                                <div>
+                                    <div class="user-name">@name</div>
+                                    <div class="user-sub">@sv.MaHocVien</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="chip @(avgScore >= 80 ? "chip-blue" : avgScore >= 60 ? "chip-green" : "chip-yellow")">
+                                @(avgScore >= 80 ? "Advanced C2" : avgScore >= 60 ? "Intermediate B2" : "Beginner A2")
+                            </span>
+                        </td>
+                        <td>
+                            <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
+                                <div class="progress-bar-fill" style="width:94%;"></div>
+                            </div>
+                            <span class="smaller text-muted">94%</span>
+                        </td>
+                        <td>
+                            <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
+                                <div class="progress-bar-fill" style="width:@(Math.Min((int)avgScore, 100))%;"></div>
+                            </div>
+                            <span class="smaller text-muted">@avgScore.ToString("F0")%</span>
+                        </td>
+                        <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <button class="btn-icon btn-outline btn-sm" title="View Profile"><i class="fas fa-eye"></i></button>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><p>No students assigned</p></div></td></tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) students</span>
+        <div class="pagination-btns">
+            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+            <button class="page-btn active">1</button>
+            <button class="page-btn">2</button>
+            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- Teaching Observation -->
+<div class="card-plain" style="padding:32px;margin-top:24px;display:grid;grid-template-columns:2fr 1fr;gap:32px;align-items:center;">
+    <div>
+        <h4 style="margin-bottom:8px;">Academic Review Cycle 2024</h4>
+        <p class="text-muted" style="margin-bottom:16px;">Quarterly progress reports are due by end of next week. Ensure all attendance records are finalized.</p>
+        <button class="btn-primary"><i class="fas fa-file-alt"></i> Generate Reports</button>
+    </div>
+    <div style="text-align:center;">
+        <div style="font-size:48px;color:rgba(43,84,191,0.2);"><i class="fas fa-chart-bar"></i></div>
+        <div class="stat-value" style="font-size:24px;color:var(--primary);">12 days</div>
+        <div class="stat-label">Until deadline</div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+</script>
+}
