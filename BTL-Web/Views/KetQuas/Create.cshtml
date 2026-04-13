@@ -57,6 +57,16 @@
                 </div>
             </div>
 
+            <!-- Sidebar Info -->
+            <div class="card-plain" style="padding:24px;display:none;" id="SidebarInfo">
+                <div class="stat-label" style="margin-bottom:16px;"><i class="fas fa-info-circle"></i> Calculation</div>
+                <div style="font-size:13px;color:var(--on-surface-variant);line-height:2;">
+                    <div><strong>Listening:</strong> <span id="ListeningDisplay">0</span></div>
+                    <div><strong>Reading:</strong> <span id="ReadingDisplay">0</span></div>
+                    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--outline);"><strong style="font-size:16px;color:var(--primary);">Total:</strong> <span id="TotalDisplay" style="font-size:16px;font-weight:600;color:var(--primary);">0</span></div>
+                </div>
+            </div>
+
             <div style="display:flex;gap:12px;justify-content:flex-end;">
                 <a href="/KetQuas/Index" class="btn-outline">Cancel</a>
                 <button type="submit" class="btn-primary">
@@ -80,7 +90,7 @@
         </div>
 
         <div class="card-plain" style="padding:24px;">
-            <div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-book"></i> Thang điểm</div>
+            <div class="stat-label" style="margin-bottom:12px;"><i class="fas fa-book"></i> Score Scale</div>
             <div style="font-size:13px;color:var(--on-surface-variant);line-height:1.8;">
                 <div><strong>Excellent:</strong> 160-200</div>
                 <div><strong>Good:</strong> 120-159</div>
@@ -96,19 +106,31 @@
 
     <script>
         $(document).ready(function () {
-            function tinhTong() {
+            // Function to calculate total score in real-time
+            function updateTotal() {
                 let listening = parseInt($("#DiemListening").val()) || 0;
                 let reading = parseInt($("#DiemReading").val()) || 0;
-                let tong = listening + reading;
+                let total = listening + reading;
 
-                // Chỉ hiển thị preview ở giao diện, không gửi lên server
-                // DB sẽ tính thông qua computed column
-                $("#DiemTong").text(tong);
+                // Validate range
+                if (listening < 0 || listening > 100) {
+                    listening = Math.max(0, Math.min(100, listening));
+                }
+                if (reading < 0 || reading > 100) {
+                    reading = Math.max(0, Math.min(100, reading));
+                }
+
+                total = listening + reading;
+                $("#DiemTong").text(total);
             }
 
+            // Update on input change
             $("#DiemListening, #DiemReading").on("input", function () {
-                tinhTong();
+                updateTotal();
             });
+
+            // Initial calculation
+            updateTotal();
         });
     </script>
 }

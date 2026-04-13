@@ -92,6 +92,16 @@ namespace BTL_Web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("MaHocVien,MaKhoaHoc,DiemListening,DiemReading")] KetQua ketQua)
         {
+            // Validate score range (0-100)
+            if (ketQua.DiemListening.HasValue && (ketQua.DiemListening < 0 || ketQua.DiemListening > 100))
+            {
+                ModelState.AddModelError("DiemListening", "Listening score must be between 0 and 100");
+            }
+            if (ketQua.DiemReading.HasValue && (ketQua.DiemReading < 0 || ketQua.DiemReading > 100))
+            {
+                ModelState.AddModelError("DiemReading", "Reading score must be between 0 and 100");
+            }
+
             if (ModelState.IsValid)
             {
                 // KHÔNG tính DiemTong ở đây - để DB tính toán thông qua computed column
@@ -144,6 +154,16 @@ namespace BTL_Web.Controllers
             if (maHocVien != ketQua.MaHocVien || maKhoaHoc != ketQua.MaKhoaHoc)
             {
                 return NotFound();
+            }
+
+            // Validate score range (0-100)
+            if (ketQua.DiemListening.HasValue && (ketQua.DiemListening < 0 || ketQua.DiemListening > 100))
+            {
+                ModelState.AddModelError("DiemListening", "Listening score must be between 0 and 100");
+            }
+            if (ketQua.DiemReading.HasValue && (ketQua.DiemReading < 0 || ketQua.DiemReading > 100))
+            {
+                ModelState.AddModelError("DiemReading", "Reading score must be between 0 and 100");
             }
 
             if (ModelState.IsValid)
