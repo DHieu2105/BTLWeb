@@ -1,18 +1,21 @@
-# Build outputs
+﻿## Build outputs
 **/bin/
 **/obj/
 
-# IDE
-.vs/
-.idea/
-.vscode/
+## IDE / editor
+.vs
+.idea
 *.user
 *.suo
 *.userosscache
 *.sln.docstates
 
-# OS
-.DS_Store
-
-# Local secrets/config
+## Package managers / JS tooling
+node_modules/
 BTL-Web/appsettings.Development.json
+
+## Optional local configuration
+# Uncomment if you want to keep local dev settings untracked
+# appsettings.Development.json
+
+

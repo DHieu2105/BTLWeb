@@ -1006,8 +1006,6 @@ C:/Users/NGO VAN TUAN/source/repos/BTLWeb/BTL-Web/obj/Debug/net10.0/staticwebass
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/r77ej0xfu6-{0}-muycvpuwrr-muycvpuwrr.gz
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/skap9mj108-{0}-87fc7y1x7t-87fc7y1x7t.gz
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/th9pgxc12e-{0}-jfsiqqwiad-jfsiqqwiad.gz
-/Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/syjzh1vms6-{0}-eywtew40u1-eywtew40u1.gz
-/Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/1cjlnzfr91-{0}-eywtew40u1-eywtew40u1.gz
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/staticwebassets.build.json
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/staticwebassets.build.json.cache
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/staticwebassets.development.json
@@ -1019,3 +1017,5 @@ C:/Users/NGO VAN TUAN/source/repos/BTLWeb/BTL-Web/obj/Debug/net10.0/staticwebass
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/BTL-Web.pdb
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/BTL-Web.genruntimeconfig.cache
 /Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/ref/BTL-Web.dll
+/Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/syjzh1vms6-{0}-wb6ipzw4yu-wb6ipzw4yu.gz
+/Users/doicanh/Documents/BTLWeb/BTL-Web/obj/Debug/net10.0/compressed/1cjlnzfr91-{0}-wb6ipzw4yu-wb6ipzw4yu.gz
