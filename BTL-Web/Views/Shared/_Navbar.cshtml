@@ -2,14 +2,23 @@
 @{
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     var controller = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
-    var navSection = controller switch
+    var navSection = role;
+    if (controller == "Admin" && role == "Admin")
     {
-        "Admin" => "Admin",
-        "Staff" => "NhanVien",
-        "Teacher" => "GiaoVien",
-        "Student" => "HocVien",
-        _ => role
-    };
+        navSection = "Admin";
+    }
+    else if (controller == "Staff")
+    {
+        navSection = "NhanVien";
+    }
+    else if (controller == "Teacher")
+    {
+        navSection = "GiaoVien";
+    }
+    else if (controller == "Student")
+    {
+        navSection = "HocVien";
+    }
     var roleDisplay = navSection switch {
         "Admin" => "Quản Trị Viên",
         "NhanVien" => "Nhân Viên",
@@ -23,39 +32,39 @@
     {
         "Admin" => "/Admin/Index",
         "NhanVien" => "/Staff/Index",
-        "GiaoVien" => "/Teacher/Index",
+        "GiaoVien" => "/Admin/MyTeacherProfile",
         "HocVien" => "/Student/Index",
         _ => "/Home/Index"
     };
     var featureUrl = navSection switch
     {
         "Admin" => "/Admin/TrungTam",
-        "NhanVien" => "/Staff/StudentManagement",
-        "GiaoVien" => "/Teacher/MyClasses",
+        "NhanVien" => "/Admin/GiaoVien",
+        "GiaoVien" => "/Admin/MyTeachingCourses",
         "HocVien" => "/Student/MyCourses",
         _ => "/Home/Index"
     };
     var reportsUrl = navSection switch
     {
         "Admin" => "/Admin/KetQua",
-        "NhanVien" => "/Staff/CourseManagement",
-        "GiaoVien" => "/Teacher/Schedule",
+        "NhanVien" => "/Admin/KhoaHoc",
+        "GiaoVien" => "/Auth/Profile",
         "HocVien" => "/Student/Results",
         _ => "/Home/Index"
     };
     var featureLabel = navSection switch
     {
         "Admin" => "Trung tâm & CSVC",
-        "NhanVien" => "Học viên",
-        "GiaoVien" => "Lớp của tôi",
+        "NhanVien" => "Giáo viên",
+        "GiaoVien" => "Khóa học phụ trách",
         "HocVien" => "Khóa học",
         _ => "Tính năng"
     };
     var reportsLabel = navSection switch
     {
         "Admin" => "Báo cáo",
-        "NhanVien" => "Báo cáo",
-        "GiaoVien" => "Lịch dạy",
+        "NhanVien" => "Khóa học",
+        "GiaoVien" => "Tài khoản",
         "HocVien" => "Kết quả",
         _ => "Báo cáo"
     };

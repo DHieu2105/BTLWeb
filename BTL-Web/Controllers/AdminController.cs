@@ -2,15 +2,17 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BTL_Web.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace BTL_Web.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class AdminController : Controller
     {
         private readonly TtanContext _db;
         public AdminController(TtanContext db) => _db = db;
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             ViewBag.TotalStudents = await _db.HocViens.CountAsync();
@@ -20,18 +22,168 @@ namespace BTL_Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> HocVien()
             => View(await _db.HocViens.Include(h => h.DangKis).ThenInclude(d => d.MaKhoaHocNavigation).ToListAsync());
 
-        public async Task<IActionResult> GiaoVien()
-            => View(await _db.GiaoViens.Include(g => g.LopHocs).ToListAsync());
+        [Authorize(Roles = "Admin,NhanVien")]
+        public async Task<IActionResult> GiaoVien(string? keyword, int page = 1, int pageSize = 10)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
 
+            var query = _db.GiaoViens
+                .Include(g => g.LopHocs)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                query = query.Where(g =>
+                    g.MaGv.Contains(keyword) ||
+                    (g.Ten != null && g.Ten.Contains(keyword)) ||
+                    (g.ChuyenMon != null && g.ChuyenMon.Contains(keyword)) ||
+                    (g.Sdt != null && g.Sdt.Contains(keyword)));
+            }
+
+            var totalItems = await query.CountAsync();
+            var data = await query
+                .OrderBy(g => g.MaGv)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            return View(data);
+        }
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> NhanVien()
             => View(await _db.NhanViens.Include(n => n.MaTrungTamNavigation).ToListAsync());
 
-        public async Task<IActionResult> KhoaHoc()
-            => View(await _db.KhoaHocs.Include(k => k.DangKis).Include(k => k.LopHocs).ToListAsync());
+        [Authorize(Roles = "Admin,NhanVien,HocVien")]
+        public async Task<IActionResult> KhoaHoc(string? keyword, int page = 1, int pageSize = 10)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
 
+            var query = _db.KhoaHocs
+                .Include(k => k.MaTrungTamNavigation)
+                .Include(k => k.DangKis)
+                .Include(k => k.LopHocs)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                query = query.Where(k =>
+                    k.MaKhoaHoc.Contains(keyword) ||
+                    (k.TenKhoaHoc != null && k.TenKhoaHoc.Contains(keyword)));
+            }
+
+            var totalItems = await query.CountAsync();
+            var data = await query
+                .OrderBy(k => k.MaKhoaHoc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.TrungTams = await _db.TrungTams.OrderBy(t => t.MaTrungTam).ToListAsync();
+
+            return View(data);
+        }
+
+        [Authorize(Roles = "GiaoVien")]
+        public async Task<IActionResult> MyTeacherProfile()
+        {
+            var maGv = User.FindFirst("MaGV")?.Value;
+            if (string.IsNullOrWhiteSpace(maGv))
+            {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                maGv = await _db.TaiKhoans
+                    .Where(t => t.Username == username)
+                    .Select(t => t.MaGv)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(maGv))
+            {
+                return NotFound();
+            }
+
+            return RedirectToAction(nameof(TeacherDetail), new { id = maGv });
+        }
+
+        [Authorize(Roles = "GiaoVien")]
+        public async Task<IActionResult> MyTeachingCourses(string? keyword, int page = 1, int pageSize = 10)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+
+            var maGv = User.FindFirst("MaGV")?.Value;
+            if (string.IsNullOrWhiteSpace(maGv))
+            {
+                var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                maGv = await _db.TaiKhoans
+                    .Where(t => t.Username == username)
+                    .Select(t => t.MaGv)
+                    .FirstOrDefaultAsync();
+            }
+
+            if (string.IsNullOrWhiteSpace(maGv))
+            {
+                return View("KhoaHoc", new List<KhoaHoc>());
+            }
+
+            var courseIds = await _db.LopHocs
+                .Where(l => l.MaGv == maGv && l.MaKhoaHoc != null)
+                .Select(l => l.MaKhoaHoc!)
+                .Distinct()
+                .ToListAsync();
+
+            var query = _db.KhoaHocs
+                .Include(k => k.MaTrungTamNavigation)
+                .Include(k => k.DangKis)
+                .Include(k => k.LopHocs)
+                .Where(k => courseIds.Contains(k.MaKhoaHoc))
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                query = query.Where(k =>
+                    k.MaKhoaHoc.Contains(keyword) ||
+                    (k.TenKhoaHoc != null && k.TenKhoaHoc.Contains(keyword)));
+            }
+
+            var totalItems = await query.CountAsync();
+            var data = await query
+                .OrderBy(k => k.MaKhoaHoc)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            ViewBag.TrungTams = await _db.TrungTams.OrderBy(t => t.MaTrungTam).ToListAsync();
+
+            return View("KhoaHoc", data);
+        }
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> LopHoc()
         {
             ViewBag.KhoaHocs  = await _db.KhoaHocs.ToListAsync();
@@ -45,18 +197,22 @@ namespace BTL_Web.Controllers
                 .ToListAsync());
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PhongHoc()
         {
             ViewBag.TrungTams = await _db.TrungTams.ToListAsync();
             return View(await _db.PhongHocs.Include(p => p.MaTrungTamNavigation).ToListAsync());
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ThietBi()
             => View(await _db.ThietBis.Include(t => t.MaPhongs).ToListAsync());
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TrungTam()
             => View(await _db.TrungTams.ToListAsync());
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> LichHoc()
         {
             ViewBag.LopHocs   = await _db.LopHocs.ToListAsync();
@@ -66,9 +222,11 @@ namespace BTL_Web.Controllers
                 .ToListAsync());
         }
 
+            [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TaiKhoan()
             => View(await _db.TaiKhoans.ToListAsync());
 
+            [Authorize(Roles = "Admin")]
         public async Task<IActionResult> KetQua()
         {
             ViewBag.HocViens = await _db.HocViens.ToListAsync();
@@ -79,6 +237,7 @@ namespace BTL_Web.Controllers
                 .ToListAsync());
         }
 
+            [Authorize(Roles = "Admin")]
         public async Task<IActionResult> StudentsInClass(string id)
         {
             var lop = await _db.LopHocs
@@ -90,6 +249,7 @@ namespace BTL_Web.Controllers
             return View(lop);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CourseRegistration()
         {
             ViewBag.HocViens  = await _db.HocViens.ToListAsync();
@@ -98,6 +258,7 @@ namespace BTL_Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TeacherStudentAssignment()
         {
             ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
@@ -105,6 +266,7 @@ namespace BTL_Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> StaffTeacherAssignment()
         {
             ViewBag.NhanViens = await _db.NhanViens.ToListAsync();
@@ -112,6 +274,7 @@ namespace BTL_Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RoomEquipmentAssignment()
         {
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
@@ -119,6 +282,7 @@ namespace BTL_Web.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> StudentDetail(string id)
         {
             var sv = await _db.HocViens
@@ -129,8 +293,18 @@ namespace BTL_Web.Controllers
             return View(sv);
         }
 
+        [Authorize(Roles = "Admin,NhanVien,GiaoVien")]
         public async Task<IActionResult> TeacherDetail(string id)
         {
+            if (User.IsInRole("GiaoVien"))
+            {
+                var ownMaGv = User.FindFirst("MaGV")?.Value;
+                if (!string.Equals(ownMaGv, id, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Forbid();
+                }
+            }
+
             var gv = await _db.GiaoViens
                 .Include(g => g.LopHocs).ThenInclude(l => l.MaKhoaHocNavigation)
                 .Include(g => g.LopHocs).ThenInclude(l => l.MaHocViens)
@@ -138,6 +312,42 @@ namespace BTL_Web.Controllers
             return View(gv);
         }
 
+        [Authorize(Roles = "Admin,NhanVien,HocVien,GiaoVien")]
+        public async Task<IActionResult> CourseDetail(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return NotFound();
+            }
+
+            if (User.IsInRole("GiaoVien"))
+            {
+                var ownMaGv = User.FindFirst("MaGV")?.Value;
+                if (string.IsNullOrWhiteSpace(ownMaGv))
+                {
+                    return Forbid();
+                }
+
+                var isAssigned = await _db.LopHocs.AnyAsync(l => l.MaGv == ownMaGv && l.MaKhoaHoc == id)
+                                 || await _db.GiaoViens.AnyAsync(g => g.MaGv == ownMaGv && g.MaKhoaHoc == id);
+
+                if (!isAssigned)
+                {
+                    return Forbid();
+                }
+            }
+
+            var course = await _db.KhoaHocs
+                .Include(k => k.MaTrungTamNavigation)
+                .Include(k => k.DangKis)
+                .Include(k => k.LopHocs)
+                    .ThenInclude(l => l.MaGvNavigation)
+                .FirstOrDefaultAsync(k => k.MaKhoaHoc == id);
+
+            return course == null ? NotFound() : View(course);
+        }
+
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RoomDetail(string id)
         {
             var room = await _db.PhongHocs
@@ -151,76 +361,155 @@ namespace BTL_Web.Controllers
         }
 
         // ── POST actions ──────────────────────────────────────────────────────
-        [HttpPost] public async Task<IActionResult> AddHocVien(HocVien m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddHocVien(HocVien m)
         {
             m.MaHocVien = "HV" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.HocViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("HocVien");
         }
 
-        [HttpPost] public async Task<IActionResult> AddGiaoVien(GiaoVien m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddGiaoVien(GiaoVien m)
         {
             m.MaGv = "GV" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.GiaoViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("GiaoVien");
         }
 
-        [HttpPost] public async Task<IActionResult> AddNhanVien(NhanVien m)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateGiaoVien(GiaoVien m)
+        {
+            if (string.IsNullOrWhiteSpace(m.MaGv))
+            {
+                TempData["Error"] = "Thiếu mã giáo viên để cập nhật.";
+                return RedirectToAction("GiaoVien");
+            }
+
+            var entity = await _db.GiaoViens.FirstOrDefaultAsync(g => g.MaGv == m.MaGv);
+            if (entity == null)
+            {
+                TempData["Error"] = "Không tìm thấy giáo viên cần sửa.";
+                return RedirectToAction("GiaoVien");
+            }
+
+            entity.Ten = m.Ten?.Trim();
+            entity.Sdt = m.Sdt?.Trim();
+            entity.ChuyenMon = m.ChuyenMon?.Trim();
+            entity.GioiTinh = m.GioiTinh?.Trim();
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật giáo viên thành công.";
+            return RedirectToAction("GiaoVien");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddNhanVien(NhanVien m)
         {
             m.MaNv = "NV" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.NhanViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("NhanVien");
         }
 
-        [HttpPost] public async Task<IActionResult> AddKhoaHoc(KhoaHoc m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddKhoaHoc(KhoaHoc m)
         {
             m.MaKhoaHoc = "KH" + DateTime.Now.Ticks.ToString().Substring(10);
+            m.MaTrungTam = string.IsNullOrWhiteSpace(m.MaTrungTam) ? null : m.MaTrungTam;
             _db.KhoaHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("KhoaHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddLopHoc(LopHoc m)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateKhoaHoc(KhoaHoc m)
+        {
+            if (string.IsNullOrWhiteSpace(m.MaKhoaHoc))
+            {
+                TempData["Error"] = "Thiếu mã khóa học để cập nhật.";
+                return RedirectToAction("KhoaHoc");
+            }
+
+            var entity = await _db.KhoaHocs.FirstOrDefaultAsync(k => k.MaKhoaHoc == m.MaKhoaHoc);
+            if (entity == null)
+            {
+                TempData["Error"] = "Không tìm thấy khóa học cần sửa.";
+                return RedirectToAction("KhoaHoc");
+            }
+
+            entity.TenKhoaHoc = m.TenKhoaHoc?.Trim();
+            entity.ThoiLuong = m.ThoiLuong;
+            entity.HocPhi = m.HocPhi;
+            entity.MaTrungTam = string.IsNullOrWhiteSpace(m.MaTrungTam) ? null : m.MaTrungTam;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật khóa học thành công.";
+            return RedirectToAction("KhoaHoc");
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddLopHoc(LopHoc m)
         {
             m.MaLop = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.LopHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("LopHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddPhongHoc(PhongHoc m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddPhongHoc(PhongHoc m)
         {
             m.MaPhong = "PH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.PhongHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("PhongHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddThietBi(ThietBi m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddThietBi(ThietBi m)
         {
             m.MaThietBi = "TB" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.ThietBis.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("ThietBi");
         }
 
-        [HttpPost] public async Task<IActionResult> AddTrungTam(TrungTam m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddTrungTam(TrungTam m)
         {
             m.MaTrungTam = "TT" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.TrungTams.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("TrungTam");
         }
 
-        [HttpPost] public async Task<IActionResult> AddLichHoc(LichHoc m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddLichHoc(LichHoc m)
         {
             m.MaLichHoc = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.LichHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("LichHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddKetQua(KetQua m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddKetQua(KetQua m)
         {
             _db.KetQuas.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("KetQua");
         }
 
-        [HttpPost] public async Task<IActionResult> AddTaiKhoan(TaiKhoan m)
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AddTaiKhoan(TaiKhoan m)
         {
             _db.TaiKhoans.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("TaiKhoan");
@@ -228,6 +517,7 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RegisterCourse(string MaHocVien, string MaKhoaHoc)
         {
             if (string.IsNullOrWhiteSpace(MaHocVien) || string.IsNullOrWhiteSpace(MaKhoaHoc))
@@ -252,6 +542,7 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignTeacherStudent(string MaHocVien, string MaGv)
         {
             if (string.IsNullOrWhiteSpace(MaHocVien) || string.IsNullOrWhiteSpace(MaGv))
@@ -275,6 +566,7 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignStaffTeacher(string MaNv, string MaGv)
         {
             if (string.IsNullOrWhiteSpace(MaNv) || string.IsNullOrWhiteSpace(MaGv))
@@ -298,6 +590,7 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignEquipmentToRoom(string MaThietBi, string MaPhong)
         {
             if (string.IsNullOrWhiteSpace(MaThietBi) || string.IsNullOrWhiteSpace(MaPhong))
@@ -320,6 +613,7 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddStudentToClass(string maLop, string maHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
@@ -333,6 +627,7 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveStudentFromClass(string maLop, string maHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
@@ -341,54 +636,63 @@ namespace BTL_Web.Controllers
             return RedirectToAction("StudentsInClass", new { id = maLop });
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteHocVien(string id)
         {
             var e = await _db.HocViens.FindAsync(id);
             if (e != null) { _db.HocViens.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("HocVien");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteGiaoVien(string id)
         {
             var e = await _db.GiaoViens.FindAsync(id);
             if (e != null) { _db.GiaoViens.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("GiaoVien");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteKhoaHoc(string id)
         {
             var e = await _db.KhoaHocs.FindAsync(id);
             if (e != null) { _db.KhoaHocs.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("KhoaHoc");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteLopHoc(string id)
         {
             var e = await _db.LopHocs.FindAsync(id);
             if (e != null) { _db.LopHocs.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("LopHoc");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeletePhongHoc(string id)
         {
             var e = await _db.PhongHocs.FindAsync(id);
             if (e != null) { _db.PhongHocs.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("PhongHoc");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteThietBi(string id)
         {
             var e = await _db.ThietBis.FindAsync(id);
             if (e != null) { _db.ThietBis.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("ThietBi");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTrungTam(string id)
         {
             var e = await _db.TrungTams.FindAsync(id);
             if (e != null) { _db.TrungTams.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("TrungTam");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteLichHoc(string id)
         {
             var e = await _db.LichHocs.FindAsync(id);
             if (e != null) { _db.LichHocs.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("LichHoc");
         }
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteTaiKhoan(string id)
         {
             var e = await _db.TaiKhoans.FindAsync(id);

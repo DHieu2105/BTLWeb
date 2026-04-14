@@ -1,13 +1,31 @@
+# Build outputs
 **/bin/
 **/obj/
+
+# Visual Studio / VS Code
 .vs/
 .vscode/
-TestResults/
-*.user
 *.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Test outputs
+TestResults/
+*.trx
+*.coverage
+
+# Logs and debug artifacts
+*.log
 *.cache
 *.pdb
-*.log
+
+# Frontend dependencies
 node_modules/
+
+# Local environment configs
 appsettings.Development.json
 
+# OS files
+.DS_Store
+Thumbs.db
