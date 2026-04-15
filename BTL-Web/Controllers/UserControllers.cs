@@ -19,20 +19,50 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> Index()
         {
             ViewBag.TotalStudents = await _db.HocViens.CountAsync();
-            ViewBag.TotalClasses  = await _db.LopHocs.CountAsync();
+            ViewBag.TotalClasses = await _db.LopHocs.CountAsync();
             return View();
         }
 
         public async Task<IActionResult> StudentManagement()
             => View(await _db.HocViens.Include(h => h.DangKis).ThenInclude(d => d.MaKhoaHocNavigation).ToListAsync());
 
-        public async Task<IActionResult> ClassManagement()
+        public async Task<IActionResult> ClassManagement(int page = 1, int pageSize = 10)
         {
-            return View(await _db.LopHocs
-                .Include(l => l.MaGvNavigation)
-                .Include(l => l.MaKhoaHocNavigation)
-                .Include(l => l.MaHocViens)
-                .ToListAsync());
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
+            ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
+            ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
+
+            var query = _db.LopHocs
+            .Include(l => l.MaGvNavigation)
+            .Include(l => l.MaKhoaHocNavigation)
+            .Include(l => l.MaPhongNavigation)
+            .Include(l => l.MaHocViens)
+            .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+            .OrderBy(l => l.MaLop)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+            var vm = new LopHocPage
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems
+            };
+            return View(vm);
+
         }
 
         public async Task<IActionResult> CourseManagement()
@@ -43,7 +73,7 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> ScheduleManagement()
         {
-            ViewBag.LopHocs   = await _db.LopHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
             return View(await _db.LichHocs.Include(l => l.MaPhongNavigation).ToListAsync());
         }
@@ -61,7 +91,7 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> AddStudentToClass()
         {
-            ViewBag.LopHocs  = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
             ViewBag.HocViens = await _db.HocViens.ToListAsync();
             return View();
         }
@@ -70,7 +100,7 @@ namespace BTL_Web.Controllers
         {
             ViewBag.HocViens = await _db.HocViens.ToListAsync();
             ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
-            ViewBag.LopHocs  = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
             return View();
         }
 
@@ -121,7 +151,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> AddStudentToClassSubmit(string MaLop, string MaHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == MaLop);
-            var sv  = await _db.HocViens.FindAsync(MaHocVien);
+            var sv = await _db.HocViens.FindAsync(MaHocVien);
             if (lop != null && sv != null && !lop.MaHocViens.Contains(sv))
             {
                 lop.MaHocViens.Add(sv);
@@ -150,7 +180,7 @@ namespace BTL_Web.Controllers
                 .Include(l => l.MaKhoaHocNavigation)
                 .Include(l => l.MaHocViens)
                 .ToListAsync();
-            ViewBag.TotalClasses  = classes.Count;
+            ViewBag.TotalClasses = classes.Count;
             ViewBag.TotalStudents = classes.Sum(l => l.MaHocViens.Count);
             return View();
         }
