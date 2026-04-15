@@ -1,0 +1,134 @@
+@{
+    ViewData["Title"] = "Thông tin cá nhân";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm border-top border-primary border-4">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-user-circle"></i> Thông tin cá nhân</h4>
+                </div>
+
+                @if (ViewBag.Account != null)
+                {
+                    <div class="card-body">
+                        @{
+                            dynamic account = ViewBag.Account;
+                            string roleDisplay = ViewBag.RoleDisplay ?? account.Role ?? "Không xác định";
+                        }
+
+                        <div class="mb-3">
+                            <p><strong>Tên đăng nhập:</strong> @account.Username</p>
+                            <p><strong>Quyền hạn:</strong> <span class="badge bg-info">@roleDisplay</span></p>
+                        </div>
+
+                        <hr />
+
+                        @if (account.Type == "GiaoVien")
+                        {
+                            <p><strong>Mã:</strong> @(account.MaGv ?? "N/A")</p>
+                            <p><strong>Tên:</strong> @(account.Ten ?? "N/A")</p>
+                            <p><strong>SĐT:</strong> @(account.Sdt ?? "N/A")</p>
+                            <p><strong>Chuyên môn:</strong> @(account.ChuyenMon ?? "N/A")</p>
+                            <p><strong>Giới tính:</strong> @(account.GioiTinh ?? "N/A")</p>
+                        }
+                        else if (account.Type == "HocVien")
+                        {
+                            <p><strong>Mã học viên:</strong> @(account.MaHocVien ?? "N/A")</p>
+                            <p><strong>Tên:</strong> @(account.HoVaTen ?? "N/A")</p>
+                            <p><strong>SĐT:</strong> @(account.Sdt ?? "N/A")</p>
+                            <p><strong>Giới tính:</strong> @(account.GioiTinh ?? "N/A")</p>
+                            @if (account.NgayDangKi != null)
+                            {
+                                <p><strong>Ngày đăng ký:</strong> @account.NgayDangKi.ToString("dd/MM/yyyy")</p>
+                            }
+                        }
+                        else if (account.Type == "NhanVien")
+                        {
+                            <p><strong>Mã:</strong> @(account.MaNv ?? "N/A")</p>
+                            <p><strong>Tên:</strong> @(account.HoVaTen ?? "N/A")</p>
+                            <p><strong>Chức vụ:</strong> @(account.ChucVu ?? "N/A")</p>
+                            <p><strong>Giới tính:</strong> @(account.GioiTinh ?? "N/A")</p>
+                        }
+                        else if (account.Type == "Admin")
+                        {
+                            <div class="alert alert-info">Bạn là quản trị viên hệ thống</div>
+                        }
+
+                        <hr />
+
+                        <!-- Nút Đổi Mật Khẩu -->
+                        <div class="mt-3 mb-3">
+                            <button class="btn btn-warning btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#changePasswordForm" aria-expanded="false">
+                                <i class="fas fa-key"></i> Đổi Mật Khẩu
+                            </button>
+                        </div>
+
+                        <!-- Form Đổi Mật Khẩu (Collapse) -->
+                        <div class="collapse" id="changePasswordForm">
+                            <div class="card card-body border-warning bg-light mt-3">
+                                @if (TempData["Success"] != null)
+                                {
+                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                        <strong>Thành công!</strong> @TempData["Success"]
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                }
+
+                                @if (TempData["Error"] != null)
+                                {
+                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                        <strong>Lỗi!</strong> @TempData["Error"]
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                    </div>
+                                }
+
+                                <form method="post" action="@Url.Action("ChangePassword")">
+                                    <div class="mb-3">
+                                        <label for="oldPassword" class="form-label">Mật khẩu hiện tại</label>
+                                        <input type="password" class="form-control" id="oldPassword" name="oldPassword" required>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                                        <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6">
+                                        <small class="form-text text-muted">Tối thiểu 6 ký tự</small>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="6">
+                                    </div>
+
+                                    <div>
+                                        <button type="submit" class="btn btn-primary btn-sm">Cập nhật mật khẩu</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="collapse" data-bs-target="#changePasswordForm">Hủy</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <hr />
+                        <div>
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-secondary btn-sm">Quay lại</a>
+                            <form method="post" action="@Url.Action("Logout")" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">Đăng xuất</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-body">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> Không thể tải thông tin. Vui lòng đăng nhập lại.
+                        </div>
+                        <a href="@Url.Action("Login")" class="btn btn-primary btn-sm">Đăng nhập</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

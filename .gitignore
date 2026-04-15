@@ -1,0 +1,25 @@
+﻿# Build results
+bin/
+obj/
+
+# Visual Studio
+.vs/
+*.user
+.suo
+*.sln.iml
+
+# Visual Studio cache/options
+.vscode/
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+
+# Local development
+appsettings.Development.json
+*.log
+
+# IDE-specific
+*.swp
+*.swo
