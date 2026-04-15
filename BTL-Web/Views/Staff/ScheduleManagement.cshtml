@@ -10,7 +10,7 @@
     </div>
     <div class="page-actions">
         <button class="btn-outline"><i class="fas fa-calendar-week"></i> Week View</button>
-        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+        <button class="btn-primary" onclick="openAddScheduleModal()">
             <i class="fas fa-plus"></i> Add Schedule
         </button>
     </div>
@@ -19,17 +19,24 @@
 <!-- Stats -->
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div><span class="stat-badge blue">Live</span></div>
+        <div class="stat-card-header">
+            <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div><span
+            class="stat-badge blue">Live</span>
+        </div>
         <div class="stat-label">Active Sessions</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
-        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-door-open"></i></div></div>
+        <div class="stat-card-header">
+            <div class="stat-icon teal"><i class="fas fa-door-open"></i></div>
+        </div>
         <div class="stat-label">Room Occupancy</div>
         <div class="stat-value">75%</div>
     </div>
     <div class="stat-card orange">
-        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div></div>
+        <div class="stat-card-header">
+            <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
+        </div>
         <div class="stat-label">Pending Requests</div>
         <div class="stat-value">24</div>
     </div>
@@ -50,6 +57,7 @@
             <tr>
                 <th>Date</th>
                 <th>Time</th>
+                <th>Class</th>
                 <th>Room</th>
                 <th>Status</th>
                 <th style="text-align:right;">Actions</th>
@@ -66,87 +74,230 @@
                             <div class="user-name">@(lh.GioBatDau?.ToString(@"hh\:mm") ?? "—")</div>
                             <div class="user-sub">@(lh.GioKetThuc?.ToString(@"hh\:mm") ?? "—")</div>
                         </td>
+                        <td>@(lh.MaLopNavigation?.TenLop ?? lh.MaLop ?? "—")</td>
                         <td>@(lh.MaPhongNavigation?.TenPhong ?? "—")</td>
                         <td><span class="chip chip-green">Active</span></td>
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
-                                <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon btn-outline btn-sm" onclick="deleteSched('@lh.MaLichHoc')"><i class="fas fa-trash" style="color:#ef4444;"></i></button>
+                                <button type="button" class="btn-icon btn-outline btn-sm edit-schedule-btn"
+                                        data-id="@lh.MaLichHoc" data-date="@(lh.NgayHoc?.ToString("yyyy-MM-dd") ?? "")"
+                                        data-start="@(lh.GioBatDau?.ToString(@"hh\:mm") ?? "")"
+                                        data-end="@(lh.GioKetThuc?.ToString(@"hh\:mm") ?? "")" data-class="@lh.MaLop"
+                                        data-room="@lh.MaPhong">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon btn-outline btn-sm" onclick="deleteSched('@lh.MaLichHoc')"><i
+                                    class="fas fa-trash" style="color:#ef4444;"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+            else
+                {
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state"><i class="fas fa-calendar-alt"></i>
+                                <p>No schedules found</p>
                             </div>
                         </td>
                     </tr>
                 }
-            }
-            else
-            {
-                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-calendar-alt"></i><p>No schedules found</p></div></td></tr>
-            }
-        </tbody>
-    </table>
-    <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) sessions</span>
-        <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            </tbody>
+        </table>
+        <div class="pagination-bar">
+            <span class="pagination-info">Showing @(Model?.Count() ?? 0) sessions</span>
+            <div class="pagination-btns">
+                <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+                <button class="page-btn active">1</button>
+                <button class="page-btn">2</button>
+                <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Add Modal -->
-<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Add Schedule</h4>
-        <form method="post" action="/Staff/AddSchedule">
-            @Html.AntiForgeryToken()
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
-                    <label class="form-label">Date</label>
-                    <input type="date" name="NgayHoc" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">Room</label>
-                    <select name="MaPhong" class="form-control form-select">
-                        @if (ViewBag.PhongHocs != null)
-                        {
-                            @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
+    <!-- Add Modal -->
+    <div id="addModal"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
+            <h4 style="margin-bottom:24px;">Add Schedule</h4>
+            <form method="post" action="/Staff/AddSchedule" id="scheduleForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="MaLichHoc" id="scheduleId" value="">
+                <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Class</label>
+                        <select id="classSelect" name="MaLop" class="form-control form-select">
+                            @if (ViewBag.LopHocs != null)
                             {
-                                <option value="@ph.MaPhong">@ph.TenPhong</option>
+                                @foreach (var lop in (IEnumerable<BTL_Web.Models.LopHoc>)ViewBag.LopHocs)
+                                {
+                                    <option value="@lop.MaLop" data-class-name="@(lop.TenLop ?? lop.MaLop)"
+                                            data-teacher-name="@(lop.MaGvNavigation?.Ten ?? "—")"
+                                            data-course-name="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")">
+                                        @(lop.TenLop ?? lop.MaLop)
+                                    </option>
+                                }
                             }
-                        }
-                    </select>
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
-                    <label class="form-label">Start</label>
-                    <input type="time" name="GioBatDau" class="form-control">
+                <div class="card-plain" style="padding:16px;margin-bottom:16px;background:var(--surface-low);">
+                    <div class="section-heading" style="margin-bottom:12px;">
+                        <h5 style="margin:0;">Selected Class Info</h5>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div>
+                            <div class="stat-label">Class Name</div>
+                            <div id="modalClassName" class="user-name" style="font-size:14px;">—</div>
+                        </div>
+                        <div>
+                            <div class="stat-label">Teacher</div>
+                            <div id="modalTeacherName" class="user-name" style="font-size:14px;">—</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <div class="stat-label">Course</div>
+                        <div id="modalCourseName" class="user-name" style="font-size:14px;">—</div>
+                    </div>
+                    <div style="margin-top:12px;">
+                        <div class="stat-label">Class</div>
+                        <div id="modalClassValue" class="user-name" style="font-size:14px;">—</div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">End</label>
-                    <input type="time" name="GioKetThuc" class="form-control">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Date</label>
+                        <input type="date" name="NgayHoc" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Room</label>
+                        <select name="MaPhong" class="form-control form-select">
+                            @if (ViewBag.PhongHocs != null)
+                            {
+                                @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
+                                {
+                                    <option value="@ph.MaPhong">@ph.TenPhong</option>
+                                }
+                            }
+                        </select>
+                    </div>
                 </div>
-            </div>
-            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Add Schedule</button>
-            </div>
-        </form>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Start</label>
+                        <input type="time" name="GioBatDau" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">End</label>
+                        <input type="time" name="GioKetThuc" class="form-control">
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                    <button type="button" class="btn-outline"
+                            onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                    <button type="submit" id="scheduleSubmitBtn" class="btn-primary">Add Schedule</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-@section Scripts {
-<script>
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
+    @section Scripts {
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const classSelect = document.getElementById('classSelect');
+                const scheduleForm = document.getElementById('scheduleForm');
+                const scheduleId = document.getElementById('scheduleId');
+                const scheduleSubmitBtn = document.getElementById('scheduleSubmitBtn');
+                const dateInput = document.querySelector('input[name="NgayHoc"]');
+                const startInput = document.querySelector('input[name="GioBatDau"]');
+                const endInput = document.querySelector('input[name="GioKetThuc"]');
+                const roomSelect = document.querySelector('select[name="MaPhong"]');
+                const modalClassName = document.getElementById('modalClassName');
+                const modalTeacherName = document.getElementById('modalTeacherName');
+                const modalCourseName = document.getElementById('modalCourseName');
+                const modalClassValue = document.getElementById('modalClassValue');
+                const modalTitle = document.querySelector('#addModal h4');
 
-function deleteSched(id) {
-    if (confirm('Delete schedule ' + id + '?')) location.href = '/Staff/DeleteSchedule/' + id;
-}
-</script>
-}
+                function updateClassInfo() {
+                    if (!classSelect || !modalClassName || !modalTeacherName || !modalCourseName || !modalClassValue) {
+                        return;
+                    }
+
+                    const selected = classSelect.options[classSelect.selectedIndex];
+                    if (!selected) {
+                        modalClassName.textContent = '—';
+                        modalTeacherName.textContent = '—';
+                        modalCourseName.textContent = '—';
+                        modalClassValue.textContent = '—';
+                        return;
+                    }
+
+                    modalClassName.textContent = selected.dataset.className || selected.textContent.trim() || '—';
+                    modalTeacherName.textContent = selected.dataset.teacherName || '—';
+                    modalCourseName.textContent = selected.dataset.courseName || '—';
+                    modalClassValue.textContent = selected.dataset.className || selected.textContent.trim() || '—';
+                }
+
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                    });
+                });
+
+                if (classSelect) {
+                    classSelect.addEventListener('change', updateClassInfo);
+                    updateClassInfo();
+                }
+
+                window.openAddScheduleModal = function () {
+                    if (!classSelect || !scheduleForm || !scheduleId || !scheduleSubmitBtn || !dateInput || !startInput || !endInput || !roomSelect || !modalTitle) {
+                        return;
+                    }
+
+                    scheduleForm.action = '/Staff/AddSchedule';
+                    scheduleId.value = '';
+                    dateInput.value = '';
+                    startInput.value = '';
+                    endInput.value = '';
+
+                    if (classSelect.options.length > 0) {
+                        classSelect.selectedIndex = 0;
+                    }
+                    if (roomSelect.options.length > 0) {
+                        roomSelect.selectedIndex = 0;
+                    }
+
+                    scheduleSubmitBtn.textContent = 'Add Schedule';
+                    modalTitle.textContent = 'Add Schedule';
+                    updateClassInfo();
+                    document.getElementById('addModal').style.display = 'flex';
+                };
+
+                document.querySelectorAll('.edit-schedule-btn').forEach(btn => {
+                    btn.addEventListener('click', function () {
+                        if (!classSelect || !scheduleForm || !scheduleId || !scheduleSubmitBtn || !dateInput || !startInput || !endInput || !roomSelect || !modalTitle) {
+                            return;
+                        }
+
+                        scheduleForm.action = '/Staff/EditSchedule';
+                        scheduleId.value = this.dataset.id || '';
+                        dateInput.value = this.dataset.date || '';
+                        startInput.value = this.dataset.start || '';
+                        endInput.value = this.dataset.end || '';
+                        classSelect.value = this.dataset.class || '';
+                        roomSelect.value = this.dataset.room || '';
+                        scheduleSubmitBtn.textContent = 'Save Changes';
+                        modalTitle.textContent = 'Edit Schedule';
+                        updateClassInfo();
+                        document.getElementById('addModal').style.display = 'flex';
+                    });
+                });
+            });
+
+            function deleteSched(id) {
+                if (confirm('Delete schedule ' + id + '?')) location.href = '/Staff/DeleteSchedule/' + id;
+            }
+        </script>
+    }

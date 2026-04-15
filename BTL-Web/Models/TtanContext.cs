@@ -39,7 +39,7 @@ public partial class TtanContext : DbContext
 
     public virtual DbSet<TrungTam> TrungTams { get; set; }
 
-     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured)
         {
@@ -218,9 +218,15 @@ public partial class TtanContext : DbContext
             entity.Property(e => e.MaLichHoc)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+            entity.Property(e => e.MaLop)
+                .HasMaxLength(10)
+                .IsUnicode(false);
             entity.Property(e => e.MaPhong)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.MaLopNavigation).WithMany(p => p.LichHocs)
+                .HasForeignKey(d => d.MaLop);
 
             entity.HasOne(d => d.MaPhongNavigation).WithMany(p => p.LichHocs)
                 .HasForeignKey(d => d.MaPhong)

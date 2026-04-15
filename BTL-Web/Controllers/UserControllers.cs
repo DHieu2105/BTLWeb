@@ -73,9 +73,16 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> ScheduleManagement()
         {
-            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs
+                .Include(l => l.MaGvNavigation)
+                .Include(l => l.MaKhoaHocNavigation)
+                .OrderBy(l => l.MaLop)
+                .ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            return View(await _db.LichHocs.Include(l => l.MaPhongNavigation).ToListAsync());
+            return View(await _db.LichHocs
+                .Include(l => l.MaPhongNavigation)
+                .Include(l => l.MaLopNavigation)
+                .ToListAsync());
         }
 
         public async Task<IActionResult> ClassDetail(string id)
@@ -109,6 +116,25 @@ namespace BTL_Web.Controllers
         {
             m.MaLichHoc = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.LichHocs.Add(m); await _db.SaveChangesAsync();
+            return RedirectToAction("ScheduleManagement");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditSchedule(LichHoc m)
+        {
+            var existing = await _db.LichHocs.FindAsync(m.MaLichHoc);
+            if (existing == null)
+            {
+                return RedirectToAction("ScheduleManagement");
+            }
+
+            existing.NgayHoc = m.NgayHoc;
+            existing.GioBatDau = m.GioBatDau;
+            existing.GioKetThuc = m.GioKetThuc;
+            existing.MaLop = m.MaLop;
+            existing.MaPhong = m.MaPhong;
+
+            await _db.SaveChangesAsync();
             return RedirectToAction("ScheduleManagement");
         }
 
