@@ -1,31 +1,12 @@
-# Build outputs
+# Build output
 **/bin/
 **/obj/
 
-# Visual Studio / VS Code
+# Visual Studio
 .vs/
-.vscode/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
 
-# Test outputs
-TestResults/
-*.trx
-*.coverage
+# Node
+**/node_modules/
 
-# Logs and debug artifacts
-*.log
-*.cache
-*.pdb
-
-# Frontend dependencies
-node_modules/
-
-# Local environment configs
-appsettings.Development.json
-
-# OS files
-.DS_Store
-Thumbs.db
+# Local config
+**/appsettings.Development.json
