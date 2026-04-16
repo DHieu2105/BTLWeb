@@ -119,6 +119,9 @@ public class NhanVienController : Controller
             return View(model);
         }
 
+
+
+
         var nhanVien = new NhanVien
         {
             MaNv = model.MaNv.Trim(),
