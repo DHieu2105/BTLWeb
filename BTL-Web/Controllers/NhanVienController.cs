@@ -1,5 +1,6 @@
 using BTL_Web.Constants;
 using BTL_Web.Models;
+using BTL_Web.Services;
 using BTL_Web.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -88,9 +89,9 @@ public class NhanVienController : Controller
             {
                 ModelState.AddModelError(nameof(model.NewPassword), "Vui lòng nhập mật khẩu mới");
             }
-            else if (model.NewPassword.Length < 6)
+            else if (model.NewPassword.Length < 8)
             {
-                ModelState.AddModelError(nameof(model.NewPassword), "Mật khẩu mới phải ít nhất 6 ký tự");
+                ModelState.AddModelError(nameof(model.NewPassword), "Mật khẩu mới phải ít nhất 8 ký tự");
             }
         }
 
@@ -135,7 +136,7 @@ public class NhanVienController : Controller
             _context.TaiKhoans.Add(new TaiKhoan
             {
                 Username = model.NewUsername,
-                Password = model.NewPassword,
+                Password = PasswordHasher.Hash(model.NewPassword),
                 Role = AppRoles.NhanVien,
                 MaNv = nhanVien.MaNv
             });
