@@ -199,7 +199,7 @@ public class AuthController : Controller
     {
         try
         {
-            var context = HttpContext.RequestServices.GetRequiredService<TtanContext>();
+            var context = HttpContext.RequestServices.GetRequiredService<TtamContext>();
 
             // Check if admin exists
             var admin = await context.TaiKhoans.FirstOrDefaultAsync(x => x.Username == "admin");

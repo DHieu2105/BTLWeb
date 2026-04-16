@@ -1,0 +1,28 @@
+@model BTL_Web.ViewModels.NhanVienFormViewModel
+
+@{
+    ViewData["Title"] = "Cập nhật nhân viên";
+    ViewData["ReadOnlyMaNv"] = true;
+    ViewData["AllowCreateAccount"] = false;
+}
+
+<div class="container py-4">
+    <h2 class="mb-3">Cập nhật nhân viên</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form asp-action="Edit" method="post">
+                <partial name="_Form" model="Model" />
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Cập nhật</button>
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
