@@ -14,8 +14,14 @@ builder.Services.AddSession(options =>
 });
 
 // Add DbContext
+var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("Missing connection string: DefaultConnection");
+
 builder.Services.AddDbContext<TtanContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(defaultConnection));
+
+builder.Services.AddDbContext<TtamContext>(options =>
+    options.UseSqlServer(defaultConnection));
 
 // Add custom services
 builder.Services.AddScoped<IAuthService, AuthService>();

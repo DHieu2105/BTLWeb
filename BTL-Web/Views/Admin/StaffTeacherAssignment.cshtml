@@ -1,47 +1,105 @@
 @{
     ViewData["Title"] = "Staff-Teacher Assignment";
+    var isAdmin = User.IsInRole("Admin");
     var nhanViens = ViewBag.NhanViens as IEnumerable<BTL_Web.Models.NhanVien> ?? new List<BTL_Web.Models.NhanVien>();
     var giaoViens = ViewBag.GiaoViens as IEnumerable<BTL_Web.Models.GiaoVien> ?? new List<BTL_Web.Models.GiaoVien>();
+    var trungTams = ViewBag.TrungTams as IEnumerable<BTL_Web.Models.TrungTam> ?? new List<BTL_Web.Models.TrungTam>();
+    var keyword = ViewBag.Keyword as string ?? "";
+    var center = ViewBag.Center as string ?? "";
+    var unassignedOnly = ViewBag.UnassignedOnly != null && (bool)ViewBag.UnassignedOnly;
+    var currentPage = ViewBag.Page != null ? (int)ViewBag.Page : 1;
+    var totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    var pageSize = ViewBag.PageSize != null ? (int)ViewBag.PageSize : 10;
+    var totalItems = ViewBag.TotalItems != null ? (int)ViewBag.TotalItems : nhanViens.Count();
+    var totalStaff = ViewBag.TotalStaff != null ? (int)ViewBag.TotalStaff : nhanViens.Count();
+    var totalTeachers = ViewBag.TotalTeachers != null ? (int)ViewBag.TotalTeachers : giaoViens.Count();
+    var unassignedTeachers = ViewBag.UnassignedTeachers != null ? (int)ViewBag.UnassignedTeachers : giaoViens.Count(g => !g.MaNvs.Any());
+    var maxTeachersPerStaff = ViewBag.MaxTeachersPerStaff != null ? (int)ViewBag.MaxTeachersPerStaff : 8;
 }
 
 <div class="page-header">
     <div>
         <h2>Staff-Teacher Assignment</h2>
-        <p>Assign teachers to staff supervisors for management oversight</p>
+        <p>@totalItems staff records in current filter</p>
     </div>
     <div class="page-actions">
-        <button class="btn-primary" onclick="document.getElementById('assignModal').style.display='flex'">
-            <i class="fas fa-plus"></i> New Assignment
-        </button>
+        <form method="get" style="display:flex;gap:8px;align-items:center;">
+            <input class="form-control" type="text" name="keyword" value="@keyword" placeholder="Search staff..." style="width:210px;" />
+            <select class="form-control form-select" name="center" style="width:170px;">
+                <option value="">All centers</option>
+                @foreach (var tt in trungTams)
+                {
+                    if (tt.MaTrungTam == center)
+                    {
+                        <option value="@tt.MaTrungTam" selected>@tt.TenTrungTam</option>
+                    }
+                    else
+                    {
+                        <option value="@tt.MaTrungTam">@tt.TenTrungTam</option>
+                    }
+                }
+            </select>
+            <label style="display:flex;gap:6px;align-items:center;font-size:13px;white-space:nowrap;">
+                <input type="checkbox" name="unassignedOnly" value="true" @(unassignedOnly ? "checked" : null) />
+                Unassigned only
+            </label>
+            <select class="form-control form-select" name="pageSize" style="width:110px;">
+                @foreach (var size in new[] { 10, 20, 50 })
+                {
+                    if (size == pageSize)
+                    {
+                        <option value="@size" selected>@size / page</option>
+                    }
+                    else
+                    {
+                        <option value="@size">@size / page</option>
+                    }
+                }
+            </select>
+            <button class="btn-outline" type="submit"><i class="fas fa-filter"></i> Filter</button>
+        </form>
+        @if (isAdmin)
+        {
+            <button class="btn-primary" onclick="document.getElementById('assignModal').style.display='flex'">
+                <i class="fas fa-plus"></i> New Assignment
+            </button>
+        }
     </div>
 </div>
 
-<!-- Stats -->
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
     <div class="card-plain" style="padding:20px;">
         <div class="stat-label">Total Staff</div>
-        <div class="stat-value">@nhanViens.Count()</div>
+        <div class="stat-value">@totalStaff</div>
     </div>
     <div class="card-plain" style="padding:20px;">
         <div class="stat-label">Total Teachers</div>
-        <div class="stat-value">@giaoViens.Count()</div>
+        <div class="stat-value">@totalTeachers</div>
     </div>
     <div class="card-plain" style="padding:20px;">
         <div class="stat-label">Unassigned Teachers</div>
-        <div class="stat-value" style="color:#f97316;">@giaoViens.Count(g => !g.MaNvs.Any())</div>
+        <div class="stat-value" style="color:#f97316;">@unassignedTeachers</div>
     </div>
     <div class="card-plain" style="padding:20px;">
-        <div class="stat-label">Efficiency Rating</div>
-        <div class="stat-value" style="color:#10b981;">94%</div>
+        <div class="stat-label">Max Workload</div>
+        <div class="stat-value" style="color:#10b981;">@maxTeachersPerStaff teachers</div>
     </div>
 </div>
 
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger" style="margin-bottom:16px;">@error</div>
+}
+
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
-    <!-- Active Staff Panel -->
     <div class="card-plain" style="padding:0;">
         <div class="card-header-plain">
             <h5>Staff Assignments</h5>
-            <span class="chip chip-blue">@nhanViens.Count() Staff Members</span>
+            <span class="chip chip-blue">@totalItems Staff Members</span>
         </div>
         <table class="data-table">
             <thead>
@@ -50,7 +108,6 @@
                     <th>Assigned Teachers</th>
                     <th>Workload</th>
                     <th>Status</th>
-                    <th style="text-align:right;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -59,148 +116,200 @@
                     var name = nv.HoVaTen ?? nv.MaNv;
                     var ini = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
                     var assignedCount = nv.MaGvs.Count;
+                    var workloadPercent = Math.Min((int)Math.Round((double)assignedCount * 100 / maxTeachersPerStaff), 100);
                     <tr>
                         <td>
                             <div class="user-row">
                                 <div class="avatar">@ini</div>
                                 <div>
                                     <div class="user-name">@name</div>
-                                    <div class="user-sub">@(nv.ChucVu ?? nv.MaNv)</div>
+                                    <div class="user-sub">@(nv.ChucVu ?? nv.MaNv) • @(nv.MaTrungTamNavigation?.TenTrungTam ?? nv.MaTrungTam ?? "—")</div>
                                 </div>
                             </div>
                         </td>
                         <td>
-                            <div style="display:flex;gap:-4px;">
-                                @foreach (var gv in nv.MaGvs.Take(3))
-                                {
-                                    var gn = gv.Ten ?? "?";
-                                    var gi = string.Join("", gn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
-                                    <div class="avatar avatar-sm" style="margin-right:-8px;border:2px solid white;">@gi</div>
-                                }
-                                @if (assignedCount > 3)
-                                {
-                                    <div class="avatar avatar-sm" style="margin-right:-8px;border:2px solid white;background:var(--surface-high);color:var(--on-surface-variant);font-size:10px;">+@(assignedCount-3)</div>
-                                }
-                            </div>
-                            <span class="smaller text-muted" style="margin-top:4px;display:block;">@assignedCount teachers</span>
+                            @if (nv.MaGvs.Any())
+                            {
+                                <div style="display:flex;flex-wrap:wrap;gap:6px;max-width:380px;">
+                                    @foreach (var gv in nv.MaGvs.OrderBy(g => g.MaGv))
+                                    {
+                                        if (isAdmin)
+                                        {
+                                            <form method="post" action="/Admin/UnassignStaffTeacher" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="MaNv" value="@nv.MaNv" />
+                                                <input type="hidden" name="MaGv" value="@gv.MaGv" />
+                                                <button type="submit" class="chip chip-blue" title="Unassign @gv.Ten" style="border:none;cursor:pointer;">
+                                                    @gv.Ten (@gv.MaGv) <i class="fas fa-times" style="font-size:10px;margin-left:4px;"></i>
+                                                </button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <span class="chip chip-blue">@gv.Ten (@gv.MaGv)</span>
+                                        }
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="small text-muted">No teacher assigned</span>
+                            }
+                            <span class="smaller text-muted" style="margin-top:4px;display:block;">@assignedCount / @maxTeachersPerStaff teachers</span>
                         </td>
                         <td>
-                            <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
-                                <div class="progress-bar-fill" style="width:@(Math.Min(assignedCount * 20, 100))%;"></div>
+                            <div class="progress-bar-wrap" style="width:100px;margin-bottom:4px;">
+                                <div class="progress-bar-fill" style="width:@workloadPercent%;"></div>
                             </div>
-                            <span class="smaller text-muted">@(assignedCount * 20)%</span>
+                            <span class="smaller text-muted">@workloadPercent%</span>
                         </td>
-                        <td><span class="chip chip-green">Active</span></td>
-                        <td style="text-align:right;">
-                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                        <td>
+                            @if (assignedCount == 0)
+                            {
+                                <span class="chip chip-gray">Idle</span>
+                            }
+                            else if (assignedCount >= maxTeachersPerStaff)
+                            {
+                                <span class="chip" style="background:#fef2f2;color:#dc2626;">Full</span>
+                            }
+                            else
+                            {
+                                <span class="chip chip-green">Active</span>
+                            }
                         </td>
                     </tr>
                 }
                 @if (!nhanViens.Any())
                 {
-                    <tr><td colspan="5"><div class="empty-state"><i class="fas fa-users-cog"></i><p>No staff found</p></div></td></tr>
+                    <tr><td colspan="4"><div class="empty-state"><i class="fas fa-users-cog"></i><p>No staff found</p></div></td></tr>
                 }
             </tbody>
         </table>
+        <div class="pagination-bar">
+            <span class="pagination-info">Page @currentPage / @totalPages</span>
+            <div class="pagination-btns">
+                <a class="page-btn" href="@Url.Action("StaffTeacherAssignment", new { page = currentPage > 1 ? currentPage - 1 : 1, pageSize, keyword, center, unassignedOnly })"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+                @for (var i = 1; i <= totalPages; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <button class="page-btn active">@i</button>
+                    }
+                    else
+                    {
+                        <a class="page-btn" href="@Url.Action("StaffTeacherAssignment", new { page = i, pageSize, keyword, center, unassignedOnly })">@i</a>
+                    }
+                }
+                <a class="page-btn" href="@Url.Action("StaffTeacherAssignment", new { page = currentPage < totalPages ? currentPage + 1 : totalPages, pageSize, keyword, center, unassignedOnly })"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
+            </div>
+        </div>
     </div>
 
-    <!-- Right Panel -->
     <div style="display:flex;flex-direction:column;gap:16px;">
-        <!-- Search & Filter -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;"><i class="fas fa-filter" style="color:var(--primary);margin-right:8px;"></i>Filter</h5>
+            <h5 style="margin-bottom:16px;"><i class="fas fa-filter" style="color:var(--primary);margin-right:8px;"></i>Quick Filters</h5>
             <div class="form-group">
-                <label class="form-label">Department</label>
-                <select class="form-control form-select">
-                    <option>All Departments</option>
-                    @foreach (var nv in nhanViens.Select(n => n.MaTrungTam).Distinct())
+                <label class="form-label">Center</label>
+                <select class="form-control form-select" onchange="applyCenterFilter(this.value)">
+                    <option value="">All Centers</option>
+                    @foreach (var tt in trungTams)
                     {
-                        <option>@nv</option>
+                        if (tt.MaTrungTam == center)
+                        {
+                            <option value="@tt.MaTrungTam" selected>@tt.TenTrungTam</option>
+                        }
+                        else
+                        {
+                            <option value="@tt.MaTrungTam">@tt.TenTrungTam</option>
+                        }
                     }
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label">Staff Seniority</label>
-                <div style="display:flex;gap:8px;">
-                    <button class="filter-btn active">All</button>
-                    <button class="filter-btn">Senior</button>
-                    <button class="filter-btn">Junior</button>
-                </div>
-            </div>
+            <a class="btn-outline" href="@Url.Action("StaffTeacherAssignment")" style="justify-content:center;">Reset</a>
         </div>
 
-        <!-- Recent Activity -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;">Recent Activity</h5>
+            <h5 style="margin-bottom:16px;">Recent Teachers</h5>
             <div style="display:flex;flex-direction:column;gap:12px;">
-                @foreach (var gv in giaoViens.Take(3))
-                {
-                    var gn = gv.Ten ?? gv.MaGv;
-                    var gi = string.Join("", gn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+                @foreach (var gv in giaoViens.Take(5))
+                                {
+                                    var gn = gv.Ten ?? "?";
+                                    var gi = string.Join("", gn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
                     <div style="display:flex;gap:12px;padding:10px;background:var(--surface-low);border-radius:8px;border-left:3px solid var(--primary);">
                         <div class="avatar avatar-sm">@gi</div>
                         <div>
-                            <div class="user-name" style="font-size:13px;">@gn assigned</div>
+                            <div class="user-name" style="font-size:13px;">@gn</div>
                             <div class="user-sub">@(gv.ChuyenMon ?? "—")</div>
-                            <div class="activity-time">Recently</div>
+                            <div class="activity-time">@gv.MaGv</div>
                         </div>
                     </div>
                 }
             </div>
         </div>
-
-        <!-- Intelligent Matching -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:8px;">Intelligent Matching</h5>
-            <p class="small text-muted" style="margin-bottom:16px;">Our algorithm suggests pairing teachers with staff based on schedule overlap.</p>
-            <button class="btn-outline" style="width:100%;justify-content:center;">
-                <i class="fas fa-magic"></i> Auto-Match
-            </button>
+            <h5 style="margin-bottom:8px;">Assignment Rule</h5>
+            <p class="small text-muted" style="margin-bottom:16px;">One staff can supervise up to <strong>@maxTeachersPerStaff</strong> teachers. Full staff cannot receive new assignments.</p>
+            @if (isAdmin)
+            {
+                <button class="btn-outline" style="width:100%;justify-content:center;" onclick="document.getElementById('assignModal').style.display='flex'">
+                    <i class="fas fa-user-plus"></i> Assign Now
+                </button>
+            }
+            else
+            {
+                <div class="small text-muted">Bạn có quyền xem phân công. Chức năng gán/bỏ gán dành cho Admin.</div>
+            }
         </div>
     </div>
 </div>
 
-<!-- Assign Modal -->
-<div id="assignModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Assign Teacher to Staff</h4>
-        <form method="post" action="/Admin/AssignStaffTeacher">
-            @Html.AntiForgeryToken()
-            <div class="form-group">
-                <label class="form-label">Staff Member</label>
-                <select name="MaNv" class="form-control form-select">
-                    <option value="">— Select Staff —</option>
-                    @foreach (var nv in nhanViens)
-                    {
-                        <option value="@nv.MaNv">@nv.HoVaTen (@nv.ChucVu)</option>
-                    }
-                </select>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Teacher</label>
-                <select name="MaGv" class="form-control form-select">
-                    <option value="">— Select Teacher —</option>
-                    @foreach (var gv in giaoViens)
-                    {
-                        <option value="@gv.MaGv">@gv.Ten (@gv.ChuyenMon)</option>
-                    }
-                </select>
-            </div>
-            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('assignModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Assign</button>
-            </div>
-        </form>
+@if (isAdmin)
+{
+    <div id="assignModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+            <h4 style="margin-bottom:24px;">Assign Teacher to Staff</h4>
+            <form method="post" action="/Admin/AssignStaffTeacher">
+                @Html.AntiForgeryToken()
+                <div class="form-group">
+                    <label class="form-label">Staff Member</label>
+                    <select name="MaNv" id="assignStaffSelect" class="form-control form-select">
+                        <option value="">— Select Staff —</option>
+                        @foreach (var nv in (ViewBag.AllNhanViens as IEnumerable<BTL_Web.Models.NhanVien> ?? new List<BTL_Web.Models.NhanVien>()).OrderBy(n => n.MaNv))
+                        {
+                            <option value="@nv.MaNv">@(nv.HoVaTen ?? nv.MaNv) (@nv.MaNv)</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Teacher</label>
+                    <select name="MaGv" class="form-control form-select">
+                        <option value="">— Select Teacher —</option>
+                        @foreach (var gv in giaoViens.OrderBy(g => g.MaGv))
+                        {
+                            <option value="@gv.MaGv">@(gv.Ten ?? gv.MaGv) (@gv.MaGv)</option>
+                        }
+                    </select>
+                </div>
+                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('assignModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn-primary">Assign</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+}
 
 @section Scripts {
 <script>
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
+function applyCenterFilter(value) {
+    const params = new URLSearchParams(window.location.search);
+    if (value) {
+        params.set('center', value);
+    } else {
+        params.delete('center');
+    }
+    params.set('page', '1');
+    window.location.href = '/Admin/StaffTeacherAssignment?' + params.toString();
+}
 </script>
 }

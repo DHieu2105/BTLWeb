@@ -1,26 +1,72 @@
 @model IEnumerable<BTL_Web.Models.NhanVien>
 @{
     ViewData["Title"] = "Manage Staff";
+    var currentPage = ViewBag.Page != null ? (int)ViewBag.Page : 1;
+    var totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    var pageSize = ViewBag.PageSize != null ? (int)ViewBag.PageSize : 10;
+    var keyword = ViewBag.Keyword as string ?? "";
+    var center = ViewBag.Center as string ?? "";
+    var totalItems = ViewBag.TotalItems != null ? (int)ViewBag.TotalItems : (Model?.Count() ?? 0);
+    var trungTams = ViewBag.TrungTams as IEnumerable<BTL_Web.Models.TrungTam> ?? new List<BTL_Web.Models.TrungTam>();
 }
 
 <div class="page-header">
     <div>
         <h2>Manage Staff</h2>
-        <p>Administrative and support personnel management</p>
+        <p>@totalItems staff records in the system</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <form method="get" style="display:flex;gap:8px;align-items:center;">
+            <input class="form-control" type="text" name="keyword" value="@keyword" placeholder="Search staff..." style="width:220px;" />
+            <select class="form-control form-select" name="center" style="width:180px;">
+                <option value="">All centers</option>
+                @foreach (var tt in trungTams)
+                {
+                    if (tt.MaTrungTam == center)
+                    {
+                        <option value="@tt.MaTrungTam" selected>@tt.TenTrungTam</option>
+                    }
+                    else
+                    {
+                        <option value="@tt.MaTrungTam">@tt.TenTrungTam</option>
+                    }
+                }
+            </select>
+            <select class="form-control form-select" name="pageSize" style="width:110px;">
+                @foreach (var size in new[] { 10, 20, 50 })
+                {
+                    if (size == pageSize)
+                    {
+                        <option value="@size" selected>@size / page</option>
+                    }
+                    else
+                    {
+                        <option value="@size">@size / page</option>
+                    }
+                }
+            </select>
+            <button class="btn-outline" type="submit"><i class="fas fa-filter"></i> Filter</button>
+        </form>
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
             <i class="fas fa-plus"></i> Add Staff
         </button>
     </div>
 </div>
 
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger" style="margin-bottom:16px;">@error</div>
+}
+
 <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div></div>
         <div class="stat-label">Total Personnel</div>
-        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+        <div class="stat-value">@totalItems</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-tie"></i></div></div>
@@ -42,11 +88,7 @@
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
         <h5>Staff Directory</h5>
-        <div style="display:flex;gap:8px;">
-            <button class="filter-btn active">All</button>
-            <button class="filter-btn">Lecturers</button>
-            <button class="filter-btn">Support</button>
-        </div>
+        <a href="@Url.Action("NhanVien")" class="small" style="color:var(--primary);font-weight:700;text-decoration:none;">Clear Filters</a>
     </div>
     <table class="data-table">
         <thead>
@@ -81,7 +123,24 @@
                         <td class="user-sub">@(nv.GioiTinh ?? "—")</td>
                         <td><span class="chip chip-green">Active</span></td>
                         <td style="text-align:right;">
-                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <button class="btn-icon btn-outline btn-sm"
+                                        data-id="@nv.MaNv"
+                                        data-name="@nv.HoVaTen"
+                                        data-role="@nv.ChucVu"
+                                        data-gender="@nv.GioiTinh"
+                                        data-center="@nv.MaTrungTam"
+                                        onclick="openEditStaff(this)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="post" action="/Admin/DeleteNhanVien" style="display:inline;" onsubmit="return confirm('Delete staff @nv.MaNv?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@nv.MaNv" />
+                                    <button type="submit" class="btn-icon btn-outline btn-sm">
+                                        <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -93,12 +152,21 @@
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) records</span>
+        <span class="pagination-info">Page @currentPage / @totalPages</span>
         <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            <a class="page-btn" href="@Url.Action("NhanVien", new { page = currentPage > 1 ? currentPage - 1 : 1, pageSize, keyword, center })"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+            @for (var i = 1; i <= totalPages; i++)
+            {
+                if (i == currentPage)
+                {
+                    <button class="page-btn active">@i</button>
+                }
+                else
+                {
+                    <a class="page-btn" href="@Url.Action("NhanVien", new { page = i, pageSize, keyword, center })">@i</a>
+                }
+            }
+            <a class="page-btn" href="@Url.Action("NhanVien", new { page = currentPage < totalPages ? currentPage + 1 : totalPages, pageSize, keyword, center })"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
         </div>
     </div>
 </div>
@@ -121,7 +189,7 @@
                     <label class="form-label">Gender</label>
                     <select name="GioiTinh" class="form-control form-select">
                         <option value="Nam">Nam</option>
-                        <option value="Nu">Nữ</option>
+                        <option value="Nữ">Nữ</option>
                     </select>
                 </div>
             </div>
@@ -146,13 +214,57 @@
     </div>
 </div>
 
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Edit Staff Member</h4>
+        <form method="post" action="/Admin/UpdateNhanVien">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editMaNv" name="MaNv" />
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="editHoVaTen" name="HoVaTen" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <input type="text" id="editChucVu" name="ChucVu" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select id="editGioiTinh" name="GioiTinh" class="form-control form-select">
+                        <option value="">— Select —</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Center</label>
+                <select id="editMaTrungTam" name="MaTrungTam" class="form-control form-select">
+                    <option value="">— Select Center —</option>
+                    @foreach (var tt in trungTams)
+                    {
+                        <option value="@tt.MaTrungTam">@tt.TenTrungTam</option>
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
 <script>
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
+function openEditStaff(btn) {
+    document.getElementById('editMaNv').value = btn.dataset.id || '';
+    document.getElementById('editHoVaTen').value = btn.dataset.name || '';
+    document.getElementById('editChucVu').value = btn.dataset.role || '';
+    document.getElementById('editGioiTinh').value = btn.dataset.gender || '';
+    document.getElementById('editMaTrungTam').value = btn.dataset.center || '';
+    document.getElementById('editModal').style.display = 'flex';
+}
 </script>
 }
