@@ -47,9 +47,9 @@
     <div class="card-header-plain">
         <h5>Schedule List</h5>
         <div style="display:flex;gap:8px;">
-            <button class="filter-btn active">All</button>
-            <button class="filter-btn">Today</button>
-            <button class="filter-btn">This Week</button>
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="today">Today</button>
+            <button class="filter-btn" data-filter="week">This Week</button>
         </div>
     </div>
     <table class="data-table">
@@ -68,11 +68,11 @@
             {
                 @foreach (var lh in Model)
                 {
-                    <tr>
+                    <tr class="schedule-row" data-schedule-date="@(lh.NgayHoc?.ToString("yyyy-MM-dd") ?? "")">
                         <td>@(lh.NgayHoc?.ToString("dd/MM/yyyy") ?? "—")</td>
                         <td>
-                            <div class="user-name">@(lh.GioBatDau?.ToString(@"hh\:mm") ?? "—")</div>
-                            <div class="user-sub">@(lh.GioKetThuc?.ToString(@"hh\:mm") ?? "—")</div>
+                            <div class="user-name">@(lh.GioBatDau?.ToString(@"HH\:mm") ?? "—")</div>
+                            <div class="user-sub">@(lh.GioKetThuc?.ToString(@"HH\:mm") ?? "—")</div>
                         </td>
                         <td>@(lh.MaLopNavigation?.TenLop ?? lh.MaLop ?? "—")</td>
                         <td>@(lh.MaPhongNavigation?.TenPhong ?? "—")</td>
@@ -81,9 +81,8 @@
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
                                 <button type="button" class="btn-icon btn-outline btn-sm edit-schedule-btn"
                                         data-id="@lh.MaLichHoc" data-date="@(lh.NgayHoc?.ToString("yyyy-MM-dd") ?? "")"
-                                        data-start="@(lh.GioBatDau?.ToString(@"hh\:mm") ?? "")"
-                                        data-end="@(lh.GioKetThuc?.ToString(@"hh\:mm") ?? "")" data-class="@lh.MaLop"
-                                        data-room="@lh.MaPhong">
+                                        data-start="@(lh.GioBatDau?.ToString(@"HH\:mm") ?? "")"
+                                        data-end="@(lh.GioKetThuc?.ToString(@"HH\:mm") ?? "")" data-class="@lh.MaLop">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <button class="btn-icon btn-outline btn-sm" onclick="deleteSched('@lh.MaLichHoc')"><i
@@ -92,11 +91,18 @@
                             </td>
                         </tr>
                     }
+                    <tr id="filterEmptyRow" style="display:none;">
+                        <td colspan="6">
+                            <div class="empty-state"><i class="fas fa-calendar-times"></i>
+                                <p>No schedules match this filter</p>
+                            </div>
+                        </td>
+                    </tr>
                 }
             else
                 {
                     <tr>
-                        <td colspan="7">
+                        <td colspan="6">
                             <div class="empty-state"><i class="fas fa-calendar-alt"></i>
                                 <p>No schedules found</p>
                             </div>
@@ -106,198 +112,334 @@
             </tbody>
         </table>
         <div class="pagination-bar">
-            <span class="pagination-info">Showing @(Model?.Count() ?? 0) sessions</span>
+            <span class="pagination-info" id="scheduleCount">Showing @(Model?.Count() ?? 0) sessions</span>
             <div class="pagination-btns">
-                <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-                <button class="page-btn active">1</button>
-                <button class="page-btn">2</button>
-                <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+                <button type="button" class="page-btn" id="prevPageBtn"><i class="fas fa-chevron-left"
+                                                                               style="font-size:10px;"></i></button>
+                    <div id="paginationNumbers" style="display:flex;gap:6px;"></div>
+                    <button type="button" class="page-btn" id="nextPageBtn"><i class="fas fa-chevron-right"
+                                                                                   style="font-size:10px;"></i></button>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Add Modal -->
-    <div id="addModal"
-         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
-        <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
-            <h4 style="margin-bottom:24px;">Add Schedule</h4>
-            <form method="post" action="/Staff/AddSchedule" id="scheduleForm">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="MaLichHoc" id="scheduleId" value="">
-                <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;">
-                    <div class="form-group">
-                        <label class="form-label">Class</label>
-                        <select id="classSelect" name="MaLop" class="form-control form-select">
-                            @if (ViewBag.LopHocs != null)
-                            {
-                                @foreach (var lop in (IEnumerable<BTL_Web.Models.LopHoc>)ViewBag.LopHocs)
-                                {
-                                    <option value="@lop.MaLop" data-class-name="@(lop.TenLop ?? lop.MaLop)"
-                                            data-teacher-name="@(lop.MaGvNavigation?.Ten ?? "—")"
-                                            data-course-name="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")">
-                                        @(lop.TenLop ?? lop.MaLop)
-                                    </option>
-                                }
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="card-plain" style="padding:16px;margin-bottom:16px;background:var(--surface-low);">
-                    <div class="section-heading" style="margin-bottom:12px;">
-                        <h5 style="margin:0;">Selected Class Info</h5>
-                    </div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                        <div>
-                            <div class="stat-label">Class Name</div>
-                            <div id="modalClassName" class="user-name" style="font-size:14px;">—</div>
+            <!-- Add Modal -->
+            <div id="addModal"
+                 style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+                <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
+                    <h4 style="margin-bottom:24px;">Add Schedule</h4>
+                    <form method="post" action="/Staff/AddSchedule" id="scheduleForm">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="MaLichHoc" id="scheduleId" value="">
+                        <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;">
+                            <div class="form-group">
+                                <label class="form-label">Class</label>
+                                <select id="classSelect" name="MaLop" class="form-control form-select">
+                                    @if (ViewBag.LopHocs != null)
+                                    {
+                                        @foreach (var lop in (IEnumerable<BTL_Web.Models.LopHoc>)ViewBag.LopHocs)
+                                        {
+                                            <option value="@lop.MaLop" data-class-name="@(lop.TenLop ?? lop.MaLop)"
+                                                    data-teacher-name="@(lop.MaGvNavigation?.Ten ?? "—")"
+                                                    data-course-name="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")">
+                                                @(lop.TenLop ?? lop.MaLop)
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                            </div>
                         </div>
-                        <div>
-                            <div class="stat-label">Teacher</div>
-                            <div id="modalTeacherName" class="user-name" style="font-size:14px;">—</div>
+                        <div class="card-plain" style="padding:16px;margin-bottom:16px;background:var(--surface-low);">
+                            <div class="section-heading" style="margin-bottom:12px;">
+                                <h5 style="margin:0;">Selected Class Info</h5>
+                            </div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                                <div>
+                                    <div class="stat-label">Class Name</div>
+                                    <div id="modalClassName" class="user-name" style="font-size:14px;">—</div>
+                                </div>
+                                <div>
+                                    <div class="stat-label">Teacher</div>
+                                    <div id="modalTeacherName" class="user-name" style="font-size:14px;">—</div>
+                                </div>
+                            </div>
+                            <div style="margin-top:12px;">
+                                <div class="stat-label">Course</div>
+                                <div id="modalCourseName" class="user-name" style="font-size:14px;">—</div>
+                            </div>
                         </div>
-                    </div>
-                    <div style="margin-top:12px;">
-                        <div class="stat-label">Course</div>
-                        <div id="modalCourseName" class="user-name" style="font-size:14px;">—</div>
-                    </div>
-                    <div style="margin-top:12px;">
-                        <div class="stat-label">Class</div>
-                        <div id="modalClassValue" class="user-name" style="font-size:14px;">—</div>
-                    </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="form-group">
+                                <label class="form-label">Date</label>
+                                <input type="date" name="NgayHoc" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Room</label>
+                                <input type="text" class="form-control" value="Auto from selected class" readonly>
+                            </div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="form-group">
+                                <label class="form-label">Start</label>
+                                <input type="time" name="GioBatDau" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">End</label>
+                                <input type="time" name="GioKetThuc" class="form-control">
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                            <button type="button" class="btn-outline"
+                                    onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                            <button type="submit" id="scheduleSubmitBtn" class="btn-primary">Add Schedule</button>
+                        </div>
+                    </form>
                 </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                    <div class="form-group">
-                        <label class="form-label">Date</label>
-                        <input type="date" name="NgayHoc" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Room</label>
-                        <select name="MaPhong" class="form-control form-select">
-                            @if (ViewBag.PhongHocs != null)
-                            {
-                                @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
-                                {
-                                    <option value="@ph.MaPhong">@ph.TenPhong</option>
-                                }
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                    <div class="form-group">
-                        <label class="form-label">Start</label>
-                        <input type="time" name="GioBatDau" class="form-control">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">End</label>
-                        <input type="time" name="GioKetThuc" class="form-control">
-                    </div>
-                </div>
-                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                    <button type="button" class="btn-outline"
-                            onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                    <button type="submit" id="scheduleSubmitBtn" class="btn-primary">Add Schedule</button>
-                </div>
-            </form>
-        </div>
-    </div>
+            </div>
 
-    @section Scripts {
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                const classSelect = document.getElementById('classSelect');
-                const scheduleForm = document.getElementById('scheduleForm');
-                const scheduleId = document.getElementById('scheduleId');
-                const scheduleSubmitBtn = document.getElementById('scheduleSubmitBtn');
-                const dateInput = document.querySelector('input[name="NgayHoc"]');
-                const startInput = document.querySelector('input[name="GioBatDau"]');
-                const endInput = document.querySelector('input[name="GioKetThuc"]');
-                const roomSelect = document.querySelector('select[name="MaPhong"]');
-                const modalClassName = document.getElementById('modalClassName');
-                const modalTeacherName = document.getElementById('modalTeacherName');
-                const modalCourseName = document.getElementById('modalCourseName');
-                const modalClassValue = document.getElementById('modalClassValue');
-                const modalTitle = document.querySelector('#addModal h4');
+            @section Scripts {
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const classSelect = document.getElementById('classSelect');
+                        const scheduleForm = document.getElementById('scheduleForm');
+                        const scheduleId = document.getElementById('scheduleId');
+                        const scheduleSubmitBtn = document.getElementById('scheduleSubmitBtn');
+                        const dateInput = document.querySelector('input[name="NgayHoc"]');
+                        const startInput = document.querySelector('input[name="GioBatDau"]');
+                        const endInput = document.querySelector('input[name="GioKetThuc"]');
+                        const modalClassName = document.getElementById('modalClassName');
+                        const modalTeacherName = document.getElementById('modalTeacherName');
+                        const modalCourseName = document.getElementById('modalCourseName');
+                        const modalTitle = document.querySelector('#addModal h4');
+                        const filterButtons = document.querySelectorAll('.filter-btn');
+                        const scheduleRows = document.querySelectorAll('.schedule-row');
+                        const scheduleCount = document.getElementById('scheduleCount');
+                        const filterEmptyRow = document.getElementById('filterEmptyRow');
+                        const prevPageBtn = document.getElementById('prevPageBtn');
+                        const nextPageBtn = document.getElementById('nextPageBtn');
+                        const paginationNumbers = document.getElementById('paginationNumbers');
+                        const pageSize = 8;
+                        let currentFilter = 'all';
+                        let currentPage = 1;
 
-                function updateClassInfo() {
-                    if (!classSelect || !modalClassName || !modalTeacherName || !modalCourseName || !modalClassValue) {
-                        return;
-                    }
-
-                    const selected = classSelect.options[classSelect.selectedIndex];
-                    if (!selected) {
-                        modalClassName.textContent = '—';
-                        modalTeacherName.textContent = '—';
-                        modalCourseName.textContent = '—';
-                        modalClassValue.textContent = '—';
-                        return;
-                    }
-
-                    modalClassName.textContent = selected.dataset.className || selected.textContent.trim() || '—';
-                    modalTeacherName.textContent = selected.dataset.teacherName || '—';
-                    modalCourseName.textContent = selected.dataset.courseName || '—';
-                    modalClassValue.textContent = selected.dataset.className || selected.textContent.trim() || '—';
-                }
-
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                    });
-                });
-
-                if (classSelect) {
-                    classSelect.addEventListener('change', updateClassInfo);
-                    updateClassInfo();
-                }
-
-                window.openAddScheduleModal = function () {
-                    if (!classSelect || !scheduleForm || !scheduleId || !scheduleSubmitBtn || !dateInput || !startInput || !endInput || !roomSelect || !modalTitle) {
-                        return;
-                    }
-
-                    scheduleForm.action = '/Staff/AddSchedule';
-                    scheduleId.value = '';
-                    dateInput.value = '';
-                    startInput.value = '';
-                    endInput.value = '';
-
-                    if (classSelect.options.length > 0) {
-                        classSelect.selectedIndex = 0;
-                    }
-                    if (roomSelect.options.length > 0) {
-                        roomSelect.selectedIndex = 0;
-                    }
-
-                    scheduleSubmitBtn.textContent = 'Add Schedule';
-                    modalTitle.textContent = 'Add Schedule';
-                    updateClassInfo();
-                    document.getElementById('addModal').style.display = 'flex';
-                };
-
-                document.querySelectorAll('.edit-schedule-btn').forEach(btn => {
-                    btn.addEventListener('click', function () {
-                        if (!classSelect || !scheduleForm || !scheduleId || !scheduleSubmitBtn || !dateInput || !startInput || !endInput || !roomSelect || !modalTitle) {
-                            return;
+                        function isSameDay(a, b) {
+                            return a.getFullYear() === b.getFullYear()
+                                && a.getMonth() === b.getMonth()
+                                && a.getDate() === b.getDate();
                         }
 
-                        scheduleForm.action = '/Staff/EditSchedule';
-                        scheduleId.value = this.dataset.id || '';
-                        dateInput.value = this.dataset.date || '';
-                        startInput.value = this.dataset.start || '';
-                        endInput.value = this.dataset.end || '';
-                        classSelect.value = this.dataset.class || '';
-                        roomSelect.value = this.dataset.room || '';
-                        scheduleSubmitBtn.textContent = 'Save Changes';
-                        modalTitle.textContent = 'Edit Schedule';
-                        updateClassInfo();
-                        document.getElementById('addModal').style.display = 'flex';
-                    });
-                });
-            });
+                        function getWeekRange(today) {
+                            const day = today.getDay();
+                            const mondayOffset = day === 0 ? -6 : 1 - day;
+                            const start = new Date(today);
+                            start.setDate(today.getDate() + mondayOffset);
+                            start.setHours(0, 0, 0, 0);
 
-            function deleteSched(id) {
-                if (confirm('Delete schedule ' + id + '?')) location.href = '/Staff/DeleteSchedule/' + id;
+                            const end = new Date(start);
+                            end.setDate(start.getDate() + 6);
+                            end.setHours(23, 59, 59, 999);
+
+                            return { start, end };
+                        }
+
+                        function getFilteredRows(filterKey) {
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            const weekRange = getWeekRange(today);
+                            const filteredRows = [];
+
+                            scheduleRows.forEach(row => {
+                                const dateStr = row.dataset.scheduleDate;
+                                const scheduleDate = dateStr ? new Date(dateStr + 'T00:00:00') : null;
+                                let isVisible = true;
+
+                                if (filterKey === 'today') {
+                                    isVisible = !!scheduleDate && isSameDay(scheduleDate, today);
+                                } else if (filterKey === 'week') {
+                                    isVisible = !!scheduleDate && scheduleDate >= weekRange.start && scheduleDate <= weekRange.end;
+                                }
+
+                                if (isVisible) {
+                                    filteredRows.push(row);
+                                }
+                            });
+
+                            return filteredRows;
+                        }
+
+                        function setPageButtonState(button, disabled) {
+                            if (!button) {
+                                return;
+                            }
+
+                            button.disabled = disabled;
+                            button.style.opacity = disabled ? '0.5' : '1';
+                            button.style.cursor = disabled ? 'not-allowed' : 'pointer';
+                        }
+
+                        function renderPagination(totalPages) {
+                            if (!paginationNumbers) {
+                                return;
+                            }
+
+                            paginationNumbers.innerHTML = '';
+                            for (let page = 1; page <= totalPages; page++) {
+                                const pageBtn = document.createElement('button');
+                                pageBtn.type = 'button';
+                                pageBtn.className = 'page-btn' + (page === currentPage ? ' active' : '');
+                                pageBtn.textContent = page;
+                                pageBtn.addEventListener('click', function () {
+                                    if (page === currentPage) {
+                                        return;
+                                    }
+
+                                    currentPage = page;
+                                    applyFilterAndPagination(false);
+                                });
+                                paginationNumbers.appendChild(pageBtn);
+                            }
+
+                            setPageButtonState(prevPageBtn, currentPage <= 1);
+                            setPageButtonState(nextPageBtn, currentPage >= totalPages);
+                        }
+
+                        function applyFilterAndPagination(resetPage) {
+                            const filteredRows = getFilteredRows(currentFilter);
+                            const totalItems = filteredRows.length;
+                            const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+                            if (resetPage) {
+                                currentPage = 1;
+                            } else if (currentPage > totalPages) {
+                                currentPage = totalPages;
+                            }
+
+                            scheduleRows.forEach(row => {
+                                row.style.display = 'none';
+                            });
+
+                            const startIndex = (currentPage - 1) * pageSize;
+                            const endIndex = Math.min(startIndex + pageSize, totalItems);
+                            for (let i = startIndex; i < endIndex; i++) {
+                                filteredRows[i].style.display = '';
+                            }
+
+                            renderPagination(totalPages);
+
+                            if (scheduleCount) {
+                                if (totalItems === 0) {
+                                    scheduleCount.textContent = 'Showing 0 sessions';
+                                } else {
+                                    scheduleCount.textContent = 'Showing ' + (startIndex + 1) + '-' + endIndex + ' of ' + totalItems + ' sessions';
+                                }
+                            }
+
+                            if (filterEmptyRow) {
+                                filterEmptyRow.style.display = totalItems === 0 ? '' : 'none';
+                            }
+                        }
+
+                        function updateClassInfo() {
+                            if (!classSelect || !modalClassName || !modalTeacherName || !modalCourseName) {
+                                return;
+                            }
+
+                            const selected = classSelect.options[classSelect.selectedIndex];
+                            if (!selected) {
+                                modalClassName.textContent = '—';
+                                modalTeacherName.textContent = '—';
+                                modalCourseName.textContent = '—';
+                                return;
+                            }
+
+                            modalClassName.textContent = selected.dataset.className || selected.textContent.trim() || '—';
+                            modalTeacherName.textContent = selected.dataset.teacherName || '—';
+                            modalCourseName.textContent = selected.dataset.courseName || '—';
+                        }
+
+                        filterButtons.forEach(btn => {
+                            btn.addEventListener('click', function () {
+                                filterButtons.forEach(b => b.classList.remove('active'));
+                                this.classList.add('active');
+                                currentFilter = this.dataset.filter || 'all';
+                                applyFilterAndPagination(true);
+                            });
+                        });
+
+                        if (prevPageBtn) {
+                            prevPageBtn.addEventListener('click', function () {
+                                if (currentPage <= 1) {
+                                    return;
+                                }
+
+                                currentPage -= 1;
+                                applyFilterAndPagination(false);
+                            });
+                        }
+
+                        if (nextPageBtn) {
+                            nextPageBtn.addEventListener('click', function () {
+                                const totalItems = getFilteredRows(currentFilter).length;
+                                const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+                                if (currentPage >= totalPages) {
+                                    return;
+                                }
+
+                                currentPage += 1;
+                                applyFilterAndPagination(false);
+                            });
+                        }
+
+                        applyFilterAndPagination(true);
+
+                        if (classSelect) {
+                            classSelect.addEventListener('change', updateClassInfo);
+                            updateClassInfo();
+                        }
+
+                        window.openAddScheduleModal = function () {
+                            if (!classSelect || !scheduleForm || !scheduleId || !scheduleSubmitBtn || !dateInput || !startInput || !endInput || !modalTitle) {
+                                return;
+                            }
+
+                            scheduleForm.action = '/Staff/AddSchedule';
+                            scheduleId.value = '';
+                            dateInput.value = '';
+                            startInput.value = '';
+                            endInput.value = '';
+
+                            if (classSelect.options.length > 0) {
+                                classSelect.selectedIndex = 0;
+                            }
+
+                            scheduleSubmitBtn.textContent = 'Add Schedule';
+                            modalTitle.textContent = 'Add Schedule';
+                            updateClassInfo();
+                            document.getElementById('addModal').style.display = 'flex';
+                        };
+
+                        document.querySelectorAll('.edit-schedule-btn').forEach(btn => {
+                            btn.addEventListener('click', function () {
+                                if (!classSelect || !scheduleForm || !scheduleId || !scheduleSubmitBtn || !dateInput || !startInput || !endInput || !modalTitle) {
+                                    return;
+                                }
+
+                                scheduleForm.action = '/Staff/EditSchedule';
+                                scheduleId.value = this.dataset.id || '';
+                                dateInput.value = this.dataset.date || '';
+                                startInput.value = this.dataset.start || '';
+                                endInput.value = this.dataset.end || '';
+                                classSelect.value = this.dataset.class || '';
+                                scheduleSubmitBtn.textContent = 'Save Changes';
+                                modalTitle.textContent = 'Edit Schedule';
+                                updateClassInfo();
+                                document.getElementById('addModal').style.display = 'flex';
+                            });
+                        });
+                    });
+
+                    function deleteSched(id) {
+                        if (confirm('Delete schedule ' + id + '?')) location.href = '/Staff/DeleteSchedule/' + id;
+                    }
+                </script>
             }
-        </script>
-    }

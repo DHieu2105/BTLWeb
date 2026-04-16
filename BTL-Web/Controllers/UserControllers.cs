@@ -78,7 +78,6 @@ namespace BTL_Web.Controllers
                 .Include(l => l.MaKhoaHocNavigation)
                 .OrderBy(l => l.MaLop)
                 .ToListAsync();
-            ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
             return View(await _db.LichHocs
                 .Include(l => l.MaPhongNavigation)
                 .Include(l => l.MaLopNavigation)
@@ -114,7 +113,13 @@ namespace BTL_Web.Controllers
         [HttpPost]
         public async Task<IActionResult> AddSchedule(LichHoc m)
         {
+            var classRoom = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
+
             m.MaLichHoc = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
+            m.MaPhong = classRoom;
             _db.LichHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("ScheduleManagement");
         }
@@ -132,7 +137,10 @@ namespace BTL_Web.Controllers
             existing.GioBatDau = m.GioBatDau;
             existing.GioKetThuc = m.GioKetThuc;
             existing.MaLop = m.MaLop;
-            existing.MaPhong = m.MaPhong;
+            existing.MaPhong = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
 
             await _db.SaveChangesAsync();
             return RedirectToAction("ScheduleManagement");
@@ -246,12 +254,15 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> Schedule()
         {
             var maGv = GetMaGv();
-            var lops = await _db.LopHocs
-                .Where(l => l.MaGv == maGv)
-                .Include(l => l.MaKhoaHocNavigation)
-                .Include(l => l.MaPhongNavigation)
+            var sessions = await _db.LichHocs
+                .Where(lh => lh.MaLopNavigation != null && lh.MaLopNavigation.MaGv == maGv)
+                .Include(lh => lh.MaLopNavigation)
+                    .ThenInclude(l => l!.MaKhoaHocNavigation)
+                .Include(lh => lh.MaPhongNavigation)
+                .OrderBy(lh => lh.NgayHoc)
+                .ThenBy(lh => lh.GioBatDau)
                 .ToListAsync();
-            return View(lops);
+            return View(sessions);
         }
     }
 
@@ -296,12 +307,17 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> Schedule()
         {
             var maHv = GetMaHocVien();
-            var hv = await _db.HocViens
-                .Include(h => h.MaLops).ThenInclude(l => l.MaPhongNavigation)
-                .Include(h => h.MaLops).ThenInclude(l => l.MaGvNavigation)
-                .Include(h => h.MaLops).ThenInclude(l => l.MaKhoaHocNavigation)
-                .FirstOrDefaultAsync(h => h.MaHocVien == maHv);
-            return View(hv?.MaLops ?? new List<LopHoc>());
+            var sessions = await _db.LichHocs
+                .Where(lh => lh.MaLopNavigation != null && lh.MaLopNavigation.MaHocViens.Any(h => h.MaHocVien == maHv))
+                .Include(lh => lh.MaLopNavigation)
+                    .ThenInclude(l => l!.MaGvNavigation)
+                .Include(lh => lh.MaLopNavigation)
+                    .ThenInclude(l => l!.MaKhoaHocNavigation)
+                .Include(lh => lh.MaPhongNavigation)
+                .OrderBy(lh => lh.NgayHoc)
+                .ThenBy(lh => lh.GioBatDau)
+                .ToListAsync();
+            return View(sessions);
         }
 
         public async Task<IActionResult> Results()
