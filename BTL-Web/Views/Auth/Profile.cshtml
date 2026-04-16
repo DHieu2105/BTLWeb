@@ -2,7 +2,41 @@
     ViewData["Title"] = "Thông Tin Cá Nhân";
 }
 
+@functions {
+    private static string DisplayValue(object? value)
+    {
+        return value?.ToString() ?? "Chưa cập nhật";
+    }
+
+    private static string FormatDate(object? value)
+    {
+        if (value is DateOnly dateOnly)
+            return dateOnly.ToString("dd/MM/yyyy");
+
+        if (value is DateTime dateTime)
+            return dateTime.ToString("dd/MM/yyyy");
+
+        return "Chưa cập nhật";
+    }
+}
+
 <div class="container py-5">
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Thành công!</strong> @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Lỗi!</strong> @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
     <!-- Header -->
     <div class="row mb-5">
         <div class="col-12">
@@ -25,6 +59,9 @@
                 <div class="card-body p-4">
                     @if (Model != null)
                     {
+                        var model = (dynamic)Model;
+                        var account = (dynamic?)model.Account;
+                        var accountType = account?.Type?.ToString() ?? "";
                         var username = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
                         var fullName = User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
                         var userRole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
@@ -51,10 +88,10 @@
                                     <span class="badge bg-@roleBadgeClass p-2 fs-6">
                                         @(userRole switch
                                         {
-                                            "Admin" => "👑 Quản Trị Viên",
-                                            "GiaoVien" => "👨‍🏫 Giáo Viên",
-                                            "HocVien" => "👨‍🎓 Học Viên",
-                                            "NhanVien" => "👔 Nhân Viên",
+                                            "Admin" => "Quản Trị Viên",
+                                            "GiaoVien" => "Giáo Viên",
+                                            "HocVien" => "Học Viên",
+                                            "NhanVien" => "Nhân Viên",
                                             _ => userRole
                                         })
                                     </span>
@@ -70,64 +107,102 @@
                             </div>
                         </div>
 
-                        @if (Model?.Account != null)
+                        @if (account != null)
                         {
-                            var account = (dynamic)Model.Account;
                             <div class="row mb-4 pb-3 border-bottom">
-                                @if (account.Sdt != null)
+                                @if (accountType == "NhanVien")
                                 {
                                     <div class="col-md-6 mb-3 mb-md-0">
-                                        <h6 class="text-muted mb-2"><i class="fas fa-phone me-2 text-primary"></i>Số Điện Thoại</h6>
-                                        <p class="h6 fw-semibold">@account.Sdt</p>
+                                        <h6 class="text-muted mb-2"><i class="fas fa-id-badge me-2 text-primary"></i>Mã Nhân Viên</h6>
+                                        <p class="h6 fw-semibold">@DisplayValue(account.MaNv)</p>
+                                    </div>
+                                }
+                                else if (accountType == "GiaoVien")
+                                {
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <h6 class="text-muted mb-2"><i class="fas fa-id-badge me-2 text-primary"></i>Mã Giáo Viên</h6>
+                                        <p class="h6 fw-semibold">@DisplayValue(account.MaGv)</p>
+                                    </div>
+                                }
+                                else if (accountType == "HocVien")
+                                {
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <h6 class="text-muted mb-2"><i class="fas fa-id-badge me-2 text-primary"></i>Mã Học Viên</h6>
+                                        <p class="h6 fw-semibold">@DisplayValue(account.MaHocVien)</p>
                                     </div>
                                 }
 
-                                @if (account.GioiTinh != null)
+                                    @if (accountType == "NhanVien" || accountType == "GiaoVien")
+                                    {
+                                        <div class="col-md-6">
+                                            <h6 class="text-muted mb-2"><i class="fas fa-building me-2 text-primary"></i>Mã Trung Tâm</h6>
+                                            <p class="h6 fw-semibold">@DisplayValue(account.MaTrungTam)</p>
+                                        </div>
+                                    }
+                            </div>
+
+                            <div class="row mb-4 pb-3 border-bottom">
+                                @if (accountType == "GiaoVien" || accountType == "HocVien")
+                                {
+                                    <div class="col-md-6 mb-3 mb-md-0">
+                                        <h6 class="text-muted mb-2"><i class="fas fa-phone me-2 text-primary"></i>Số Điện Thoại</h6>
+                                        <p class="h6 fw-semibold">@DisplayValue(account.Sdt)</p>
+                                    </div>
+                                }
+                                @if (accountType != "Admin")
                                 {
                                     <div class="col-md-6">
                                         <h6 class="text-muted mb-2"><i class="fas fa-venus-mars me-2 text-primary"></i>Giới Tính</h6>
-                                        <p class="h6 fw-semibold">@account.GioiTinh</p>
+                                        <p class="h6 fw-semibold">@DisplayValue(account.GioiTinh)</p>
                                     </div>
                                 }
                             </div>
 
-                            @if (account.ChucVu != null || account.ChuyenMon != null || account.MaTrungTam != null)
+                            @if (accountType == "NhanVien" || accountType == "GiaoVien" || accountType == "HocVien")
                             {
                                 <div class="row mb-4 pb-3 border-bottom">
-                                    @if (account.ChucVu != null)
+                                    @if (accountType == "NhanVien")
                                     {
                                         <div class="col-md-6 mb-3 mb-md-0">
                                             <h6 class="text-muted mb-2"><i class="fas fa-briefcase me-2 text-primary"></i>Chức Vụ</h6>
-                                            <p class="h6 fw-semibold">@account.ChucVu</p>
+                                            <p class="h6 fw-semibold">@DisplayValue(account.ChucVu)</p>
                                         </div>
                                     }
 
-                                    @if (account.ChuyenMon != null)
+                                    @if (accountType == "GiaoVien")
                                     {
                                         <div class="col-md-6">
                                             <h6 class="text-muted mb-2"><i class="fas fa-graduation-cap me-2 text-primary"></i>Chuyên Môn</h6>
-                                            <p class="h6 fw-semibold">@account.ChuyenMon</p>
+                                            <p class="h6 fw-semibold">@DisplayValue(account.ChuyenMon)</p>
+                                        </div>
+                                    }
+
+                                    @if (accountType == "HocVien")
+                                    {
+                                        <div class="col-md-6">
+                                            <h6 class="text-muted mb-2"><i class="fas fa-user-tie me-2 text-primary"></i>Mã Nhân Viên Quản Lý</h6>
+                                            <p class="h6 fw-semibold">@DisplayValue(account.MaNv)</p>
                                         </div>
                                     }
                                 </div>
                             }
 
-                            @if (account.MaTrungTam != null || account.NgayDangKi != null)
+                            @if (accountType == "GiaoVien" || accountType == "HocVien")
                             {
                                 <div class="row">
-                                    @if (account.MaTrungTam != null)
+                                    @if (accountType == "GiaoVien")
                                     {
                                         <div class="col-md-6 mb-3 mb-md-0">
-                                            <h6 class="text-muted mb-2"><i class="fas fa-building me-2 text-primary"></i>Trung Tâm</h6>
-                                            <p class="h6 fw-semibold">@account.MaTrungTam</p>
+                                            <h6 class="text-muted mb-2"><i class="fas fa-book me-2 text-primary"></i>Mã Khóa Học</h6>
+                                            <p class="h6 fw-semibold">@DisplayValue(account.MaKhoaHoc)</p>
                                         </div>
                                     }
 
-                                    @if (account.NgayDangKi != null)
+                                    @if (accountType == "HocVien")
                                     {
                                         <div class="col-md-6">
                                             <h6 class="text-muted mb-2"><i class="fas fa-calendar-alt me-2 text-primary"></i>Ngày Đăng Ký</h6>
-                                            <p class="h6 fw-semibold">@((DateTime)account.NgayDangKi).ToString("dd/MM/yyyy")</p>
+                                            <p class="h6 fw-semibold">@FormatDate(account.NgayDangKi)</p>
                                         </div>
                                     }
                                 </div>
@@ -137,6 +212,7 @@
                         <!-- Action Button -->
                         <div class="mt-4 pt-3 border-top">
                             <form method="post" action="/Auth/Logout" style="display:inline;">
+                                @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-danger btn-lg rounded-3">
                                     <i class="fas fa-sign-out-alt me-2"></i>Đăng Xuất
                                 </button>
@@ -191,33 +267,42 @@
                             <i class="fas fa-chalkboard-user me-2"></i>Quản Lý Lớp Học
                         </a>
                     }
-                    <button type="button" class="btn btn-outline-secondary w-100 rounded-3" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                        <i class="fas fa-cog me-2"></i>Cài Đặt
+                    <button type="button" class="btn btn-outline-secondary w-100 rounded-3" data-bs-toggle="collapse" data-bs-target="#changePasswordForm" aria-expanded="false" aria-controls="changePasswordForm">
+                        <i class="fas fa-key me-2"></i>Đổi Mật Khẩu
                     </button>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
 
-<!-- Settings Modal -->
-<div class="modal fade" id="settingsModal" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0">
-            <div class="modal-header text-white" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <h5 class="modal-title fw-bold"><i class="fas fa-cog me-2"></i>Cài Đặt Tài Khoản</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <p class="text-muted mb-4">Các tùy chọn cài đặt tài khoản sẽ sớm được phát hành:</p>
-                <ul class="list-unstyled">
-                    <li class="mb-2"><i class="fas fa-lock me-2 text-primary"></i><span>Đổi mật khẩu</span></li>
-                    <li class="mb-2"><i class="fas fa-bell me-2 text-primary"></i><span>Cài đặt thông báo</span></li>
-                    <li class="mb-2"><i class="fas fa-globe me-2 text-primary"></i><span>Tùy chọn ngôn ngữ</span></li>
-                </ul>
-            </div>
-            <div class="modal-footer border-top">
-                <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Đóng</button>
+            <div class="collapse mt-4" id="changePasswordForm">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                    <div class="card-header text-white p-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <h5 class="mb-0 fw-bold"><i class="fas fa-lock me-2"></i>Đổi Mật Khẩu</h5>
+                    </div>
+                    <div class="card-body p-4">
+                        <form method="post" action="@Url.Action("ChangePassword", "Auth")">
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label for="oldPassword" class="form-label fw-semibold">Mật khẩu hiện tại</label>
+                                <input type="password" class="form-control" id="oldPassword" name="oldPassword" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="newPassword" class="form-label fw-semibold">Mật khẩu mới</label>
+                                <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6">
+                                <div class="form-text">Mật khẩu mới tối thiểu 6 ký tự.</div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label fw-semibold">Xác nhận mật khẩu mới</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required minlength="6">
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 rounded-3">
+                                <i class="fas fa-save me-2"></i>Cập Nhật Mật Khẩu
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

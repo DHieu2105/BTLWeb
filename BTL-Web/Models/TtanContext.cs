@@ -41,7 +41,7 @@ public partial class TtanContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Data Source=LAPTOP-IJARC7AM\\SQLEXPRESS;Initial Catalog=TTAN;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30");
+        => optionsBuilder.UseSqlServer("Data Source=DESKTOP-9CKDHNV;Initial Catalog=TTAN;Integrated Security=True;Connect Timeout=30;Encrypt=True;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False;Command Timeout=30");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -214,9 +214,15 @@ public partial class TtanContext : DbContext
             entity.Property(e => e.MaLichHoc)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+            entity.Property(e => e.MaLop)
+                .HasMaxLength(10)
+                .IsUnicode(false);
             entity.Property(e => e.MaPhong)
                 .HasMaxLength(10)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.MaLopNavigation).WithMany(p => p.LichHocs)
+                .HasForeignKey(d => d.MaLop);
 
             entity.HasOne(d => d.MaPhongNavigation).WithMany(p => p.LichHocs)
                 .HasForeignKey(d => d.MaPhong)

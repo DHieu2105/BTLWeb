@@ -21,5 +21,7 @@ public partial class LopHoc
 
     public virtual PhongHoc? MaPhongNavigation { get; set; }
 
+    public virtual ICollection<LichHoc> LichHocs { get; set; } = new List<LichHoc>();
+
     public virtual ICollection<HocVien> MaHocViens { get; set; } = new List<HocVien>();
 }

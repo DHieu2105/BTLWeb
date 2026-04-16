@@ -1,0 +1,73 @@
+@model BTL_Web.Models.LopHoc
+@{
+    ViewData["Title"] = "Edit Class";
+}
+
+<div class="page-header">
+    <div>
+        <a asp-controller="Admin" asp-action="LopHoc"
+               style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Classes
+        </a>
+        <h2>Edit Class</h2>
+        <p>Update class details and assignments</p>
+    </div>
+</div>
+
+<div class="card-plain" style="max-width:760px;">
+    <form asp-controller="Admin" asp-action="EditLopHoc" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:12px;"></div>
+
+        <input type="hidden" asp-for="MaLop" />
+
+        <div class="form-group">
+            <label class="form-label">Class ID</label>
+            <input class="form-control" value="@Model.MaLop" disabled />
+        </div>
+
+        <div class="form-group">
+            <label asp-for="TenLop" class="form-label">Class Name</label>
+            <input asp-for="TenLop" class="form-control" />
+            <span asp-validation-for="TenLop" class="text-danger"></span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-group">
+                <label asp-for="MaKhoaHoc" class="form-label">Course</label>
+                <select asp-for="MaKhoaHoc" class="form-control form-select" asp-items="ViewBag.MaKhoaHoc">
+                    <option value="">-- Select course --</option>
+                </select>
+                <span asp-validation-for="MaKhoaHoc" class="text-danger"></span>
+            </div>
+
+            <div class="form-group">
+                <label asp-for="MaGv" class="form-label">Teacher</label>
+                <select asp-for="MaGv" class="form-control form-select" asp-items="ViewBag.MaGv">
+                    <option value="">-- Select teacher --</option>
+                </select>
+                <span asp-validation-for="MaGv" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="MaPhong" class="form-label">Room</label>
+            <select asp-for="MaPhong" class="form-control form-select" asp-items="ViewBag.MaPhong">
+                <option value="">-- Select room --</option>
+            </select>
+            <span asp-validation-for="MaPhong" class="text-danger"></span>
+        </div>
+
+        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+            <a asp-controller="Admin" asp-action="LopHoc" class="btn-outline">Cancel</a>
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

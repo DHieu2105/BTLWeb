@@ -1,0 +1,43 @@
+@model BTL_Web.Models.NhanVien
+
+@{
+    ViewData["Title"] = "Xóa nhân viên";
+    var account = Model.TaiKhoans.FirstOrDefault();
+}
+
+<div class="container py-4">
+    <h2 class="mb-3 text-danger">Xóa nhân viên</h2>
+
+    @if (TempData["Error"] is string error)
+    {
+        <div class="alert alert-danger">@error</div>
+    }
+
+    <div class="alert alert-warning">
+        Bạn có chắc chắn muốn xóa nhân viên này không?
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">Mã nhân viên</dt>
+                <dd class="col-sm-9">@Model.MaNv</dd>
+
+                <dt class="col-sm-3">Họ và tên</dt>
+                <dd class="col-sm-9">@Model.HoVaTen</dd>
+
+                <dt class="col-sm-3">Chức vụ</dt>
+                <dd class="col-sm-9">@Model.ChucVu</dd>
+
+                <dt class="col-sm-3">Tài khoản</dt>
+                <dd class="col-sm-9">@(account?.Username ?? "Chưa gán")</dd>
+            </dl>
+        </div>
+    </div>
+
+    <form asp-action="Delete" method="post" class="d-flex gap-2">
+        <input type="hidden" asp-for="MaNv" />
+        <button type="submit" class="btn btn-danger">Xóa</button>
+        <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+    </form>
+</div>
