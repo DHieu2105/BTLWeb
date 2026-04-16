@@ -17,6 +17,10 @@ builder.Services.AddSession(options =>
 builder.Services.AddDbContext<TtanContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Temporary compatibility registration: some services/controllers still inject TtamContext.
+builder.Services.AddDbContext<TtamContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 // Add custom services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();
