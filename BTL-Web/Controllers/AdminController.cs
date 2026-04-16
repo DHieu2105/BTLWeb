@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using BTL_Web.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace BTL_Web.Controllers
 {
@@ -15,8 +16,8 @@ namespace BTL_Web.Controllers
         {
             ViewBag.TotalStudents = await _db.HocViens.CountAsync();
             ViewBag.TotalTeachers = await _db.GiaoViens.CountAsync();
-            ViewBag.TotalClasses  = await _db.LopHocs.CountAsync();
-            ViewBag.TotalStaff    = await _db.NhanViens.CountAsync();
+            ViewBag.TotalClasses = await _db.LopHocs.CountAsync();
+            ViewBag.TotalStaff = await _db.NhanViens.CountAsync();
             return View();
         }
 
@@ -32,17 +33,42 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> KhoaHoc()
             => View(await _db.KhoaHocs.Include(k => k.DangKis).Include(k => k.LopHocs).ToListAsync());
 
-        public async Task<IActionResult> LopHoc()
+        public async Task<IActionResult> LopHoc(int page = 1, int pageSize = 10)
         {
-            ViewBag.KhoaHocs  = await _db.KhoaHocs.ToListAsync();
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
             ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            return View(await _db.LopHocs
-                .Include(l => l.MaGvNavigation)
-                .Include(l => l.MaKhoaHocNavigation)
-                .Include(l => l.MaPhongNavigation)
-                .Include(l => l.MaHocViens)
-                .ToListAsync());
+
+            var query = _db.LopHocs
+            .Include(l => l.MaGvNavigation)
+            .Include(l => l.MaKhoaHocNavigation)
+            .Include(l => l.MaPhongNavigation)
+            .Include(l => l.MaHocViens)
+            .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+            .OrderBy(l => l.MaLop)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+            var vm = new LopHocPage
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems
+            };
+            return View(vm);
         }
 
         public async Task<IActionResult> PhongHoc()
@@ -59,10 +85,13 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> LichHoc()
         {
-            ViewBag.LopHocs   = await _db.LopHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
             return View(await _db.LichHocs
+                .Include(l => l.MaLopNavigation)
                 .Include(l => l.MaPhongNavigation)
+                .OrderBy(l => l.NgayHoc)
+                .ThenBy(l => l.GioBatDau)
                 .ToListAsync());
         }
 
@@ -72,7 +101,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> KetQua()
         {
             ViewBag.HocViens = await _db.HocViens.ToListAsync();
-            ViewBag.LopHocs  = await _db.LopHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             return View(await _db.KetQuas
                 .Include(k => k.MaHocVienNavigation)
                 .Include(k => k.MaKhoaHocNavigation)
@@ -92,16 +121,16 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> CourseRegistration()
         {
-            ViewBag.HocViens  = await _db.HocViens.ToListAsync();
-            ViewBag.KhoaHocs  = await _db.KhoaHocs.ToListAsync();
-            ViewBag.LopHocs   = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
+            ViewBag.HocViens = await _db.HocViens.ToListAsync();
+            ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
             return View();
         }
 
         public async Task<IActionResult> TeacherStudentAssignment()
         {
             ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
-            ViewBag.HocViens  = await _db.HocViens.ToListAsync();
+            ViewBag.HocViens = await _db.HocViens.ToListAsync();
             return View();
         }
 
@@ -115,7 +144,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> RoomEquipmentAssignment()
         {
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            ViewBag.ThietBis  = await _db.ThietBis.ToListAsync();
+            ViewBag.ThietBis = await _db.ThietBis.ToListAsync();
             return View();
         }
 
@@ -151,76 +180,119 @@ namespace BTL_Web.Controllers
         }
 
         // ── POST actions ──────────────────────────────────────────────────────
-        [HttpPost] public async Task<IActionResult> AddHocVien(HocVien m)
+        [HttpPost]
+        public async Task<IActionResult> AddHocVien(HocVien m)
         {
             m.MaHocVien = "HV" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.HocViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("HocVien");
         }
 
-        [HttpPost] public async Task<IActionResult> AddGiaoVien(GiaoVien m)
+        [HttpPost]
+        public async Task<IActionResult> AddGiaoVien(GiaoVien m)
         {
             m.MaGv = "GV" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.GiaoViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("GiaoVien");
         }
 
-        [HttpPost] public async Task<IActionResult> AddNhanVien(NhanVien m)
+        [HttpPost]
+        public async Task<IActionResult> AddNhanVien(NhanVien m)
         {
             m.MaNv = "NV" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.NhanViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("NhanVien");
         }
 
-        [HttpPost] public async Task<IActionResult> AddKhoaHoc(KhoaHoc m)
+        [HttpPost]
+        public async Task<IActionResult> AddKhoaHoc(KhoaHoc m)
         {
             m.MaKhoaHoc = "KH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.KhoaHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("KhoaHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddLopHoc(LopHoc m)
+        [HttpPost]
+        public async Task<IActionResult> AddLopHoc(LopHoc m)
         {
             m.MaLop = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.LopHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("LopHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddPhongHoc(PhongHoc m)
+        [HttpPost]
+        public async Task<IActionResult> AddPhongHoc(PhongHoc m)
         {
             m.MaPhong = "PH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.PhongHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("PhongHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddThietBi(ThietBi m)
+        [HttpPost]
+        public async Task<IActionResult> AddThietBi(ThietBi m)
         {
             m.MaThietBi = "TB" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.ThietBis.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("ThietBi");
         }
 
-        [HttpPost] public async Task<IActionResult> AddTrungTam(TrungTam m)
+        [HttpPost]
+        public async Task<IActionResult> AddTrungTam(TrungTam m)
         {
             m.MaTrungTam = "TT" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.TrungTams.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("TrungTam");
         }
 
-        [HttpPost] public async Task<IActionResult> AddLichHoc(LichHoc m)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddLichHoc(LichHoc m)
         {
+            var roomId = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
+
             m.MaLichHoc = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
+            m.MaPhong = roomId;
             _db.LichHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("LichHoc");
         }
 
-        [HttpPost] public async Task<IActionResult> AddKetQua(KetQua m)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditLichHoc(LichHoc m)
+        {
+            var existing = await _db.LichHocs.FindAsync(m.MaLichHoc);
+            if (existing == null)
+            {
+                return RedirectToAction("LichHoc");
+            }
+
+            var roomId = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
+
+            existing.MaLop = m.MaLop;
+            existing.MaPhong = roomId;
+            existing.NgayHoc = m.NgayHoc;
+            existing.GioBatDau = m.GioBatDau;
+            existing.GioKetThuc = m.GioKetThuc;
+
+            await _db.SaveChangesAsync();
+            return RedirectToAction("LichHoc");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddKetQua(KetQua m)
         {
             _db.KetQuas.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("KetQua");
         }
 
-        [HttpPost] public async Task<IActionResult> AddTaiKhoan(TaiKhoan m)
+        [HttpPost]
+        public async Task<IActionResult> AddTaiKhoan(TaiKhoan m)
         {
             _db.TaiKhoans.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("TaiKhoan");
@@ -323,7 +395,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> AddStudentToClass(string maLop, string maHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
-            var sv  = await _db.HocViens.FindAsync(maHocVien);
+            var sv = await _db.HocViens.FindAsync(maHocVien);
             if (lop != null && sv != null && !lop.MaHocViens.Contains(sv))
             {
                 lop.MaHocViens.Add(sv);
@@ -336,9 +408,85 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> RemoveStudentFromClass(string maLop, string maHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
-            var sv  = lop?.MaHocViens.FirstOrDefault(h => h.MaHocVien == maHocVien);
+            var sv = lop?.MaHocViens.FirstOrDefault(h => h.MaHocVien == maHocVien);
             if (sv != null) { lop!.MaHocViens.Remove(sv); await _db.SaveChangesAsync(); }
             return RedirectToAction("StudentsInClass", new { id = maLop });
+        }
+
+        private bool LopHocExists(string id)
+        {
+            return _db.LopHocs.Any(e => e.MaLop == id);
+        }
+
+        private void PopulateSelectLists(string? maGv = null, string? maPhong = null, string? maKhoaHoc = null)
+        {
+            ViewData["MaGv"] = new SelectList(_db.GiaoViens.AsNoTracking(), "MaGv", "Ten", maGv);
+            ViewData["MaPhong"] = new SelectList(_db.PhongHocs.AsNoTracking(), "MaPhong", "MaPhong", maPhong);
+            ViewData["MaKhoaHoc"] = new SelectList(_db.KhoaHocs.AsNoTracking(), "MaKhoaHoc", "TenKhoaHoc", maKhoaHoc);
+        }
+        // Backward-compatible route for old links: /Admin/EditClass/{id}
+        [HttpGet]
+        public IActionResult EditClass(string? id)
+        {
+            return RedirectToAction(nameof(EditLopHoc), new { id });
+        }
+
+        // GET: LopHoc/Edit/5
+        public async Task<IActionResult> EditLopHoc(string? id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["Error"] = "Class id is invalid.";
+                return RedirectToAction(nameof(LopHoc));
+            }
+
+            id = id.Trim();
+
+            var lopHoc = await _db.LopHocs
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.MaLop.Trim() == id);
+            if (lopHoc == null)
+            {
+                TempData["Error"] = $"Class with id '{id}' was not found.";
+                return RedirectToAction(nameof(LopHoc));
+            }
+
+            PopulateSelectLists(lopHoc.MaGv, lopHoc.MaPhong, lopHoc.MaKhoaHoc);
+            return View(lopHoc);
+        }
+
+        // POST: LopHoc/Edit/5
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditLopHoc(string id, [Bind("MaLop,MaGv,MaPhong,MaKhoaHoc,TenLop")] LopHoc lopHoc)
+        {
+            if (id != lopHoc.MaLop)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    _db.Update(lopHoc);
+                    await _db.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!LopHocExists(lopHoc.MaLop))
+                    {
+                        return NotFound();
+                    }
+
+                    throw;
+                }
+
+                return RedirectToAction(nameof(LopHoc));
+            }
+
+            PopulateSelectLists(lopHoc.MaGv, lopHoc.MaPhong, lopHoc.MaKhoaHoc);
+            return View(lopHoc);
         }
 
         public async Task<IActionResult> DeleteHocVien(string id)
@@ -361,8 +509,20 @@ namespace BTL_Web.Controllers
         }
         public async Task<IActionResult> DeleteLopHoc(string id)
         {
-            var e = await _db.LopHocs.FindAsync(id);
-            if (e != null) { _db.LopHocs.Remove(e); await _db.SaveChangesAsync(); }
+            var lop = await _db.LopHocs
+                .Include(l => l.MaHocViens)
+                .FirstOrDefaultAsync(l => l.MaLop == id);
+            if (lop == null) return RedirectToAction("LopHoc");
+
+            if (lop.MaHocViens.Any())
+            {
+                TempData["Error"] = $"The class with {id} cannot be deleted because there are still students participating.";
+                return RedirectToAction("LopHoc");
+            }
+
+            _db.LopHocs.Remove(lop);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"The class with the {id} has been deleted.";
             return RedirectToAction("LopHoc");
         }
         public async Task<IActionResult> DeletePhongHoc(string id)
