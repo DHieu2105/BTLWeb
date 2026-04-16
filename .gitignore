@@ -1,0 +1,12 @@
+# Build output
+**/bin/
+**/obj/
+
+# Visual Studio
+.vs/
+
+# Node
+**/node_modules/
+
+# Local config
+**/appsettings.Development.json
