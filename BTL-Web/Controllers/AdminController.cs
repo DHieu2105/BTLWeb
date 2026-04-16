@@ -10,6 +10,7 @@ namespace BTL_Web.Controllers
     public class AdminController : Controller
     {
         private readonly TtanContext _db;
+        private const int MaxTeachersPerStaff = 8;
         public AdminController(TtanContext db) => _db = db;
 
         [Authorize(Roles = "Admin")]
@@ -63,8 +64,51 @@ namespace BTL_Web.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> NhanVien()
-            => View(await _db.NhanViens.Include(n => n.MaTrungTamNavigation).ToListAsync());
+        public async Task<IActionResult> NhanVien(string? keyword, string? center, int page = 1, int pageSize = 10)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _db.NhanViens
+                .Include(n => n.MaTrungTamNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                query = query.Where(n =>
+                    n.MaNv.Contains(keyword) ||
+                    (n.HoVaTen != null && n.HoVaTen.Contains(keyword)) ||
+                    (n.ChucVu != null && n.ChucVu.Contains(keyword)) ||
+                    (n.GioiTinh != null && n.GioiTinh.Contains(keyword)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(center))
+            {
+                query = query.Where(n => n.MaTrungTam == center);
+            }
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var data = await query
+                .OrderBy(n => n.MaNv)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Center = center;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages == 0 ? 1 : totalPages;
+            ViewBag.TrungTams = await _db.TrungTams.OrderBy(t => t.MaTrungTam).ToListAsync();
+
+            return View(data);
+        }
 
         [Authorize(Roles = "Admin,NhanVien,HocVien")]
         public async Task<IActionResult> KhoaHoc(string? keyword, int page = 1, int pageSize = 10)
@@ -294,11 +338,73 @@ namespace BTL_Web.Controllers
             return View();
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> StaffTeacherAssignment()
+        [Authorize(Roles = "Admin,NhanVien")]
+        public async Task<IActionResult> StaffTeacherAssignment(string? keyword, string? center, bool unassignedOnly = false, int page = 1, int pageSize = 10)
         {
-            ViewBag.NhanViens = await _db.NhanViens.ToListAsync();
-            ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize <= 0 ? 10 : pageSize;
+            if (pageSize > 100) pageSize = 100;
+
+            var staffQuery = _db.NhanViens
+                .Include(n => n.MaGvs)
+                .Include(n => n.MaTrungTamNavigation)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                keyword = keyword.Trim();
+                staffQuery = staffQuery.Where(n =>
+                    n.MaNv.Contains(keyword) ||
+                    (n.HoVaTen != null && n.HoVaTen.Contains(keyword)) ||
+                    (n.ChucVu != null && n.ChucVu.Contains(keyword)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(center))
+            {
+                staffQuery = staffQuery.Where(n => n.MaTrungTam == center);
+            }
+
+            if (unassignedOnly)
+            {
+                staffQuery = staffQuery.Where(n => n.MaGvs.Count == 0);
+            }
+
+            var totalItems = await staffQuery.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var nhanViens = await staffQuery
+                .OrderBy(n => n.MaNv)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var allNhanViens = await _db.NhanViens
+                .OrderBy(n => n.MaNv)
+                .ToListAsync();
+
+            var allTeachers = await _db.GiaoViens
+                .Include(g => g.MaNvs)
+                .OrderBy(g => g.MaGv)
+                .ToListAsync();
+
+            ViewBag.NhanViens = nhanViens;
+            ViewBag.AllNhanViens = allNhanViens;
+            ViewBag.GiaoViens = allTeachers;
+            ViewBag.TrungTams = await _db.TrungTams.OrderBy(t => t.MaTrungTam).ToListAsync();
+            ViewBag.TotalStaff = await _db.NhanViens.CountAsync();
+            ViewBag.TotalTeachers = allTeachers.Count;
+            ViewBag.UnassignedTeachers = allTeachers.Count(g => !g.MaNvs.Any());
+            ViewBag.MaxTeachersPerStaff = MaxTeachersPerStaff;
+
+            ViewBag.Keyword = keyword;
+            ViewBag.Center = center;
+            ViewBag.UnassignedOnly = unassignedOnly;
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages == 0 ? 1 : totalPages;
+
             return View();
         }
 
@@ -605,6 +711,7 @@ namespace BTL_Web.Controllers
         {
             if (string.IsNullOrWhiteSpace(MaNv) || string.IsNullOrWhiteSpace(MaGv))
             {
+                TempData["Error"] = "Vui lòng chọn đầy đủ nhân viên và giáo viên.";
                 return RedirectToAction("StaffTeacherAssignment");
             }
 
@@ -613,11 +720,62 @@ namespace BTL_Web.Controllers
                 .FirstOrDefaultAsync(n => n.MaNv == MaNv);
             var giaoVien = await _db.GiaoViens.FindAsync(MaGv);
 
-            if (nhanVien != null && giaoVien != null && !nhanVien.MaGvs.Any(g => g.MaGv == MaGv))
+            if (nhanVien == null || giaoVien == null)
             {
-                nhanVien.MaGvs.Add(giaoVien);
-                await _db.SaveChangesAsync();
+                TempData["Error"] = "Không tìm thấy nhân viên hoặc giáo viên cần phân công.";
+                return RedirectToAction("StaffTeacherAssignment");
             }
+
+            if (nhanVien.MaGvs.Any(g => g.MaGv == MaGv))
+            {
+                TempData["Error"] = "Giáo viên đã được phân công cho nhân viên này.";
+                return RedirectToAction("StaffTeacherAssignment");
+            }
+
+            if (nhanVien.MaGvs.Count >= MaxTeachersPerStaff)
+            {
+                TempData["Error"] = $"Nhân viên {nhanVien.MaNv} đã đạt giới hạn {MaxTeachersPerStaff} giáo viên.";
+                return RedirectToAction("StaffTeacherAssignment");
+            }
+
+            nhanVien.MaGvs.Add(giaoVien);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Phân công giáo viên thành công.";
+
+            return RedirectToAction("StaffTeacherAssignment");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UnassignStaffTeacher(string MaNv, string MaGv)
+        {
+            if (string.IsNullOrWhiteSpace(MaNv) || string.IsNullOrWhiteSpace(MaGv))
+            {
+                TempData["Error"] = "Thiếu thông tin để bỏ phân công.";
+                return RedirectToAction("StaffTeacherAssignment");
+            }
+
+            var nhanVien = await _db.NhanViens
+                .Include(n => n.MaGvs)
+                .FirstOrDefaultAsync(n => n.MaNv == MaNv);
+
+            if (nhanVien == null)
+            {
+                TempData["Error"] = "Không tìm thấy nhân viên cần bỏ phân công.";
+                return RedirectToAction("StaffTeacherAssignment");
+            }
+
+            var giaoVien = nhanVien.MaGvs.FirstOrDefault(g => g.MaGv == MaGv);
+            if (giaoVien == null)
+            {
+                TempData["Error"] = "Giáo viên chưa được phân công cho nhân viên này.";
+                return RedirectToAction("StaffTeacherAssignment");
+            }
+
+            nhanVien.MaGvs.Remove(giaoVien);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Đã bỏ phân công giáo viên.";
 
             return RedirectToAction("StaffTeacherAssignment");
         }
