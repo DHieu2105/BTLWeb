@@ -88,7 +88,10 @@ namespace BTL_Web.Controllers
             ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
             return View(await _db.LichHocs
+                .Include(l => l.MaLopNavigation)
                 .Include(l => l.MaPhongNavigation)
+                .OrderBy(l => l.NgayHoc)
+                .ThenBy(l => l.GioBatDau)
                 .ToListAsync());
         }
 
@@ -242,10 +245,42 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddLichHoc(LichHoc m)
         {
+            var roomId = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
+
             m.MaLichHoc = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
+            m.MaPhong = roomId;
             _db.LichHocs.Add(m); await _db.SaveChangesAsync();
+            return RedirectToAction("LichHoc");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditLichHoc(LichHoc m)
+        {
+            var existing = await _db.LichHocs.FindAsync(m.MaLichHoc);
+            if (existing == null)
+            {
+                return RedirectToAction("LichHoc");
+            }
+
+            var roomId = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
+
+            existing.MaLop = m.MaLop;
+            existing.MaPhong = roomId;
+            existing.NgayHoc = m.NgayHoc;
+            existing.GioBatDau = m.GioBatDau;
+            existing.GioKetThuc = m.GioKetThuc;
+
+            await _db.SaveChangesAsync();
             return RedirectToAction("LichHoc");
         }
 
