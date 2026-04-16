@@ -20,6 +20,9 @@ var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnec
 builder.Services.AddDbContext<TtanContext>(options =>
     options.UseSqlServer(defaultConnection));
 
+builder.Services.AddDbContext<TtamContext>(options =>
+    options.UseSqlServer(defaultConnection));
+
 // Add custom services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserInfoService, UserInfoService>();

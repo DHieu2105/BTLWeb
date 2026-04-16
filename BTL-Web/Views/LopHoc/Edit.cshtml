@@ -1,0 +1,52 @@
+@model BTL_Web.Models.LopHoc
+
+@{
+    ViewData["Title"] = "Sua lop hoc";
+}
+
+<h1>Sua lop hoc</h1>
+
+<form asp-action="Edit" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="MaLop" class="form-label"></label>
+        <input asp-for="MaLop" class="form-control" readonly />
+        <span asp-validation-for="MaLop" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="TenLop" class="form-label"></label>
+        <input asp-for="TenLop" class="form-control" />
+        <span asp-validation-for="TenLop" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MaGv" class="form-label"></label>
+        <select asp-for="MaGv" class="form-select" asp-items="ViewBag.MaGv">
+            <option value="">-- Chon giao vien --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MaKhoaHoc" class="form-label"></label>
+        <select asp-for="MaKhoaHoc" class="form-select" asp-items="ViewBag.MaKhoaHoc">
+            <option value="">-- Chon khoa hoc --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="MaPhong" class="form-label"></label>
+        <select asp-for="MaPhong" class="form-select" asp-items="ViewBag.MaPhong">
+            <option value="">-- Chon phong hoc --</option>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Cap nhat</button>
+    <a asp-action="Index" class="btn btn-secondary">Huy</a>
+</form>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+

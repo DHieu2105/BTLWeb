@@ -12,9 +12,9 @@ public interface IAuthService
 
 public class AuthService : IAuthService
 {
-    private readonly TtanContext _context;
+    private readonly TtamContext _context;
 
-    public AuthService(TtanContext context)
+    public AuthService(TtamContext context)
     {
         _context = context;
     }
@@ -27,8 +27,7 @@ public class AuthService : IAuthService
         if (account == null)
             return null;
 
-        // So sánh plaintext
-        if (account.Password != password)
+        if (!PasswordHasher.Verify(password, account.Password))
             return null;
 
         return account;
@@ -48,12 +47,10 @@ public class AuthService : IAuthService
         if (account == null)
             return false;
 
-        // Kiểm tra mật khẩu cũ
-        if (account.Password != oldPassword)
+        if (!PasswordHasher.Verify(oldPassword, account.Password))
             return false;
 
-        // Cập nhật mật khẩu mới
-        account.Password = newPassword;
+        account.Password = PasswordHasher.Hash(newPassword);
         _context.TaiKhoans.Update(account);
         await _context.SaveChangesAsync();
 

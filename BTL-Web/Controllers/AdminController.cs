@@ -17,8 +17,8 @@ namespace BTL_Web.Controllers
         {
             ViewBag.TotalStudents = await _db.HocViens.CountAsync();
             ViewBag.TotalTeachers = await _db.GiaoViens.CountAsync();
-            ViewBag.TotalClasses  = await _db.LopHocs.CountAsync();
-            ViewBag.TotalStaff    = await _db.NhanViens.CountAsync();
+            ViewBag.TotalClasses = await _db.LopHocs.CountAsync();
+            ViewBag.TotalStaff = await _db.NhanViens.CountAsync();
             return View();
         }
 
@@ -184,17 +184,42 @@ namespace BTL_Web.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> LopHoc()
+        public async Task<IActionResult> LopHoc(int page = 1, int pageSize = 10)
         {
-            ViewBag.KhoaHocs  = await _db.KhoaHocs.ToListAsync();
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
             ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            return View(await _db.LopHocs
-                .Include(l => l.MaGvNavigation)
-                .Include(l => l.MaKhoaHocNavigation)
-                .Include(l => l.MaPhongNavigation)
-                .Include(l => l.MaHocViens)
-                .ToListAsync());
+
+            var query = _db.LopHocs
+            .Include(l => l.MaGvNavigation)
+            .Include(l => l.MaKhoaHocNavigation)
+            .Include(l => l.MaPhongNavigation)
+            .Include(l => l.MaHocViens)
+            .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+            .OrderBy(l => l.MaLop)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+            var vm = new LopHocPage
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems
+            };
+            return View(vm);
         }
 
         [Authorize(Roles = "Admin")]
@@ -215,10 +240,13 @@ namespace BTL_Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> LichHoc()
         {
-            ViewBag.LopHocs   = await _db.LopHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
             return View(await _db.LichHocs
+                .Include(l => l.MaLopNavigation)
                 .Include(l => l.MaPhongNavigation)
+                .OrderBy(l => l.NgayHoc)
+                .ThenBy(l => l.GioBatDau)
                 .ToListAsync());
         }
 
@@ -230,7 +258,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> KetQua()
         {
             ViewBag.HocViens = await _db.HocViens.ToListAsync();
-            ViewBag.LopHocs  = await _db.LopHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             return View(await _db.KetQuas
                 .Include(k => k.MaHocVienNavigation)
                 .Include(k => k.MaKhoaHocNavigation)
@@ -252,9 +280,9 @@ namespace BTL_Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CourseRegistration()
         {
-            ViewBag.HocViens  = await _db.HocViens.ToListAsync();
-            ViewBag.KhoaHocs  = await _db.KhoaHocs.ToListAsync();
-            ViewBag.LopHocs   = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
+            ViewBag.HocViens = await _db.HocViens.ToListAsync();
+            ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
+            ViewBag.LopHocs = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
             return View();
         }
 
@@ -262,7 +290,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> TeacherStudentAssignment()
         {
             ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
-            ViewBag.HocViens  = await _db.HocViens.ToListAsync();
+            ViewBag.HocViens = await _db.HocViens.ToListAsync();
             return View();
         }
 
@@ -278,7 +306,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> RoomEquipmentAssignment()
         {
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            ViewBag.ThietBis  = await _db.ThietBis.ToListAsync();
+            ViewBag.ThietBis = await _db.ThietBis.ToListAsync();
             return View();
         }
 
@@ -494,7 +522,13 @@ namespace BTL_Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddLichHoc(LichHoc m)
         {
+            var roomId = await _db.LopHocs
+                .Where(l => l.MaLop == m.MaLop)
+                .Select(l => l.MaPhong)
+                .FirstOrDefaultAsync();
+
             m.MaLichHoc = "LH" + DateTime.Now.Ticks.ToString().Substring(10);
+            m.MaPhong = roomId;
             _db.LichHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("LichHoc");
         }
@@ -617,7 +651,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> AddStudentToClass(string maLop, string maHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
-            var sv  = await _db.HocViens.FindAsync(maHocVien);
+            var sv = await _db.HocViens.FindAsync(maHocVien);
             if (lop != null && sv != null && !lop.MaHocViens.Contains(sv))
             {
                 lop.MaHocViens.Add(sv);
@@ -631,7 +665,7 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> RemoveStudentFromClass(string maLop, string maHocVien)
         {
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
-            var sv  = lop?.MaHocViens.FirstOrDefault(h => h.MaHocVien == maHocVien);
+            var sv = lop?.MaHocViens.FirstOrDefault(h => h.MaHocVien == maHocVien);
             if (sv != null) { lop!.MaHocViens.Remove(sv); await _db.SaveChangesAsync(); }
             return RedirectToAction("StudentsInClass", new { id = maLop });
         }
@@ -660,8 +694,20 @@ namespace BTL_Web.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteLopHoc(string id)
         {
-            var e = await _db.LopHocs.FindAsync(id);
-            if (e != null) { _db.LopHocs.Remove(e); await _db.SaveChangesAsync(); }
+            var lop = await _db.LopHocs
+                .Include(l => l.MaHocViens)
+                .FirstOrDefaultAsync(l => l.MaLop == id);
+            if (lop == null) return RedirectToAction("LopHoc");
+
+            if (lop.MaHocViens.Any())
+            {
+                TempData["Error"] = $"The class with {id} cannot be deleted because there are still students participating.";
+                return RedirectToAction("LopHoc");
+            }
+
+            _db.LopHocs.Remove(lop);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"The class with the {id} has been deleted.";
             return RedirectToAction("LopHoc");
         }
         [Authorize(Roles = "Admin")]

@@ -1,6 +1,7 @@
 @model IEnumerable<BTL_Web.Models.LopHoc>
 @{
     ViewData["Title"] = "My Classes";
+    var classList = Model?.ToList() ?? new List<BTL_Web.Models.LopHoc>();
 }
 
 <div class="page-header">
@@ -11,11 +12,11 @@
     <div class="page-actions">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="card-plain" style="padding:16px;text-align:center;">
-                <div class="stat-value" style="font-size:20px;">@(Model?.Count() ?? 0)</div>
+                <div class="stat-value" style="font-size:20px;">@classList.Count</div>
                 <div class="stat-label">Classes</div>
             </div>
             <div class="card-plain" style="padding:16px;text-align:center;">
-                <div class="stat-value" style="font-size:20px;">@(Model?.Sum(l => l.MaHocViens.Count) ?? 0)</div>
+                <div class="stat-value" style="font-size:20px;">@classList.Sum(l => l.MaHocViens.Count)</div>
                 <div class="stat-label">Classmates</div>
             </div>
         </div>
@@ -24,7 +25,7 @@
 
 <!-- Featured Class -->
 @{
-    var featured = Model?.FirstOrDefault();
+    var featured = classList.FirstOrDefault();
 }
 @if (featured != null)
 {
@@ -32,22 +33,22 @@
         <div style="padding:32px;border-left:6px solid var(--primary);">
             <div style="display:flex;gap:8px;margin-bottom:16px;">
                 <span class="chip chip-green">Active</span>
-                <span class="chip chip-blue">@(featured.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</span>
+                <span id="featuredCourse" class="chip chip-blue">@(featured.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</span>
             </div>
-            <h3 style="font-size:22px;margin-bottom:8px;">@(featured.TenLop ?? featured.MaLop)</h3>
+            <h3 id="featuredTitle" style="font-size:22px;margin-bottom:8px;">@(featured.TenLop ?? featured.MaLop)</h3>
             <p class="text-muted" style="margin-bottom:20px;font-size:14px;">Advanced course with focus on structural analysis and professional communication.</p>
             <div style="display:flex;gap:24px;margin-bottom:20px;">
                 <div>
                     <div class="stat-label">Teacher</div>
-                    <div class="user-name" style="font-size:14px;">@(featured.MaGvNavigation?.Ten ?? "—")</div>
+                    <div id="featuredTeacher" class="user-name" style="font-size:14px;">@(featured.MaGvNavigation?.Ten ?? "—")</div>
                 </div>
                 <div>
                     <div class="stat-label">Room</div>
-                    <div class="user-name" style="font-size:14px;">@(featured.MaPhongNavigation?.TenPhong ?? "TBD")</div>
+                    <div id="featuredRoom" class="user-name" style="font-size:14px;">@(featured.MaPhongNavigation?.TenPhong ?? "TBD")</div>
                 </div>
                 <div>
                     <div class="stat-label">Students</div>
-                    <div class="user-name" style="font-size:14px;">@featured.MaHocViens.Count</div>
+                    <div id="featuredStudents" class="user-name" style="font-size:14px;">@featured.MaHocViens.Count</div>
                 </div>
             </div>
             <div style="display:flex;gap:8px;">
@@ -80,13 +81,15 @@
                 <th>Room</th>
                 <th>Classmates</th>
                 <th>Status</th>
+                <th style="text-align:right;">Feature</th>
             </tr>
         </thead>
         <tbody>
-            @if (Model != null && Model.Any())
+            @if (classList.Any())
             {
-                @foreach (var lop in Model)
+                @for (int i = 0; i < classList.Count; i++)
                 {
+                    var lop = classList[i];
                     <tr>
                         <td>
                             <div class="user-name">@(lop.TenLop ?? lop.MaLop)</div>
@@ -102,12 +105,23 @@
                         <td class="user-sub">@(lop.MaPhongNavigation?.TenPhong ?? "—")</td>
                         <td><span class="chip chip-blue">@lop.MaHocViens.Count</span></td>
                         <td><span class="chip chip-green">Active</span></td>
+                        <td style="text-align:right;">
+                            <button type="button"
+                                    class="btn-outline btn-sm feature-btn"
+                                    data-title="@(lop.TenLop ?? lop.MaLop)"
+                                    data-course="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")"
+                                    data-teacher="@(lop.MaGvNavigation?.Ten ?? "—")"
+                                    data-room="@(lop.MaPhongNavigation?.TenPhong ?? "TBD")"
+                                    data-students="@lop.MaHocViens.Count">
+                                Show
+                            </button>
+                        </td>
                     </tr>
                 }
             }
             else
             {
-                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-graduation-cap"></i><p>No classes enrolled</p></div></td></tr>
+                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-graduation-cap"></i><p>No classes enrolled</p></div></td></tr>
             }
         </tbody>
     </table>
@@ -145,10 +159,35 @@
 
 @section Scripts {
 <script>
-document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
+document.addEventListener('DOMContentLoaded', function () {
+    const featuredTitle = document.getElementById('featuredTitle');
+    const featuredCourse = document.getElementById('featuredCourse');
+    const featuredTeacher = document.getElementById('featuredTeacher');
+    const featuredRoom = document.getElementById('featuredRoom');
+    const featuredStudents = document.getElementById('featuredStudents');
+
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    document.addEventListener('click', function (event) {
+        const button = event.target.closest('.feature-btn');
+        if (!button) {
+            return;
+        }
+
+        if (!featuredTitle || !featuredCourse || !featuredTeacher || !featuredRoom || !featuredStudents) {
+            return;
+        }
+
+        featuredTitle.textContent = button.dataset.title || '—';
+        featuredCourse.textContent = button.dataset.course || '—';
+        featuredTeacher.textContent = button.dataset.teacher || '—';
+        featuredRoom.textContent = button.dataset.room || 'TBD';
+        featuredStudents.textContent = button.dataset.students || '0';
     });
 });
 </script>

@@ -136,34 +136,40 @@ public class AuthController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ChangePassword(string oldPassword, string newPassword, string confirmPassword)
     {
         if (!User.Identity?.IsAuthenticated ?? true)
             return RedirectToAction("Login");
 
         var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var role = User.FindFirst(ClaimTypes.Role)?.Value;
 
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(role))
+        if (string.IsNullOrEmpty(username))
             return RedirectToAction("Login");
 
         // Validate input
         if (string.IsNullOrWhiteSpace(oldPassword) || string.IsNullOrWhiteSpace(newPassword) || string.IsNullOrWhiteSpace(confirmPassword))
         {
             TempData["Error"] = "Vui lòng điền đủ thông tin";
-            return RedirectToAction("EditProfile");
+            return RedirectToAction("Profile");
         }
 
         if (newPassword != confirmPassword)
         {
             TempData["Error"] = "Mật khẩu mới và xác nhận không khớp";
-            return RedirectToAction("EditProfile");
+            return RedirectToAction("Profile");
         }
 
         if (newPassword.Length < 6)
         {
             TempData["Error"] = "Mật khẩu mới phải ít nhất 6 ký tự";
-            return RedirectToAction("EditProfile");
+            return RedirectToAction("Profile");
+        }
+
+        if (newPassword == oldPassword)
+        {
+            TempData["Error"] = "Mật khẩu mới phải khác mật khẩu hiện tại";
+            return RedirectToAction("Profile");
         }
 
         var result = await _authService.ChangePasswordAsync(username, oldPassword, newPassword);
@@ -171,11 +177,11 @@ public class AuthController : Controller
         if (!result)
         {
             TempData["Error"] = "Mật khẩu cũ không đúng";
-            return RedirectToAction("EditProfile");
+            return RedirectToAction("Profile");
         }
 
         TempData["Success"] = "Đổi mật khẩu thành công";
-        return RedirectToAction("EditProfile");
+        return RedirectToAction("Profile");
     }
 
     // DEBUG: Setup Admin Account
@@ -193,7 +199,7 @@ public class AuthController : Controller
     {
         try
         {
-            var context = HttpContext.RequestServices.GetRequiredService<TtanContext>();
+            var context = HttpContext.RequestServices.GetRequiredService<TtamContext>();
 
             // Check if admin exists
             var admin = await context.TaiKhoans.FirstOrDefaultAsync(x => x.Username == "admin");
