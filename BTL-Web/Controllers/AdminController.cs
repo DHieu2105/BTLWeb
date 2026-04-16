@@ -542,11 +542,59 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddNhanVien(NhanVien m)
         {
+            if (string.IsNullOrWhiteSpace(m.HoVaTen))
+            {
+                TempData["Error"] = "Họ và tên nhân viên là bắt buộc.";
+                return RedirectToAction("NhanVien");
+            }
+
             m.MaNv = "NV" + DateTime.Now.Ticks.ToString().Substring(10);
-            _db.NhanViens.Add(m); await _db.SaveChangesAsync();
+            m.HoVaTen = m.HoVaTen.Trim();
+            m.ChucVu = string.IsNullOrWhiteSpace(m.ChucVu) ? null : m.ChucVu.Trim();
+            m.GioiTinh = string.IsNullOrWhiteSpace(m.GioiTinh) ? null : m.GioiTinh.Trim();
+            m.MaTrungTam = string.IsNullOrWhiteSpace(m.MaTrungTam) ? null : m.MaTrungTam.Trim();
+
+            _db.NhanViens.Add(m);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Thêm nhân viên thành công.";
+            return RedirectToAction("NhanVien");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateNhanVien(NhanVien m)
+        {
+            if (string.IsNullOrWhiteSpace(m.MaNv))
+            {
+                TempData["Error"] = "Thiếu mã nhân viên để cập nhật.";
+                return RedirectToAction("NhanVien");
+            }
+
+            if (string.IsNullOrWhiteSpace(m.HoVaTen))
+            {
+                TempData["Error"] = "Họ và tên nhân viên là bắt buộc.";
+                return RedirectToAction("NhanVien");
+            }
+
+            var entity = await _db.NhanViens.FirstOrDefaultAsync(n => n.MaNv == m.MaNv);
+            if (entity == null)
+            {
+                TempData["Error"] = "Không tìm thấy nhân viên cần sửa.";
+                return RedirectToAction("NhanVien");
+            }
+
+            entity.HoVaTen = m.HoVaTen.Trim();
+            entity.ChucVu = string.IsNullOrWhiteSpace(m.ChucVu) ? null : m.ChucVu.Trim();
+            entity.GioiTinh = string.IsNullOrWhiteSpace(m.GioiTinh) ? null : m.GioiTinh.Trim();
+            entity.MaTrungTam = string.IsNullOrWhiteSpace(m.MaTrungTam) ? null : m.MaTrungTam.Trim();
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật nhân viên thành công.";
             return RedirectToAction("NhanVien");
         }
 
@@ -841,6 +889,37 @@ namespace BTL_Web.Controllers
             var e = await _db.GiaoViens.FindAsync(id);
             if (e != null) { _db.GiaoViens.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("GiaoVien");
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteNhanVien(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["Error"] = "Thiếu mã nhân viên cần xóa.";
+                return RedirectToAction("NhanVien");
+            }
+
+            var e = await _db.NhanViens.FindAsync(id);
+            if (e == null)
+            {
+                TempData["Error"] = "Không tìm thấy nhân viên cần xóa.";
+                return RedirectToAction("NhanVien");
+            }
+
+            _db.NhanViens.Remove(e);
+            try
+            {
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Xóa nhân viên thành công.";
+            }
+            catch (DbUpdateException)
+            {
+                TempData["Error"] = "Không thể xóa nhân viên do dữ liệu đang được sử dụng.";
+            }
+
+            return RedirectToAction("NhanVien");
         }
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteKhoaHoc(string id)

@@ -53,6 +53,15 @@
     </div>
 </div>
 
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger" style="margin-bottom:16px;">@error</div>
+}
+
 <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div></div>
@@ -114,7 +123,24 @@
                         <td class="user-sub">@(nv.GioiTinh ?? "—")</td>
                         <td><span class="chip chip-green">Active</span></td>
                         <td style="text-align:right;">
-                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
+                            <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                <button class="btn-icon btn-outline btn-sm"
+                                        data-id="@nv.MaNv"
+                                        data-name="@nv.HoVaTen"
+                                        data-role="@nv.ChucVu"
+                                        data-gender="@nv.GioiTinh"
+                                        data-center="@nv.MaTrungTam"
+                                        onclick="openEditStaff(this)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form method="post" action="/Admin/DeleteNhanVien" style="display:inline;" onsubmit="return confirm('Delete staff @nv.MaNv?');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@nv.MaNv" />
+                                    <button type="submit" class="btn-icon btn-outline btn-sm">
+                                        <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 }
@@ -163,7 +189,7 @@
                     <label class="form-label">Gender</label>
                     <select name="GioiTinh" class="form-control form-select">
                         <option value="Nam">Nam</option>
-                        <option value="Nu">Nữ</option>
+                        <option value="Nữ">Nữ</option>
                     </select>
                 </div>
             </div>
@@ -187,3 +213,58 @@
         </form>
     </div>
 </div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Edit Staff Member</h4>
+        <form method="post" action="/Admin/UpdateNhanVien">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editMaNv" name="MaNv" />
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" id="editHoVaTen" name="HoVaTen" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Position</label>
+                    <input type="text" id="editChucVu" name="ChucVu" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select id="editGioiTinh" name="GioiTinh" class="form-control form-select">
+                        <option value="">— Select —</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Center</label>
+                <select id="editMaTrungTam" name="MaTrungTam" class="form-control form-select">
+                    <option value="">— Select Center —</option>
+                    @foreach (var tt in trungTams)
+                    {
+                        <option value="@tt.MaTrungTam">@tt.TenTrungTam</option>
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openEditStaff(btn) {
+    document.getElementById('editMaNv').value = btn.dataset.id || '';
+    document.getElementById('editHoVaTen').value = btn.dataset.name || '';
+    document.getElementById('editChucVu').value = btn.dataset.role || '';
+    document.getElementById('editGioiTinh').value = btn.dataset.gender || '';
+    document.getElementById('editMaTrungTam').value = btn.dataset.center || '';
+    document.getElementById('editModal').style.display = 'flex';
+}
+</script>
+}
