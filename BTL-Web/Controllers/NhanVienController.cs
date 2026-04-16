@@ -23,8 +23,13 @@ public class NhanVienController : Controller
         var nhanViens = await _context.NhanViens
             .Include(x => x.MaTrungTamNavigation)
             .Include(x => x.TaiKhoans)
-            .OrderBy(x => x.MaNv)
             .ToListAsync();
+
+        nhanViens = nhanViens
+            .OrderBy(x => GetMaNvPrefix(x.MaNv))
+            .ThenBy(x => GetMaNvNumber(x.MaNv))
+            .ThenBy(x => x.MaNv)
+            .ToList();
 
         return View(nhanViens);
     }
@@ -62,10 +67,48 @@ public class NhanVienController : Controller
     [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create(NhanVienFormViewModel model)
     {
+        model.NewUsername = string.IsNullOrWhiteSpace(model.NewUsername) ? null : model.NewUsername.Trim();
+        model.NewPassword = string.IsNullOrWhiteSpace(model.NewPassword) ? null : model.NewPassword.Trim();
+
+        var hasNewAccountInput = !string.IsNullOrWhiteSpace(model.NewUsername) || !string.IsNullOrWhiteSpace(model.NewPassword);
+
+        if (hasNewAccountInput && !string.IsNullOrWhiteSpace(model.SelectedUsername))
+        {
+            ModelState.AddModelError(nameof(model.SelectedUsername), "Chỉ được chọn tài khoản có sẵn hoặc tạo tài khoản mới");
+        }
+
+        if (hasNewAccountInput)
+        {
+            if (string.IsNullOrWhiteSpace(model.NewUsername))
+            {
+                ModelState.AddModelError(nameof(model.NewUsername), "Vui lòng nhập tên đăng nhập mới");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                ModelState.AddModelError(nameof(model.NewPassword), "Vui lòng nhập mật khẩu mới");
+            }
+            else if (model.NewPassword.Length < 6)
+            {
+                ModelState.AddModelError(nameof(model.NewPassword), "Mật khẩu mới phải ít nhất 6 ký tự");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             await LoadSelectListsAsync(model.MaTrungTam, model.SelectedUsername, null);
             return View(model);
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.NewUsername))
+        {
+            var usernameExists = await _context.TaiKhoans.AnyAsync(x => x.Username == model.NewUsername);
+            if (usernameExists)
+            {
+                ModelState.AddModelError(nameof(model.NewUsername), "Tên đăng nhập đã tồn tại");
+                await LoadSelectListsAsync(model.MaTrungTam, model.SelectedUsername, null);
+                return View(model);
+            }
         }
 
         var existed = await _context.NhanViens.AnyAsync(x => x.MaNv == model.MaNv);
@@ -86,7 +129,22 @@ public class NhanVienController : Controller
         };
 
         _context.NhanViens.Add(nhanVien);
-        await UpdateAccountAssignmentAsync(model.SelectedUsername, nhanVien.MaNv);
+
+        if (!string.IsNullOrWhiteSpace(model.NewUsername) && !string.IsNullOrWhiteSpace(model.NewPassword))
+        {
+            _context.TaiKhoans.Add(new TaiKhoan
+            {
+                Username = model.NewUsername,
+                Password = model.NewPassword,
+                Role = AppRoles.NhanVien,
+                MaNv = nhanVien.MaNv
+            });
+        }
+        else
+        {
+            await UpdateAccountAssignmentAsync(model.SelectedUsername, nhanVien.MaNv);
+        }
+
         await _context.SaveChangesAsync();
 
         TempData["Success"] = "Thêm nhân viên thành công";
@@ -261,5 +319,48 @@ public class NhanVienController : Controller
         {
             account.Role = AppRoles.NhanVien;
         }
+    }
+
+    private static string GetMaNvPrefix(string? maNv)
+    {
+        if (string.IsNullOrWhiteSpace(maNv))
+        {
+            return string.Empty;
+        }
+
+        var index = 0;
+        while (index < maNv.Length && !char.IsDigit(maNv[index]))
+        {
+            index++;
+        }
+
+        return maNv[..index];
+    }
+
+    private static int GetMaNvNumber(string? maNv)
+    {
+        if (string.IsNullOrWhiteSpace(maNv))
+        {
+            return int.MaxValue;
+        }
+
+        var index = 0;
+        while (index < maNv.Length && !char.IsDigit(maNv[index]))
+        {
+            index++;
+        }
+
+        if (index >= maNv.Length)
+        {
+            return int.MaxValue;
+        }
+
+        var start = index;
+        while (index < maNv.Length && char.IsDigit(maNv[index]))
+        {
+            index++;
+        }
+
+        return int.TryParse(maNv[start..index], out var number) ? number : int.MaxValue;
     }
 }

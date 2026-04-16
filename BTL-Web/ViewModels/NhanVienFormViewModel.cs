@@ -23,4 +23,10 @@ public class NhanVienFormViewModel
 
     [Display(Name = "Tài khoản")]
     public string? SelectedUsername { get; set; }
+
+    [Display(Name = "Tên đăng nhập mới")]
+    public string? NewUsername { get; set; }
+
+    [Display(Name = "Mật khẩu mới")]
+    public string? NewPassword { get; set; }
 }

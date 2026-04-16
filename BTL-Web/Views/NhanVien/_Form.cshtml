@@ -4,6 +4,7 @@
 
 @{
     var isReadOnlyMaNv = ViewData["ReadOnlyMaNv"] as bool? == true;
+    var allowCreateAccount = ViewData["AllowCreateAccount"] as bool? == true;
 }
 
 <div class="row g-3">
@@ -58,4 +59,25 @@
         </select>
         <span asp-validation-for="SelectedUsername" class="text-danger"></span>
     </div>
+
+    @if (allowCreateAccount)
+    {
+        <div class="col-12">
+            <div class="alert alert-info mb-0">
+                Có thể chọn tài khoản có sẵn hoặc nhập thông tin bên dưới để tạo tài khoản nhân viên mới.
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="NewUsername" class="form-label"></label>
+            <input asp-for="NewUsername" class="form-control" />
+            <span asp-validation-for="NewUsername" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6">
+            <label asp-for="NewPassword" class="form-label"></label>
+            <input asp-for="NewPassword" class="form-control" type="password" />
+            <span asp-validation-for="NewPassword" class="text-danger"></span>
+        </div>
+    }
 </div>
