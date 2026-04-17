@@ -21,8 +21,44 @@ namespace BTL_Web.Controllers
             return View();
         }
 
-        public async Task<IActionResult> HocVien()
-            => View(await _db.HocViens.Include(h => h.DangKis).ThenInclude(d => d.MaKhoaHocNavigation).ToListAsync());
+        public async Task<IActionResult> HocVien(int page = 1, int pageSize = 10, string searchStudent = "")
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _db.HocViens
+                .Include(h => h.DangKis)
+                    .ThenInclude(d => d.MaKhoaHocNavigation)
+                .AsNoTracking();
+
+            // Filter by student name or ID
+            if (!string.IsNullOrWhiteSpace(searchStudent))
+            {
+                var search = searchStudent.Trim().ToLower();
+                query = query.Where(h => h.MaHocVien.ToLower().Contains(search) || 
+                                         (h.HoVaTen != null && h.HoVaTen.ToLower().Contains(search)));
+            }
+
+            query = query.OrderBy(h => h.MaHocVien);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.SearchStudent = searchStudent;
+
+            return View(items);
+        }
 
         public async Task<IActionResult> GiaoVien()
             => View(await _db.GiaoViens.Include(g => g.LopHocs).ToListAsync());
@@ -31,7 +67,7 @@ namespace BTL_Web.Controllers
             => View(await _db.NhanViens.Include(n => n.MaTrungTamNavigation).ToListAsync());
 
         public async Task<IActionResult> KhoaHoc()
-            => View(await _db.KhoaHocs.Include(k => k.DangKis).Include(k => k.LopHocs).ToListAsync());
+            => View(await _db.KhoaHocs.AsNoTracking().ToListAsync());
 
         public async Task<IActionResult> LopHoc(int page = 1, int pageSize = 10)
         {
@@ -98,14 +134,47 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> TaiKhoan()
             => View(await _db.TaiKhoans.ToListAsync());
 
-        public async Task<IActionResult> KetQua()
+        public async Task<IActionResult> KetQua(int page = 1, int pageSize = 10, int? minScore = null, int? maxScore = null)
         {
-            ViewBag.HocViens = await _db.HocViens.ToListAsync();
-            ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
-            return View(await _db.KetQuas
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _db.KetQuas
                 .Include(k => k.MaHocVienNavigation)
                 .Include(k => k.MaKhoaHocNavigation)
-                .ToListAsync());
+                .AsNoTracking();
+
+            // Filter by score range
+            if (minScore.HasValue)
+            {
+                query = query.Where(k => (k.DiemTong ?? 0) >= minScore.Value);
+            }
+            if (maxScore.HasValue)
+            {
+                query = query.Where(k => (k.DiemTong ?? 0) <= maxScore.Value);
+            }
+
+            query = query.OrderByDescending(k => k.DiemTong)
+                .ThenBy(k => k.MaHocVien);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.MinScore = minScore;
+            ViewBag.MaxScore = maxScore;
+
+            return View(items);
         }
 
         public async Task<IActionResult> StudentsInClass(string id)
@@ -116,6 +185,10 @@ namespace BTL_Web.Controllers
                 .Include(l => l.MaKhoaHocNavigation)
                 .FirstOrDefaultAsync(l => l.MaLop == id);
             ViewBag.AllStudents = await _db.HocViens.ToListAsync();
+            ViewBag.AllClasses = await _db.LopHocs
+                .Include(l => l.MaKhoaHocNavigation)
+                .OrderBy(l => l.TenLop)
+                .ToListAsync();
             return View(lop);
         }
 
@@ -124,6 +197,11 @@ namespace BTL_Web.Controllers
             ViewBag.HocViens = await _db.HocViens.ToListAsync();
             ViewBag.KhoaHocs = await _db.KhoaHocs.ToListAsync();
             ViewBag.LopHocs = await _db.LopHocs.Include(l => l.MaKhoaHocNavigation).ToListAsync();
+            ViewBag.DangKis = await _db.DangKis
+                .Include(d => d.MaHocVienNavigation)
+                .Include(d => d.MaKhoaHocNavigation)
+                .OrderByDescending(d => d.NgayDangKi)
+                .ToListAsync();
             return View();
         }
 
@@ -181,11 +259,45 @@ namespace BTL_Web.Controllers
 
         // ── POST actions ──────────────────────────────────────────────────────
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddHocVien(HocVien m)
         {
-            m.MaHocVien = "HV" + DateTime.Now.Ticks.ToString().Substring(10);
+            if (string.IsNullOrWhiteSpace(m.HoVaTen))
+            {
+                TempData["Error"] = "Student name is required.";
+                return RedirectToAction(nameof(HocVien));
+            }
+
+            m.MaHocVien = await GenerateNextHocVienIdAsync();
+            m.NgayDangKi = DateOnly.FromDateTime(DateTime.Now);
             _db.HocViens.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("HocVien");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditHocVien(HocVien model)
+        {
+            if (string.IsNullOrWhiteSpace(model.MaHocVien) || string.IsNullOrWhiteSpace(model.HoVaTen))
+            {
+                TempData["Error"] = "Student information is invalid.";
+                return RedirectToAction(nameof(HocVien));
+            }
+
+            var existing = await _db.HocViens.FindAsync(model.MaHocVien);
+            if (existing == null)
+            {
+                TempData["Error"] = "Student not found.";
+                return RedirectToAction(nameof(HocVien));
+            }
+
+            existing.HoVaTen = model.HoVaTen;
+            existing.Sdt = model.Sdt;
+            existing.GioiTinh = model.GioiTinh;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Student updated successfully.";
+            return RedirectToAction(nameof(HocVien));
         }
 
         [HttpPost]
@@ -285,9 +397,10 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddKetQua(KetQua m)
         {
-            _db.KetQuas.Add(m); await _db.SaveChangesAsync();
+            TempData["Error"] = "Theo nghiệp vụ, chỉ Giáo viên mới có quyền nhập/sửa điểm.";
             return RedirectToAction("KetQua");
         }
 
@@ -320,6 +433,75 @@ namespace BTL_Web.Controllers
             }
 
             return RedirectToAction("CourseRegistration");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateRegistration(
+            string oldMaHocVien,
+            string oldMaKhoaHoc,
+            string newMaHocVien,
+            string newMaKhoaHoc)
+        {
+            if (string.IsNullOrWhiteSpace(oldMaHocVien) || string.IsNullOrWhiteSpace(oldMaKhoaHoc) ||
+                string.IsNullOrWhiteSpace(newMaHocVien) || string.IsNullOrWhiteSpace(newMaKhoaHoc))
+            {
+                TempData["Error"] = "Registration information is invalid.";
+                return RedirectToAction(nameof(CourseRegistration));
+            }
+
+            var existing = await _db.DangKis.FindAsync(oldMaKhoaHoc, oldMaHocVien);
+            if (existing == null)
+            {
+                TempData["Error"] = "Registration not found.";
+                return RedirectToAction(nameof(CourseRegistration));
+            }
+
+            var targetExists = await _db.DangKis.AnyAsync(d => d.MaHocVien == newMaHocVien && d.MaKhoaHoc == newMaKhoaHoc);
+            if (targetExists && (oldMaHocVien != newMaHocVien || oldMaKhoaHoc != newMaKhoaHoc))
+            {
+                TempData["Error"] = "The target registration already exists.";
+                return RedirectToAction(nameof(CourseRegistration));
+            }
+
+            if (oldMaHocVien == newMaHocVien && oldMaKhoaHoc == newMaKhoaHoc)
+            {
+                TempData["Success"] = "Registration updated successfully.";
+                return RedirectToAction(nameof(CourseRegistration));
+            }
+
+            var ngayDangKi = existing.NgayDangKi;
+            _db.DangKis.Remove(existing);
+            _db.DangKis.Add(new DangKi
+            {
+                MaHocVien = newMaHocVien,
+                MaKhoaHoc = newMaKhoaHoc,
+                NgayDangKi = ngayDangKi ?? DateOnly.FromDateTime(DateTime.Now)
+            });
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Registration updated successfully.";
+            return RedirectToAction(nameof(CourseRegistration));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRegistration(string maHocVien, string maKhoaHoc)
+        {
+            if (string.IsNullOrWhiteSpace(maHocVien) || string.IsNullOrWhiteSpace(maKhoaHoc))
+            {
+                return RedirectToAction(nameof(CourseRegistration));
+            }
+
+            var existing = await _db.DangKis.FindAsync(maKhoaHoc, maHocVien);
+            if (existing != null)
+            {
+                _db.DangKis.Remove(existing);
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Registration deleted successfully.";
+            }
+
+            return RedirectToAction(nameof(CourseRegistration));
         }
 
         [HttpPost]
@@ -392,25 +574,93 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddStudentToClass(string maLop, string maHocVien)
         {
+            if (string.IsNullOrWhiteSpace(maLop) || string.IsNullOrWhiteSpace(maHocVien))
+            {
+                return RedirectToAction("LopHoc");
+            }
+
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
             var sv = await _db.HocViens.FindAsync(maHocVien);
             if (lop != null && sv != null && !lop.MaHocViens.Contains(sv))
             {
                 lop.MaHocViens.Add(sv);
                 await _db.SaveChangesAsync();
+                TempData["Success"] = "Đã thêm học viên vào lớp.";
             }
             return RedirectToAction("StudentsInClass", new { id = maLop });
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveStudentFromClass(string maLop, string maHocVien)
         {
+            if (string.IsNullOrWhiteSpace(maLop) || string.IsNullOrWhiteSpace(maHocVien))
+            {
+                return RedirectToAction("LopHoc");
+            }
+
             var lop = await _db.LopHocs.Include(l => l.MaHocViens).FirstOrDefaultAsync(l => l.MaLop == maLop);
             var sv = lop?.MaHocViens.FirstOrDefault(h => h.MaHocVien == maHocVien);
-            if (sv != null) { lop!.MaHocViens.Remove(sv); await _db.SaveChangesAsync(); }
+            if (sv != null)
+            {
+                lop!.MaHocViens.Remove(sv);
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Đã xóa học viên khỏi lớp.";
+            }
             return RedirectToAction("StudentsInClass", new { id = maLop });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStudentClass(string oldMaLop, string newMaLop, string maHocVien)
+        {
+            if (string.IsNullOrWhiteSpace(oldMaLop) || string.IsNullOrWhiteSpace(newMaLop) || string.IsNullOrWhiteSpace(maHocVien))
+            {
+                TempData["Error"] = "Thông tin chuyển lớp không hợp lệ.";
+                return RedirectToAction("StudentsInClass", new { id = oldMaLop });
+            }
+
+            if (oldMaLop == newMaLop)
+            {
+                TempData["Success"] = "Học viên đã ở lớp được chọn.";
+                return RedirectToAction("StudentsInClass", new { id = oldMaLop });
+            }
+
+            var oldClass = await _db.LopHocs
+                .Include(l => l.MaHocViens)
+                .FirstOrDefaultAsync(l => l.MaLop == oldMaLop);
+            var newClass = await _db.LopHocs
+                .Include(l => l.MaHocViens)
+                .FirstOrDefaultAsync(l => l.MaLop == newMaLop);
+
+            if (oldClass == null || newClass == null)
+            {
+                TempData["Error"] = "Không tìm thấy lớp học.";
+                return RedirectToAction("StudentsInClass", new { id = oldMaLop });
+            }
+
+            var student = oldClass.MaHocViens.FirstOrDefault(h => h.MaHocVien == maHocVien);
+            if (student == null)
+            {
+                TempData["Error"] = "Không tìm thấy học viên trong lớp hiện tại.";
+                return RedirectToAction("StudentsInClass", new { id = oldMaLop });
+            }
+
+            if (newClass.MaHocViens.Any(h => h.MaHocVien == maHocVien))
+            {
+                TempData["Error"] = "Học viên đã có trong lớp đích.";
+                return RedirectToAction("StudentsInClass", new { id = oldMaLop });
+            }
+
+            oldClass.MaHocViens.Remove(student);
+            newClass.MaHocViens.Add(student);
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Đã chuyển học viên sang lớp mới.";
+            return RedirectToAction("StudentsInClass", new { id = newMaLop });
         }
 
         private bool LopHocExists(string id)
@@ -491,8 +741,37 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> DeleteHocVien(string id)
         {
-            var e = await _db.HocViens.FindAsync(id);
-            if (e != null) { _db.HocViens.Remove(e); await _db.SaveChangesAsync(); }
+            var hocVien = await _db.HocViens
+                .Include(h => h.TaiKhoans)
+                .Include(h => h.DangKis)
+                .Include(h => h.KetQuas)
+                .Include(h => h.MaGvs)
+                .Include(h => h.MaLops)
+                .FirstOrDefaultAsync(h => h.MaHocVien == id);
+            
+            if (hocVien == null)
+                return RedirectToAction("HocVien");
+
+            // Delete relationship with teachers (GiaoVien)
+            hocVien.MaGvs.Clear();
+            
+            // Delete relationship with classes (LopHoc)
+            hocVien.MaLops.Clear();
+            
+            // Delete accounts (foreign key constraint)
+            _db.TaiKhoans.RemoveRange(hocVien.TaiKhoans);
+            
+            // Delete registrations
+            _db.DangKis.RemoveRange(hocVien.DangKis);
+            
+            // Delete results
+            _db.KetQuas.RemoveRange(hocVien.KetQuas);
+            
+            // Delete the student
+            _db.HocViens.Remove(hocVien);
+            
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Đã xóa học viên.";
             return RedirectToAction("HocVien");
         }
         public async Task<IActionResult> DeleteGiaoVien(string id)
@@ -554,6 +833,40 @@ namespace BTL_Web.Controllers
             var e = await _db.TaiKhoans.FindAsync(id);
             if (e != null) { _db.TaiKhoans.Remove(e); await _db.SaveChangesAsync(); }
             return RedirectToAction("TaiKhoan");
+        }
+
+        private async Task<string> GenerateNextHocVienIdAsync()
+        {
+            var ids = await _db.HocViens
+                .AsNoTracking()
+                .Select(h => h.MaHocVien)
+                .Where(id => id != null)
+                .ToListAsync();
+
+            var maxNumeric = 0;
+            foreach (var id in ids)
+            {
+                if (string.IsNullOrWhiteSpace(id) || !id.StartsWith("HV", StringComparison.OrdinalIgnoreCase) || id.Length <= 2)
+                {
+                    continue;
+                }
+
+                if (int.TryParse(id.Substring(2), out var num) && num > maxNumeric)
+                {
+                    maxNumeric = num;
+                }
+            }
+
+            var next = maxNumeric + 1;
+            var candidate = $"HV{next:D6}";
+
+            while (await _db.HocViens.AnyAsync(h => h.MaHocVien == candidate))
+            {
+                next++;
+                candidate = $"HV{next:D6}";
+            }
+
+            return candidate;
         }
     }
 }

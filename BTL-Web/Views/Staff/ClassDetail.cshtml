@@ -1,6 +1,7 @@
 @model BTL_Web.Models.LopHoc
 @{
     ViewData["Title"] = "Class Detail";
+    var allClasses = ViewBag.AllClasses as IEnumerable<BTL_Web.Models.LopHoc> ?? new List<BTL_Web.Models.LopHoc>();
 }
 
 <div class="page-header">
@@ -12,6 +13,15 @@
         <a href="/Staff/ClassManagement" class="btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
     </div>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-error" style="margin-bottom:16px;">@TempData["Error"]</div>
+}
 
 @if (Model == null)
 {
@@ -63,14 +73,20 @@ else
                             <td>@(sv.Sdt ?? "—")</td>
                             <td>@(sv.GioiTinh ?? "—")</td>
                             <td style="text-align:right;">
-                                <form method="post" action="/Staff/AddStudentToClassSubmit" style="display:inline;">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="MaLop" value="@Model.MaLop" />
-                                    <input type="hidden" name="MaHocVien" value="@sv.MaHocVien" />
-                                    <button type="button" class="btn-icon btn-outline btn-sm" disabled title="Student already in class">
-                                        <i class="fas fa-check"></i>
+                                <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                    <button type="button" class="btn-icon btn-outline btn-sm" title="Transfer class"
+                                            onclick="openTransferModal('@sv.MaHocVien', '@Html.Raw((sv.HoVaTen ?? sv.MaHocVien).Replace("'", "\\'"))')">
+                                        <i class="fas fa-right-left"></i>
                                     </button>
-                                </form>
+                                    <form method="post" action="/Staff/RemoveStudentFromClass" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="maLop" value="@Model.MaLop" />
+                                        <input type="hidden" name="maHocVien" value="@sv.MaHocVien" />
+                                        <button type="submit" class="btn-icon btn-outline btn-sm" title="Remove from class">
+                                            <i class="fas fa-times" style="color:#ef4444;"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     }
@@ -82,4 +98,39 @@ else
             </tbody>
         </table>
     </div>
+}
+
+<div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2100;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:28px;width:520px;max-width:92vw;">
+        <h4 style="margin-bottom:18px;">Transfer Student To Another Class</h4>
+        <div class="small" id="transferStudentLabel" style="margin-bottom:16px;color:rgba(0,0,0,0.65);"></div>
+        <form method="post" action="/Staff/UpdateStudentClass">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="oldMaLop" value="@(Model?.MaLop)">
+            <input type="hidden" name="maHocVien" id="transferStudentId">
+            <div class="form-group">
+                <label class="form-label">Target class</label>
+                <select name="newMaLop" class="form-control form-select" required>
+                    @foreach (var lop in allClasses.Where(c => c.MaLop != Model?.MaLop))
+                    {
+                        <option value="@lop.MaLop">@(lop.TenLop ?? lop.MaLop) - @(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? lop.MaKhoaHoc)</option>
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('transferModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Transfer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openTransferModal(studentId, studentName) {
+    document.getElementById('transferStudentId').value = studentId;
+    document.getElementById('transferStudentLabel').textContent = studentName + ' (' + studentId + ')';
+    document.getElementById('transferModal').style.display = 'flex';
+}
+</script>
 }

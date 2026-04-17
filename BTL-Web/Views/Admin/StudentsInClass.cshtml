@@ -2,6 +2,7 @@
 @{
     ViewData["Title"] = "Students In Class";
     var allStudents = ViewBag.AllStudents as IEnumerable<BTL_Web.Models.HocVien> ?? new List<BTL_Web.Models.HocVien>();
+    var allClasses = ViewBag.AllClasses as IEnumerable<BTL_Web.Models.LopHoc> ?? new List<BTL_Web.Models.LopHoc>();
     var enrolledIds = Model?.MaHocViens.Select(h => h.MaHocVien).ToHashSet() ?? new HashSet<string>();
     var available = allStudents.Where(s => !enrolledIds.Contains(s.MaHocVien)).ToList();
 }
@@ -18,6 +19,15 @@
         <span class="chip chip-blue">@(Model?.MaHocViens.Count ?? 0) Students</span>
     </div>
 </div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-error" style="margin-bottom:16px;">@TempData["Error"]</div>
+}
 
 <div style="display:grid;grid-template-columns:3fr 2fr;gap:24px;">
     <!-- Enrolled Students -->
@@ -46,6 +56,10 @@
                         </div>
                         <div style="display:flex;gap:8px;align-items:center;">
                             <span class="chip chip-green" style="font-size:11px;">Enrolled</span>
+                            <button type="button" class="btn-icon btn-outline btn-sm" title="Transfer class"
+                                    onclick="openTransferModal('@sv.MaHocVien', '@Html.Raw(name.Replace("'", "\\'"))')">
+                                <i class="fas fa-right-left"></i>
+                            </button>
                             <form method="post" action="/Admin/RemoveStudentFromClass" style="margin:0;">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="maLop" value="@Model.MaLop">
@@ -107,12 +121,43 @@
     </div>
 </div>
 
+<div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2100;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:28px;width:520px;max-width:92vw;">
+        <h4 style="margin-bottom:18px;">Transfer Student To Another Class</h4>
+        <div class="small" id="transferStudentLabel" style="margin-bottom:16px;color:rgba(0,0,0,0.65);"></div>
+        <form method="post" action="/Admin/UpdateStudentClass">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="oldMaLop" value="@(Model?.MaLop)">
+            <input type="hidden" name="maHocVien" id="transferStudentId">
+            <div class="form-group">
+                <label class="form-label">Target class</label>
+                <select name="newMaLop" class="form-control form-select" required>
+                    @foreach (var lop in allClasses.Where(c => c.MaLop != Model?.MaLop))
+                    {
+                        <option value="@lop.MaLop">@(lop.TenLop ?? lop.MaLop) - @(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? lop.MaKhoaHoc)</option>
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('transferModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Transfer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
 <script>
 function filterStudents(q) {
     document.querySelectorAll('.student-item').forEach(item => {
         item.style.display = item.dataset.name.includes(q.toLowerCase()) ? 'flex' : 'none';
     });
+}
+
+function openTransferModal(studentId, studentName) {
+    document.getElementById('transferStudentId').value = studentId;
+    document.getElementById('transferStudentLabel').textContent = studentName + ' (' + studentId + ')';
+    document.getElementById('transferModal').style.display = 'flex';
 }
 </script>
 }

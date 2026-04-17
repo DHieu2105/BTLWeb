@@ -1,6 +1,14 @@
 @model IEnumerable<BTL_Web.Models.HocVien>
 @{
     ViewData["Title"] = "Student Management";
+    int page = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalItems = ViewBag.TotalItems ?? (Model?.Count() ?? 0);
+
+    int startPage = Math.Max(1, page - 1);
+    int endPage = Math.Min(totalPages, startPage + 2);
+    startPage = Math.Max(1, endPage - 2);
 }
 
 <div class="page-header">
@@ -16,7 +24,6 @@
     </div>
 </div>
 
-<!-- Stats -->
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+8%</span></div>
@@ -35,7 +42,6 @@
     </div>
 </div>
 
-<!-- Table -->
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
         <h5>Student Records</h5>
@@ -87,9 +93,15 @@
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
                                 <button class="btn-icon btn-outline btn-sm" title="View"><i class="fas fa-eye"></i></button>
+                                <button class="btn-icon btn-outline btn-sm" title="Edit" onclick="openEditStudent('@sv.MaHocVien','@Html.Raw((sv.HoVaTen ?? "").Replace("'", "\\'"))','@Html.Raw((sv.Sdt ?? "").Replace("'", "\\'"))','@sv.GioiTinh')">
+                                    <i class="fas fa-pen"></i>
+                                </button>
                                 <a href="/Staff/AddStudentToClass?studentId=@sv.MaHocVien" class="btn-icon btn-outline btn-sm" title="Add to Class">
                                     <i class="fas fa-chalkboard"></i>
                                 </a>
+                                <button class="btn-icon btn-outline btn-sm" title="Delete" onclick="deleteStudent('@sv.MaHocVien')">
+                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -102,12 +114,82 @@
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) students</span>
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) / @totalItems students</span>
         <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            <a class="page-btn" href="/Staff/StudentManagement?page=@Math.Max(1, page - 1)&pageSize=@pageSize"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+            @for (int p = startPage; p <= endPage; p++)
+            {
+                if (p == page)
+                {
+                    <span class="page-btn active">@p</span>
+                }
+                else
+                {
+                    <a class="page-btn" href="/Staff/StudentManagement?page=@p&pageSize=@pageSize">@p</a>
+                }
+            }
+            <a class="page-btn" href="/Staff/StudentManagement?page=@Math.Min(totalPages, page + 1)&pageSize=@pageSize"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
         </div>
     </div>
 </div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Edit Student</h4>
+        <form method="post" action="/Staff/EditStudent">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="MaHocVien" id="editMaHocVien">
+            <div class="form-group">
+                <label class="form-label">Student ID</label>
+                <input type="text" id="editMaHocVienReadonly" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="HoVaTen" id="editHoVaTen" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Phone</label>
+                    <input type="text" name="Sdt" id="editSdt" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select name="GioiTinh" id="editGioiTinh" class="form-control form-select">
+                        <option value="Nam">Nam</option>
+                        <option value="Nu">Nữ</option>
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function openEditStudent(id, name, phone, gender) {
+    document.getElementById('editMaHocVien').value = id;
+    document.getElementById('editMaHocVienReadonly').value = id;
+    document.getElementById('editHoVaTen').value = name || '';
+    document.getElementById('editSdt').value = phone || '';
+    document.getElementById('editGioiTinh').value = gender || 'Nam';
+    document.getElementById('editModal').style.display = 'flex';
+}
+
+function deleteStudent(id) {
+    if (!confirm('Delete student ' + id + '?')) return;
+
+    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    const form = document.createElement('form');
+    form.method = 'post';
+    form.action = '/Staff/DeleteStudent';
+    form.innerHTML = '<input type="hidden" name="maHocVien" value="' + id + '" />' +
+        '<input type="hidden" name="__RequestVerificationToken" value="' + (tokenInput ? tokenInput.value : '') + '" />';
+    document.body.appendChild(form);
+    form.submit();
+}
+</script>
+}

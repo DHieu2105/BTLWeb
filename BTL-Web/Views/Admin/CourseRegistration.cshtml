@@ -3,6 +3,16 @@
     var hocViens  = ViewBag.HocViens  as IEnumerable<BTL_Web.Models.HocVien>  ?? new List<BTL_Web.Models.HocVien>();
     var khoaHocs  = ViewBag.KhoaHocs  as IEnumerable<BTL_Web.Models.KhoaHoc>  ?? new List<BTL_Web.Models.KhoaHoc>();
     var lopHocs   = ViewBag.LopHocs   as IEnumerable<BTL_Web.Models.LopHoc>   ?? new List<BTL_Web.Models.LopHoc>();
+    var dangKis   = ViewBag.DangKis   as IEnumerable<BTL_Web.Models.DangKi>   ?? new List<BTL_Web.Models.DangKi>();
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert-box alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert-box alert-error">@TempData["Error"]</div>
 }
 
 <div class="page-header">
@@ -154,6 +164,95 @@
     </div>
 </div>
 
+<div class="card-plain" style="padding:0;margin-top:24px;">
+    <div class="card-header-plain">
+        <h5>Registration List</h5>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Register Date</th>
+                <th style="text-align:right;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (dangKis.Any())
+            {
+                @foreach (var dk in dangKis)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-name">@(dk.MaHocVienNavigation?.HoVaTen ?? dk.MaHocVien)</div>
+                            <div class="user-sub">@dk.MaHocVien</div>
+                        </td>
+                        <td>
+                            <div class="user-name">@(dk.MaKhoaHocNavigation?.TenKhoaHoc ?? dk.MaKhoaHoc)</div>
+                            <div class="user-sub">@dk.MaKhoaHoc</div>
+                        </td>
+                        <td>@(dk.NgayDangKi?.ToString("dd/MM/yyyy") ?? "—")</td>
+                        <td style="text-align:right;">
+                            <div style="display:flex;gap:6px;justify-content:flex-end;">
+                                <button class="btn-icon btn-outline btn-sm" onclick="openEditRegistration('@dk.MaHocVien','@dk.MaKhoaHoc')">
+                                    <i class="fas fa-pen"></i>
+                                </button>
+                                <form method="post" action="/Admin/DeleteRegistration" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="maHocVien" value="@dk.MaHocVien" />
+                                    <input type="hidden" name="maKhoaHoc" value="@dk.MaKhoaHoc" />
+                                    <button type="submit" class="btn-icon btn-outline btn-sm" onclick="return confirm('Delete this registration?')">
+                                        <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4"><div class="empty-state"><i class="fas fa-file-signature"></i><p>No registrations found</p></div></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<div id="editRegistrationModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:28px;width:520px;max-width:92vw;">
+        <h4 style="margin-bottom:18px;">Edit Registration</h4>
+        <form method="post" action="/Admin/UpdateRegistration">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="oldMaHocVien" name="oldMaHocVien" />
+            <input type="hidden" id="oldMaKhoaHoc" name="oldMaKhoaHoc" />
+            <div class="form-group">
+                <label class="form-label">Student</label>
+                <select class="form-control form-select" id="newMaHocVien" name="newMaHocVien" required>
+                    @foreach (var sv in hocViens)
+                    {
+                        <option value="@sv.MaHocVien">@sv.HoVaTen (@sv.MaHocVien)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Course</label>
+                <select class="form-control form-select" id="newMaKhoaHoc" name="newMaKhoaHoc" required>
+                    @foreach (var kh in khoaHocs)
+                    {
+                        <option value="@kh.MaKhoaHoc">@kh.TenKhoaHoc (@kh.MaKhoaHoc)</option>
+                    }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editRegistrationModal').style.display='none'">Cancel</button>
+                <button type="submit" class="btn-primary">Save Registration</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
 <script>
 function updateStudentInfo(sel) {
@@ -182,6 +281,14 @@ function selectCourse(id, name) {
     if (card) { card.style.border = '2px solid var(--primary)'; card.style.background = 'rgba(219,225,255,0.2)'; }
     document.getElementById('hiddenCourse').value = id;
     document.getElementById('summaryCourse').innerHTML = `<div class="user-name">${name}</div><div class="user-sub">${id}</div>`;
+}
+
+function openEditRegistration(maHocVien, maKhoaHoc) {
+    document.getElementById('oldMaHocVien').value = maHocVien;
+    document.getElementById('oldMaKhoaHoc').value = maKhoaHoc;
+    document.getElementById('newMaHocVien').value = maHocVien;
+    document.getElementById('newMaKhoaHoc').value = maKhoaHoc;
+    document.getElementById('editRegistrationModal').style.display = 'flex';
 }
 </script>
 }
