@@ -3,14 +3,23 @@
     var action = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
     var controller = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
     var currentRole = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
-    var navSection = controller switch
+    var navSection = currentRole;
+    if (controller == "Admin" && currentRole == "Admin")
     {
-        "Admin" => "Admin",
-        "Staff" => "NhanVien",
-        "Teacher" => "GiaoVien",
-        "Student" => "HocVien",
-        _ => currentRole
-    };
+        navSection = "Admin";
+    }
+    else if (controller == "Staff")
+    {
+        navSection = "NhanVien";
+    }
+    else if (controller == "Teacher")
+    {
+        navSection = "GiaoVien";
+    }
+    else if (controller == "Student")
+    {
+        navSection = "HocVien";
+    }
     string IsActive(string a, string c = "") => (action == a && (string.IsNullOrEmpty(c) || controller == c)) ? "active" : "";
 }
 
@@ -146,6 +155,9 @@
             <a href="/Admin/GiaoVien" class="nav-item @IsActive("GiaoVien","Admin")">
                 <i class="fas fa-chalkboard-teacher"></i> Xem danh sách Giáo viên
             </a>
+            <a href="/Admin/KhoaHoc" class="nav-item @IsActive("KhoaHoc","Admin")">
+                <i class="fas fa-book"></i> Xem danh sách Khóa học
+            </a>
             <a href="/Admin/StaffTeacherAssignment" class="nav-item @IsActive("StaffTeacherAssignment","Admin")">
                 <i class="fas fa-people-arrows"></i> Xem phân công
             </a>
@@ -192,13 +204,16 @@
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Khóa học</div>
-            <a href="/Teacher/MyClasses" class="nav-item @IsActive("MyClasses")">
+            <a href="/Admin/MyTeachingCourses" class="nav-item @IsActive("MyTeachingCourses","Admin")">
                 <i class="fas fa-book-open"></i> Khóa học phụ trách
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tài khoản cá nhân</div>
+            <a href="/Admin/MyTeacherProfile" class="nav-item @IsActive("MyTeacherProfile","Admin")">
+                <i class="fas fa-user-circle"></i> Thông tin giáo viên của tôi
+            </a>
             <a href="/Auth/Profile" class="nav-item @IsActive("Profile","Auth")">
-                <i class="fas fa-user-circle"></i> Thông tin cá nhân / đổi mật khẩu
+                <i class="fas fa-key"></i> Đổi mật khẩu
             </a>
         }
         else if (navSection == "HocVien")

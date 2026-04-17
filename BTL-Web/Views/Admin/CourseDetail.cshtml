@@ -1,0 +1,91 @@
+@model BTL_Web.Models.KhoaHoc
+@{
+    ViewData["Title"] = "Course Detail";
+    var title = Model?.TenKhoaHoc ?? "Unknown";
+}
+
+<div class="page-header">
+    <div>
+        <a href="/Admin/KhoaHoc" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
+            <i class="fas fa-arrow-left"></i> Back to Courses
+        </a>
+        <h2>Course Detail</h2>
+    </div>
+</div>
+
+@if (Model == null)
+{
+    <div class="empty-state"><i class="fas fa-book"></i><p>Course not found</p></div>
+}
+else
+{
+    <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
+        <div style="display:flex;flex-direction:column;gap:24px;">
+            <div class="card-plain" style="padding:32px;">
+                <h3 style="font-size:20px;margin-bottom:8px;">@title</h3>
+                <p class="text-muted small" style="margin-bottom:18px;">@Model.MaKhoaHoc</p>
+
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
+                        <span class="small text-muted">Thời lượng</span>
+                        <span class="small fw-semibold">@(Model.ThoiLuong ?? 0) tuần</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
+                        <span class="small text-muted">Học phí</span>
+                        <span class="small fw-semibold">@((Model.HocPhi ?? 0).ToString("N0")) VND</span>
+                    </div>
+                    <div style="display:flex;justify-content:space-between;padding:8px 0;">
+                        <span class="small text-muted">Trung tâm</span>
+                        <span class="small fw-semibold">@(Model.MaTrungTamNavigation?.TenTrungTam ?? Model.MaTrungTam ?? "—")</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="card-plain" style="padding:16px;text-align:center;">
+                    <div class="stat-value" style="font-size:24px;">@Model.DangKis.Count</div>
+                    <div class="stat-label">Đăng ký</div>
+                </div>
+                <div class="card-plain" style="padding:16px;text-align:center;">
+                    <div class="stat-value" style="font-size:24px;">@Model.LopHocs.Count</div>
+                    <div class="stat-label">Lớp học</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card-plain" style="padding:0;">
+            <div class="card-header-plain">
+                <h5>Danh sách lớp thuộc khóa học</h5>
+                <span class="chip chip-blue">@Model.LopHocs.Count lớp</span>
+            </div>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Mã lớp</th>
+                        <th>Tên lớp</th>
+                        <th>Giáo viên</th>
+                        <th>Số học viên</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.LopHocs.Any())
+                    {
+                        @foreach (var lop in Model.LopHocs)
+                        {
+                            <tr>
+                                <td>@lop.MaLop</td>
+                                <td>@(lop.TenLop ?? "—")</td>
+                                <td>@(lop.MaGvNavigation?.Ten ?? lop.MaGv ?? "—")</td>
+                                <td><span class="chip chip-blue">@lop.MaHocViens.Count</span></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4"><div class="empty-state" style="padding:24px;"><i class="fas fa-chalkboard"></i><p>Chưa có lớp nào</p></div></td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

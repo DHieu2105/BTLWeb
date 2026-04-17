@@ -1,18 +1,30 @@
 @model IEnumerable<BTL_Web.Models.GiaoVien>
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Manage Teachers";
+    var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+    var isAdmin = role == "Admin";
+    var currentPage = ViewBag.Page != null ? (int)ViewBag.Page : 1;
+    var totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    var keyword = ViewBag.Keyword as string ?? "";
 }
 
 <div class="page-header">
     <div>
         <h2>Manage Teachers</h2>
-        <p>@(Model?.Count() ?? 0) faculty members across all departments</p>
+        <p>@(ViewBag.TotalItems ?? Model?.Count() ?? 0) faculty members across all departments</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
-        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Add Teacher
-        </button>
+        <form method="get" style="display:flex;gap:8px;align-items:center;">
+            <input class="form-control" type="text" name="keyword" value="@keyword" placeholder="Search teacher..." style="width:240px;" />
+            <button class="btn-outline" type="submit"><i class="fas fa-filter"></i> Filter</button>
+        </form>
+        @if (isAdmin)
+        {
+            <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+                <i class="fas fa-plus"></i> Add Teacher
+            </button>
+        }
     </div>
 </div>
 
@@ -20,7 +32,7 @@
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-chalkboard-teacher"></i></div><span class="stat-badge blue">Active</span></div>
         <div class="stat-label">Total Faculty</div>
-        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+        <div class="stat-value">@(ViewBag.TotalItems ?? Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-check"></i></div></div>
@@ -74,9 +86,21 @@
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
                                 <a href="/Admin/TeacherDetail/@gv.MaGv" class="btn-icon btn-outline btn-sm"><i class="fas fa-eye"></i></a>
-                                <button class="btn-icon btn-outline btn-sm" onclick="deleteTeacher('@gv.MaGv')">
-                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
-                                </button>
+                                @if (isAdmin)
+                                {
+                                    <button class="btn-icon btn-outline btn-sm"
+                                            data-id="@gv.MaGv"
+                                            data-ten="@gv.Ten"
+                                            data-sdt="@gv.Sdt"
+                                            data-chuyenmon="@gv.ChuyenMon"
+                                            data-gioitinh="@gv.GioiTinh"
+                                            onclick="openEditTeacher(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn-icon btn-outline btn-sm" onclick="deleteTeacher('@gv.MaGv')">
+                                        <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                    </button>
+                                }
                             </div>
                         </td>
                     </tr>
@@ -89,47 +113,100 @@
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) records</span>
+        <span class="pagination-info">Page @currentPage / @totalPages</span>
         <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            <a class="page-btn" href="/Admin/GiaoVien?page=@(currentPage > 1 ? currentPage - 1 : 1)&pageSize=@(ViewBag.PageSize ?? 10)&keyword=@keyword"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+            @for (var i = 1; i <= totalPages; i++)
+            {
+                if (i == currentPage)
+                {
+                    <button class="page-btn active">@i</button>
+                }
+                else
+                {
+                    <a class="page-btn" href="/Admin/GiaoVien?page=@i&pageSize=@(ViewBag.PageSize ?? 10)&keyword=@keyword">@i</a>
+                }
+            }
+            <a class="page-btn" href="/Admin/GiaoVien?page=@(currentPage < totalPages ? currentPage + 1 : totalPages)&pageSize=@(ViewBag.PageSize ?? 10)&keyword=@keyword"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
         </div>
     </div>
 </div>
 
-<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Add New Teacher</h4>
-        <form method="post" action="/Admin/AddGiaoVien">
-            @Html.AntiForgeryToken()
-            <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" name="Ten" class="form-control" required>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+@if (isAdmin)
+{
+    <div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+            <h4 style="margin-bottom:24px;">Add New Teacher</h4>
+            <form method="post" action="/Admin/AddGiaoVien">
+                @Html.AntiForgeryToken()
                 <div class="form-group">
-                    <label class="form-label">Specialization</label>
-                    <input type="text" name="ChuyenMon" class="form-control">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="Ten" class="form-control" required>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Phone</label>
-                    <input type="text" name="Sdt" class="form-control">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" name="ChuyenMon" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="text" name="Sdt" class="form-control">
+                    </div>
                 </div>
-            </div>
-            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Add Teacher</button>
-            </div>
-        </form>
+                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Teacher</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
+
+    <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+        <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+            <h4 style="margin-bottom:24px;">Edit Teacher</h4>
+            <form method="post" action="/Admin/UpdateGiaoVien">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="editMaGv" name="MaGv" />
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" id="editTen" name="Ten" class="form-control" required>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Specialization</label>
+                        <input type="text" id="editChuyenMon" name="ChuyenMon" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Phone</label>
+                        <input type="text" id="editSdt" name="Sdt" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <input type="text" id="editGioiTinh" name="GioiTinh" class="form-control">
+                </div>
+                <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                    <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
 
 @section Scripts {
 <script>
 function deleteTeacher(id) {
     if (confirm('Delete teacher ' + id + '?')) location.href = '/Admin/DeleteGiaoVien/' + id;
+}
+
+function openEditTeacher(btn) {
+    document.getElementById('editMaGv').value = btn.dataset.id || '';
+    document.getElementById('editTen').value = btn.dataset.ten || '';
+    document.getElementById('editSdt').value = btn.dataset.sdt || '';
+    document.getElementById('editChuyenMon').value = btn.dataset.chuyenmon || '';
+    document.getElementById('editGioiTinh').value = btn.dataset.gioitinh || '';
+    document.getElementById('editModal').style.display = 'flex';
 }
 </script>
 }
