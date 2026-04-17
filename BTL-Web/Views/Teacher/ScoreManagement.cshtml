@@ -1,0 +1,233 @@
+@model BTL_Web.ViewModels.TeacherScoreManagementViewModel
+@{
+    ViewData["Title"] = "Score Management";
+    var selectedClass = Model.Classes.FirstOrDefault(c => c.MaLop == Model.SelectedClassId);
+    var enterRows = Model.Rows.Where(r => !r.HasScore).ToList();
+    var editRows = Model.Rows.Where(r => r.HasScore).ToList();
+}
+
+<div class="page-header">
+    <div>
+        <h2>Quản lý điểm</h2>
+        <p>Hệ thống hiện chỉ xét 2 đầu điểm Listening và Reading.</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Teacher/MyClasses" class="btn-outline"><i class="fas fa-list"></i> My Classes</a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div style="padding:12px 14px;border-radius:8px;background:#e9f7ee;color:#1f6d3d;font-weight:600;margin-bottom:16px;">
+        @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div style="padding:12px 14px;border-radius:8px;background:#fdecec;color:#9f1f1f;font-weight:600;margin-bottom:16px;">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="card-plain" style="padding:24px;margin-bottom:20px;">
+    <form method="get" action="/Teacher/ScoreManagement" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
+        <div style="min-width:280px;">
+            <label class="form-label">Class</label>
+            <select class="form-control form-select" name="maLop" onchange="this.form.submit()">
+                @if (Model.Classes.Any())
+                {
+                    @foreach (var lop in Model.Classes)
+                    {
+                        if (lop.MaLop == Model.SelectedClassId)
+                        {
+                            <option value="@lop.MaLop" selected>
+                                @(lop.TenLop ?? lop.MaLop) - @(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? lop.MaKhoaHoc)
+                            </option>
+                        }
+                        else
+                        {
+                            <option value="@lop.MaLop">
+                                @(lop.TenLop ?? lop.MaLop) - @(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? lop.MaKhoaHoc)
+                            </option>
+                        }
+                    }
+                }
+                else
+                {
+                    <option value="">No classes assigned</option>
+                }
+            </select>
+        </div>
+    </form>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div></div>
+        <div class="stat-label">Students In Class</div>
+        <div class="stat-value">@Model.Rows.Count</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-book"></i></div></div>
+        <div class="stat-label">Selected Class</div>
+        <div class="stat-value" style="font-size:20px;">@(selectedClass?.TenLop ?? "-")</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-line"></i></div></div>
+        <div class="stat-label">Average Total</div>
+        <div class="stat-value">
+            @(Model.Rows.Any(r => r.DiemTong.HasValue) ? Model.Rows.Where(r => r.DiemTong.HasValue).Average(r => r.DiemTong!.Value).ToString("F0") : "-")
+        </div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain" style="gap:8px;justify-content:flex-start;">
+        <button type="button" id="tab-enter-btn" class="btn-primary btn-sm" onclick="showScoreTab('enter')">
+            Nhập điểm (@enterRows.Count)
+        </button>
+        <button type="button" id="tab-edit-btn" class="btn-outline btn-sm" onclick="showScoreTab('edit')">
+            Sửa điểm (@editRows.Count)
+        </button>
+    </div>
+
+    <div id="tab-enter" style="display:block;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Listening</th>
+                    <th>Reading</th>
+                    <th>Total</th>
+                    <th style="text-align:right;">Nhập điểm</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (enterRows.Any())
+                {
+                    @foreach (var row in enterRows)
+                    {
+                        var formId = $"add-score-form-{row.MaHocVien}-{row.MaKhoaHoc}";
+                        <tr>
+                            <td>
+                                <div class="user-name">@row.HoVaTen</div>
+                                <div class="user-sub">@row.MaHocVien</div>
+                            </td>
+                            <td>
+                                <div class="user-name">@row.TenKhoaHoc</div>
+                                <div class="user-sub">@row.MaKhoaHoc</div>
+                            </td>
+                            <td>
+                                <input type="number" name="diemListening" form="@formId" class="form-control" style="width:90px;" min="0" max="495" value="0" required />
+                            </td>
+                            <td>
+                                <input type="number" name="diemReading" form="@formId" class="form-control" style="width:90px;" min="0" max="495" value="0" required />
+                            </td>
+                            <td><span class="text-muted">--</span></td>
+                            <td style="text-align:right;">
+                                <form id="@formId" method="post" action="/Teacher/AddScore" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="maHocVien" value="@row.MaHocVien" />
+                                    <input type="hidden" name="maKhoaHoc" value="@row.MaKhoaHoc" />
+                                    <input type="hidden" name="maLop" value="@Model.SelectedClassId" />
+                                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state"><i class="fas fa-clipboard-check"></i><p>Không còn học viên nào cần nhập điểm ở lớp này.</p></div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="tab-edit" style="display:none;">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Student</th>
+                    <th>Course</th>
+                    <th>Listening</th>
+                    <th>Reading</th>
+                    <th>Total</th>
+                    <th style="text-align:right;">Sửa điểm</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (editRows.Any())
+                {
+                    @foreach (var row in editRows)
+                    {
+                        var tong = (row.DiemListening ?? 0) + (row.DiemReading ?? 0);
+                        var formId = $"edit-score-form-{row.MaHocVien}-{row.MaKhoaHoc}";
+                        <tr>
+                            <td>
+                                <div class="user-name">@row.HoVaTen</div>
+                                <div class="user-sub">@row.MaHocVien</div>
+                            </td>
+                            <td>
+                                <div class="user-name">@row.TenKhoaHoc</div>
+                                <div class="user-sub">@row.MaKhoaHoc</div>
+                            </td>
+                            <td>
+                                <input type="number" name="diemListening" form="@formId" class="form-control" style="width:90px;" min="0" max="495" value="@(row.DiemListening ?? 0)" required />
+                            </td>
+                            <td>
+                                <input type="number" name="diemReading" form="@formId" class="form-control" style="width:90px;" min="0" max="495" value="@(row.DiemReading ?? 0)" required />
+                            </td>
+                            <td><span style="font-weight:800;color:var(--primary);">@tong</span></td>
+                            <td style="text-align:right;">
+                                <form id="@formId" method="post" action="/Teacher/UpdateScore" style="display:inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="maHocVien" value="@row.MaHocVien" />
+                                    <input type="hidden" name="maKhoaHoc" value="@row.MaKhoaHoc" />
+                                    <input type="hidden" name="maLop" value="@Model.SelectedClassId" />
+                                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-save"></i> Save</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6">
+                            <div class="empty-state"><i class="fas fa-pen"></i><p>Chưa có bản ghi điểm nào để chỉnh sửa.</p></div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function showScoreTab(tab) {
+    const enterTab = document.getElementById('tab-enter');
+    const editTab = document.getElementById('tab-edit');
+    const enterBtn = document.getElementById('tab-enter-btn');
+    const editBtn = document.getElementById('tab-edit-btn');
+
+    if (tab === 'enter') {
+        enterTab.style.display = 'block';
+        editTab.style.display = 'none';
+        enterBtn.className = 'btn-primary btn-sm';
+        editBtn.className = 'btn-outline btn-sm';
+    } else {
+        enterTab.style.display = 'none';
+        editTab.style.display = 'block';
+        enterBtn.className = 'btn-outline btn-sm';
+        editBtn.className = 'btn-primary btn-sm';
+    }
+}
+</script>
+}

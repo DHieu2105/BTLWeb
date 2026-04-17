@@ -1,0 +1,102 @@
+@model IEnumerable<BTL_Web.Models.KetQua>
+@{
+    ViewData["Title"] = "Result Management";
+    int page = ViewBag.Page ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    int pageSize = ViewBag.PageSize ?? 10;
+    int totalItems = ViewBag.TotalItems ?? (Model?.Count() ?? 0);
+
+    int startPage = Math.Max(1, page - 1);
+    int endPage = Math.Min(totalPages, startPage + 2);
+    startPage = Math.Max(1, endPage - 2);
+
+    var avgScore = Model?.Any() == true ? Model.Average(k => k.DiemTong ?? 0) : 0;
+}
+
+<div class="page-header">
+    <div>
+        <h2>Student Results</h2>
+        <p>View-only result tracking. Score entry/edit is restricted to Teacher role.</p>
+    </div>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+    <div class="stat-card blue">
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-poll"></i></div></div>
+        <div class="stat-label">Total Records</div>
+        <div class="stat-value">@totalItems</div>
+    </div>
+    <div class="stat-card teal">
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-star"></i></div></div>
+        <div class="stat-label">Average Total Score</div>
+        <div class="stat-value">@avgScore.ToString("F0")</div>
+    </div>
+    <div class="stat-card orange">
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-ear-listen"></i></div></div>
+        <div class="stat-label">Scoring Model</div>
+        <div class="stat-value" style="font-size:18px;">Listening + Reading</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Result Overview</h5>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Student</th>
+                <th>Course</th>
+                <th>Listening</th>
+                <th>Reading</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                @foreach (var item in Model)
+                {
+                    var tong = (item.DiemListening ?? 0) + (item.DiemReading ?? 0);
+                    <tr>
+                        <td>
+                            <div class="user-name">@(item.MaHocVienNavigation?.HoVaTen ?? item.MaHocVien)</div>
+                            <div class="user-sub">@item.MaHocVien</div>
+                        </td>
+                        <td>
+                            <div class="user-name">@(item.MaKhoaHocNavigation?.TenKhoaHoc ?? item.MaKhoaHoc)</div>
+                            <div class="user-sub">@item.MaKhoaHoc</div>
+                        </td>
+                        <td>@(item.DiemListening ?? 0)</td>
+                        <td>@(item.DiemReading ?? 0)</td>
+                        <td><span style="font-weight:700;color:var(--primary);">@tong</span></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5"><div class="empty-state"><i class="fas fa-poll"></i><p>No result records found.</p></div></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <div class="pagination-bar">
+        <span class="pagination-info">Showing @(Model?.Count() ?? 0) / @totalItems results</span>
+        <div class="pagination-btns">
+            <a class="page-btn" href="/Staff/ResultManagement?page=@Math.Max(1, page - 1)&pageSize=@pageSize"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+            @for (int p = startPage; p <= endPage; p++)
+            {
+                if (p == page)
+                {
+                    <span class="page-btn active">@p</span>
+                }
+                else
+                {
+                    <a class="page-btn" href="/Staff/ResultManagement?page=@p&pageSize=@pageSize">@p</a>
+                }
+            }
+            <a class="page-btn" href="/Staff/ResultManagement?page=@Math.Min(totalPages, page + 1)&pageSize=@pageSize"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,6 @@
 using BTL_Web.Models;
 using BTL_Web.Services;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,12 +15,12 @@ builder.Services.AddSession(options =>
 });
 
 // Add DbContext
-var defaultConnection = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Missing connection string: DefaultConnection");
+var defaultConnection = ResolveConnectionString(builder);
 
 builder.Services.AddDbContext<TtanContext>(options =>
     options.UseSqlServer(defaultConnection));
 
+// Temporary compatibility registration: some services/controllers still inject TtamContext.
 builder.Services.AddDbContext<TtamContext>(options =>
     options.UseSqlServer(defaultConnection));
 
@@ -77,3 +78,39 @@ app.MapControllerRoute(
 
 
 app.Run();
+
+static string ResolveConnectionString(WebApplicationBuilder builder)
+{
+    var configured = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    if (!builder.Environment.IsDevelopment())
+    {
+        return configured ?? throw new InvalidOperationException("Missing ConnectionStrings:DefaultConnection");
+    }
+
+    var candidates = new[]
+    {
+        configured,
+        "Server=.;Database=TTAN;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;",
+        "Server=localhost;Database=TTAN;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;",
+        "Server=DESKTOP-I8D5TII;Database=TTAN;Trusted_Connection=True;Encrypt=False;TrustServerCertificate=True;"
+    }
+    .Where(s => !string.IsNullOrWhiteSpace(s))
+    .Distinct(StringComparer.OrdinalIgnoreCase);
+
+    foreach (var candidate in candidates)
+    {
+        try
+        {
+            using var connection = new SqlConnection(candidate!);
+            connection.Open();
+            return candidate!;
+        }
+        catch
+        {
+            // Try next candidate.
+        }
+    }
+
+    return configured ?? throw new InvalidOperationException("No usable SQL Server connection string was found for Development.");
+}
