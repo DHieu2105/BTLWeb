@@ -4,7 +4,7 @@
     ViewData["Title"] = "Tao lop hoc";
 }
 
-<h1>Tao lop hoc</h1>
+<h1>Tạo lớp học</h1>
 
 <form asp-action="Create" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -24,26 +24,26 @@
     <div class="mb-3">
         <label asp-for="MaGv" class="form-label"></label>
         <select asp-for="MaGv" class="form-select" asp-items="ViewBag.MaGv">
-            <option value="">-- Chon giao vien --</option>
+            <option value="">-- Chọn giáo viên --</option>
         </select>
     </div>
 
     <div class="mb-3">
         <label asp-for="MaKhoaHoc" class="form-label"></label>
         <select asp-for="MaKhoaHoc" class="form-select" asp-items="ViewBag.MaKhoaHoc">
-            <option value="">-- Chon khoa hoc --</option>
+            <option value="">-- Chọn khóa học --</option>
         </select>
     </div>
 
     <div class="mb-3">
         <label asp-for="MaPhong" class="form-label"></label>
         <select asp-for="MaPhong" class="form-select" asp-items="ViewBag.MaPhong">
-            <option value="">-- Chon phong hoc --</option>
+            <option value="">-- Chọn phòng học --</option>
         </select>
     </div>
 
-    <button type="submit" class="btn btn-primary">Luu</button>
-    <a asp-action="Index" class="btn btn-secondary">Huy</a>
+    <button type="submit" class="btn btn-primary">Lưu</button>
+    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
 </form>
 
 @section Scripts {

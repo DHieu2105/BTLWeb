@@ -1,118 +1,86 @@
 @model IEnumerable<BTL_Web.Models.DangKi>
 @{
-    ViewData["Title"] = "My Courses";
+    ViewData["Title"] = "Khóa học của tôi";
+    var registrations = Model?.ToList() ?? new List<BTL_Web.Models.DangKi>();
 }
 
 <div class="page-header">
     <div>
-        <h2>My Courses</h2>
-        <p>Your enrolled courses and academic progress</p>
+        <h2>Khóa học của tôi</h2>
+        <p>Các khóa học bạn đã ghi danh và tiến độ học tập</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button type="button" class="btn-outline" onclick="toggleMyCourseFilterPanel()"><i class="fas fa-filter"></i> Lọc</button>
     </div>
 </div>
 
-<!-- Current Courses -->
-<div style="margin-bottom:32px;">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
-        <span class="chip chip-green">Active</span>
-        <h4>Current Courses</h4>
-    </div>
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
-        @{
-            var activeCourses = Model?.Take(2).ToList();
-        }
-        @if (activeCourses != null && activeCourses.Any())
-        {
-            var first = activeCourses.First();
-            <div class="card-plain" style="padding:0;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;">
-                <div style="padding:32px;">
-                    <span class="chip chip-green" style="margin-bottom:16px;">Enrolled</span>
-                    <h3 style="font-size:22px;margin-bottom:8px;">@(first.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</h3>
-                    <p class="text-muted" style="margin-bottom:20px;font-size:14px;">Academic course information</p>
-                    <div style="margin-bottom:16px;">
-                        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                            <span class="small">Progress</span><span class="small fw-bold">67%</span>
-                        </div>
-                        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:67%;"></div></div>
-                    </div>
-                    <div style="display:flex;gap:16px;margin-bottom:20px;">
-                        <div><div class="stat-label">Course ID</div><div class="user-name" style="font-size:13px;">@(first.MaKhoaHoc ?? "—")</div></div>
-                        <div><div class="stat-label">Registered</div><div class="user-name" style="font-size:13px;">@(first.NgayDangKi?.ToString("dd/MM/yyyy") ?? "TBD")</div></div>
-                    </div>
-                    <a href="/Student/MyClasses" class="btn-primary btn-sm"><i class="fas fa-arrow-right"></i> View Class</a>
-                </div>
-                <div style="background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));display:flex;align-items:center;justify-content:center;">
-                    <i class="fas fa-book-open" style="font-size:80px;color:rgba(255,255,255,0.15);"></i>
-                </div>
-            </div>
-
-            @if (activeCourses.Count > 1)
-            {
-                var second = activeCourses[1];
-                <div class="card-plain" style="padding:32px;">
-                    <span class="chip chip-blue" style="margin-bottom:16px;">Enrolled</span>
-                    <h4 style="margin-bottom:8px;">@(second.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</h4>
-                    <p class="text-muted" style="font-size:13px;margin-bottom:20px;">Academic course information</p>
-                    <div style="margin-bottom:16px;">
-                        <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                            <span class="small">Progress</span><span class="small fw-bold">50%</span>
-                        </div>
-                        <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:50%;"></div></div>
-                    </div>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div class="stat-icon teal" style="width:32px;height:32px;border-radius:8px;font-size:12px;"><i class="fas fa-clock"></i></div>
-                        <span class="small text-muted">@(second.NgayDangKi?.ToString("dd/MM/yyyy") ?? "TBD")</span>
-                    </div>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="card-plain" style="padding:32px;">
-                <div class="empty-state"><i class="fas fa-book"></i><p>No active courses</p></div>
-            </div>
-        }
+<div id="myCourseFilterPanel" class="card-plain" style="display:none;padding:12px 16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Bộ lọc nhanh</label>
+            <input id="myCourseFilterInput" type="text" class="form-control" placeholder="Lọc theo tên khóa học, mã khóa học, ngày ghi danh..." oninput="applyMyCourseFilter()">
+        </div>
+        <button type="button" class="btn-outline" onclick="clearMyCourseFilter()">Xóa lọc</button>
     </div>
 </div>
 
-<!-- Completed Courses Table -->
-<div class="card-plain" style="padding:0;">
-    <div class="card-header-plain">
-        <div style="display:flex;align-items:center;gap:12px;">
-            <span class="chip chip-gray">Completed</span>
-            <h5>Course History</h5>
+<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+    <div class="card-plain" style="padding:20px;display:flex;align-items:center;gap:16px;">
+        <div class="stat-icon blue" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"><i class="fas fa-book-open" style="font-size:20px;"></i></div>
+        <div>
+            <div class="stat-label">Tổng ghi danh</div>
+            <div class="stat-value">@registrations.Count</div>
         </div>
     </div>
+    <div class="card-plain" style="padding:20px;display:flex;align-items:center;gap:16px;">
+        <div class="stat-icon green" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"><i class="fas fa-calendar-check" style="font-size:20px;"></i></div>
+        <div>
+            <div class="stat-label">Đang hoạt động</div>
+            <div class="stat-value">@registrations.Count</div>
+        </div>
+    </div>
+    <div class="card-plain" style="padding:20px;display:flex;align-items:center;gap:16px;">
+        <div class="stat-icon teal" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"><i class="fas fa-clock" style="font-size:20px;"></i></div>
+        <div>
+            <div class="stat-label">Ghi danh gần nhất</div>
+            <div class="stat-value">@(registrations.FirstOrDefault()?.NgayDangKi?.ToString("dd/MM") ?? "-")</div>
+        </div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
     <table class="data-table">
         <thead>
             <tr>
-                <th>Course Name</th>
-                <th>Instructor</th>
-                <th>Duration</th>
-                <th>Enrollment Date</th>
-                <th>Grade</th>
-                <th style="text-align:right;">Certificate</th>
+                <th>Khóa học</th>
+                <th>Mã khóa học</th>
+                <th>Ngày ghi danh</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
-            @if (Model != null && Model.Any())
+            @if (registrations.Any())
             {
-                @foreach (var dk in Model)
+                @foreach (var dk in registrations)
                 {
-                    <tr>
+                    var courseName = dk.MaKhoaHocNavigation?.TenKhoaHoc ?? "Chưa xác định";
+                    var courseCode = dk.MaKhoaHocNavigation?.MaKhoaHoc ?? dk.MaKhoaHoc;
+                    var registeredDate = dk.NgayDangKi?.ToString("dd/MM/yyyy") ?? "-";
+                    <tr class="my-course-row">
                         <td>
-                            <div class="user-name">@(dk.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</div>
-                            <div class="user-sub">@(dk.MaKhoaHoc ?? "—")</div>
+                            <div class="user-name">@courseName</div>
+                            <div class="user-sub">@(dk.MaKhoaHocNavigation?.TenKhoaHoc ?? "")</div>
                         </td>
-                        <td>—</td>
-                        <td>@(dk.MaKhoaHocNavigation?.ThoiLuong ?? 0) weeks</td>
-                        <td class="user-sub">@(dk.NgayDangKi?.ToString("MMM dd, yyyy") ?? "—")</td>
-                        <td><span class="chip chip-green">A</span></td>
+                        <td><span class="chip chip-blue">@courseCode</span></td>
+                        <td>@registeredDate</td>
+                        <td><span class="chip chip-green">Đang học</span></td>
                         <td style="text-align:right;">
-                            <button class="btn-icon btn-outline btn-sm" title="Download Certificate">
-                                <i class="fas fa-download"></i>
+                            <button type="button" class="btn-outline btn-sm feature-btn"
+                                    data-course="@courseName"
+                                    data-code="@courseCode"
+                                    data-date="@registeredDate">
+                                Xem nhanh
                             </button>
                         </td>
                     </tr>
@@ -120,8 +88,68 @@
             }
             else
             {
-                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-certificate"></i><p>No course history</p></div></td></tr>
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state"><i class="fas fa-book"></i><p>Bạn chưa ghi danh khóa học nào</p></div>
+                    </td>
+                </tr>
             }
+            <tr id="myCourseFilterEmptyRow" style="display:none;">
+                <td colspan="5">
+                    <div class="empty-state"><i class="fas fa-filter"></i><p>Không có khóa học nào khớp với bộ lọc hiện tại</p></div>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
+
+<div class="card-plain" style="padding:32px;margin-top:24px;display:grid;grid-template-columns:2fr 1fr;gap:32px;align-items:center;">
+    <div>
+        <h4 style="margin-bottom:8px;">Lộ trình học tập</h4>
+        <p class="text-muted" style="margin-bottom:16px;">Hãy theo dõi thời gian ghi danh và hoàn thành các mốc học tập đúng hạn để đạt kết quả tốt hơn.</p>
+        <button class="btn-primary"><i class="fas fa-file-alt"></i> Xem chi tiết lộ trình</button>
+    </div>
+    <div style="text-align:center;">
+        <div style="font-size:48px;color:rgba(43,84,191,0.2);"><i class="fas fa-graduation-cap"></i></div>
+        <div class="stat-value" style="font-size:24px;color:var(--primary);">@registrations.Count</div>
+        <div class="stat-label">Khóa học đã ghi danh</div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+function toggleMyCourseFilterPanel() {
+    const panel = document.getElementById('myCourseFilterPanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+}
+
+function applyMyCourseFilter() {
+    const query = (document.getElementById('myCourseFilterInput')?.value || '').trim().toLowerCase();
+    const rows = document.querySelectorAll('.my-course-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        const show = !query || text.includes(query);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('myCourseFilterEmptyRow');
+    if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+}
+
+function clearMyCourseFilter() {
+    const input = document.getElementById('myCourseFilterInput');
+    if (input) input.value = '';
+    applyMyCourseFilter();
+}
+
+document.addEventListener('click', function (event) {
+    const button = event.target.closest('.feature-btn');
+    if (!button) return;
+    alert(`Khóa học: ${button.dataset.course}\nMã: ${button.dataset.code}\nNgày ghi danh: ${button.dataset.date}`);
+});
+</script>
+}

@@ -1,15 +1,15 @@
 @{
-    ViewData["Title"] = "Student Dashboard";
+    ViewData["Title"] = "Bảng điều khiển học viên";
 }
 
 <div class="page-header">
     <div>
-        <h2>Welcome, @User.Identity?.Name</h2>
-        <p>Your academic overview and upcoming sessions.</p>
+        <h2>Chào mừng, @User.Identity?.Name</h2>
+        <p>Tổng quan học tập và các buổi học sắp tới của bạn.</p>
     </div>
     <div class="page-actions">
         <a href="/Student/Schedule" class="btn-primary">
-            <i class="fas fa-calendar"></i> View Schedule
+            <i class="fas fa-calendar"></i> Xem lịch học
         </a>
     </div>
 </div>
@@ -18,28 +18,28 @@
 <div class="card-plain" style="padding:0;margin-bottom:24px;display:grid;grid-template-columns:2fr 1fr;overflow:hidden;">
     <div style="padding:32px;">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-            <span class="chip chip-green">Next Class</span>
-            <span class="chip chip-gray">In 45 minutes</span>
+            <span class="chip chip-green">Lớp tiếp theo</span>
+            <span class="chip chip-gray">Sau 45 phút</span>
         </div>
-        <h3 style="font-size:24px;margin-bottom:8px;">Advanced C1 Rhetoric</h3>
-        <p class="text-muted" style="margin-bottom:24px;">Structural editing, narrative flow and professional journalism techniques.</p>
+        <h3 style="font-size:24px;margin-bottom:8px;">Tu từ học C1 nâng cao</h3>
+        <p class="text-muted" style="margin-bottom:24px;">Biên tập cấu trúc, mạch kể và các kỹ thuật báo chí chuyên nghiệp.</p>
         <div style="display:flex;gap:32px;margin-bottom:24px;">
             <div>
-                <div class="stat-label">Time</div>
+                <div class="stat-label">Thời gian</div>
                 <div class="user-name" style="font-size:16px;">10:00 AM</div>
             </div>
             <div>
-                <div class="stat-label">Room</div>
+                <div class="stat-label">Phòng</div>
                 <div class="user-name" style="font-size:16px;">Room 402</div>
             </div>
             <div>
-                <div class="stat-label">Teacher</div>
+                <div class="stat-label">Giáo viên</div>
                 <div class="user-name" style="font-size:16px;">Dr. Vance</div>
             </div>
         </div>
         <div style="display:flex;gap:12px;">
-            <a href="/Student/MyClasses" class="btn-primary"><i class="fas fa-map-marker-alt"></i> Get Directions</a>
-            <a href="/Student/Schedule" class="btn-outline"><i class="fas fa-calendar"></i> Full Schedule</a>
+            <a href="/Student/MyClasses" class="btn-primary"><i class="fas fa-map-marker-alt"></i> Chỉ đường</a>
+            <a href="/Student/Schedule" class="btn-outline"><i class="fas fa-calendar"></i> Toàn bộ lịch học</a>
         </div>
     </div>
     <div style="background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
@@ -51,14 +51,14 @@
     <!-- Course Progress -->
     <div class="card-plain" style="padding:32px;">
         <div class="section-heading">
-            <h4>Course Progress</h4>
-            <a href="/Student/MyCourses">View All</a>
+            <h4>Tiến độ khóa học</h4>
+            <a href="/Student/MyCourses">Xem tất cả</a>
         </div>
         <div style="margin-bottom:20px;">
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
                 <div>
                     <div class="user-name">Advanced Editorial Techniques</div>
-                    <div class="user-sub">Unit 8 of 12 complete</div>
+                    <div class="user-sub">Hoàn thành 8 / 12 bài</div>
                 </div>
                 <span style="font-size:20px;font-weight:800;color:var(--primary);">67%</span>
             </div>
@@ -68,7 +68,7 @@
             <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
                 <div>
                     <div class="user-name">Applied Linguistics</div>
-                    <div class="user-sub">Unit 5 of 10 complete</div>
+                    <div class="user-sub">Hoàn thành 5 / 10 bài</div>
                 </div>
                 <span style="font-size:20px;font-weight:800;color:var(--primary);">50%</span>
             </div>
@@ -77,15 +77,15 @@
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px;">
             <div style="background:var(--surface-low);border-radius:8px;padding:16px;text-align:center;">
                 <div class="stat-value" style="font-size:20px;">12/18</div>
-                <div class="stat-label">Modules</div>
+                <div class="stat-label">Học phần</div>
             </div>
             <div style="background:var(--surface-low);border-radius:8px;padding:16px;text-align:center;">
                 <div class="stat-value" style="font-size:20px;">45.0</div>
-                <div class="stat-label">Credits</div>
+                <div class="stat-label">Tín chỉ</div>
             </div>
             <div style="background:var(--surface-low);border-radius:8px;padding:16px;text-align:center;">
                 <div class="stat-value" style="font-size:20px;">92%</div>
-                <div class="stat-label">Avg. Grade</div>
+                <div class="stat-label">Điểm trung bình</div>
             </div>
         </div>
     </div>
@@ -93,7 +93,7 @@
     <!-- Latest Result + Announcements -->
     <div style="display:flex;flex-direction:column;gap:16px;">
         <div class="card-plain" style="padding:24px;">
-            <div class="stat-label" style="margin-bottom:8px;">Latest Assessment</div>
+            <div class="stat-label" style="margin-bottom:8px;">Bài đánh giá gần nhất</div>
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
                 <div>
                     <div class="user-name">IELTS Mock Test</div>
@@ -116,16 +116,16 @@
                 <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:88%;"></div></div>
             </div>
             <a href="/Student/Results" class="btn-outline" style="width:100%;justify-content:center;margin-top:16px;">
-                View All Results <i class="fas fa-arrow-right" style="font-size:10px;"></i>
+                Xem tất cả kết quả <i class="fas fa-arrow-right" style="font-size:10px;"></i>
             </a>
         </div>
 
         <div class="card-plain" style="padding:24px;background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));color:white;">
-            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:8px;">Announcement</div>
-            <h5 style="color:white;margin-bottom:8px;">Winter Intensive Enrollment</h5>
-            <p style="color:rgba(255,255,255,0.75);font-size:13px;margin-bottom:16px;">Early bird registration for January Advanced Writing workshop is now open.</p>
+            <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:8px;">Thông báo</div>
+            <h5 style="color:white;margin-bottom:8px;">Ghi danh khóa học tăng cường mùa đông</h5>
+            <p style="color:rgba(255,255,255,0.75);font-size:13px;margin-bottom:16px;">Đăng ký sớm cho workshop Viết nâng cao tháng 1 hiện đã mở.</p>
             <a href="/Student/MyCourses" class="btn-outline" style="background:rgba(255,255,255,0.15);color:white;border:none;font-size:13px;">
-                Learn More
+                Tìm hiểu thêm
             </a>
         </div>
     </div>
@@ -134,8 +134,8 @@
 <!-- Recent Resources -->
 <div class="card-plain" style="padding:32px;">
     <div class="section-heading">
-        <h4>Recent Resources</h4>
-        <a href="/Student/Schedule">View All</a>
+        <h4>Tài nguyên gần đây</h4>
+        <a href="/Student/Schedule">Xem tất cả</a>
     </div>
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
         <div style="border:1px solid var(--surface-high);border-radius:8px;overflow:hidden;">
@@ -143,9 +143,9 @@
                 <i class="fas fa-book" style="font-size:40px;color:rgba(255,255,255,0.5);"></i>
             </div>
             <div style="padding:16px;">
-                <div class="chip chip-blue" style="font-size:10px;margin-bottom:8px;">READING</div>
+                <div class="chip chip-blue" style="font-size:10px;margin-bottom:8px;">ĐỌC</div>
                 <div class="user-name">Contemporary Rhetoric Vol. 4</div>
-                <div class="user-sub">Required reading for Week 8</div>
+                <div class="user-sub">Tài liệu bắt buộc cho tuần 8</div>
             </div>
         </div>
         <div style="border:1px solid var(--surface-high);border-radius:8px;overflow:hidden;">
@@ -153,9 +153,9 @@
                 <i class="fas fa-headphones" style="font-size:40px;color:rgba(255,255,255,0.5);"></i>
             </div>
             <div style="padding:16px;">
-                <div class="chip chip-yellow" style="font-size:10px;margin-bottom:8px;">LISTENING</div>
+                <div class="chip chip-yellow" style="font-size:10px;margin-bottom:8px;">NGHE</div>
                 <div class="user-name">Linguistic Nuance Podcast</div>
-                <div class="user-sub">Episode 42: Modern idioms</div>
+                <div class="user-sub">Tập 42: Thành ngữ hiện đại</div>
             </div>
         </div>
         <div style="border:1px solid var(--surface-high);border-radius:8px;overflow:hidden;">
@@ -165,7 +165,7 @@
             <div style="padding:16px;">
                 <div class="chip chip-gray" style="font-size:10px;margin-bottom:8px;">VIDEO</div>
                 <div class="user-name">Visualizing Syntax Trees</div>
-                <div class="user-sub">Masterclass on sentence architecture</div>
+                <div class="user-sub">Lớp chuyên sâu về cấu trúc câu</div>
             </div>
         </div>
     </div>

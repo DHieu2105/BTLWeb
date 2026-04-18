@@ -1,18 +1,31 @@
 @model BTL_Web.Models.LopHocPage
 @{
-    ViewData["Title"] = "Manage Classes";
+    ViewData["Title"] = "Quản lý lớp học";
+    var pageModel = Model ?? new BTL_Web.Models.LopHocPage();
 }
 
 <div class="page-header">
     <div>
-        <h2>Manage Classes</h2>
-        <p>Schedule and manage all active class sessions</p>
+        <h2>Quản lý lớp học</h2>
+        <p>Lên lịch và quản lý tất cả các buổi học đang hoạt động</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button type="button" class="btn-outline" title="Filter" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
+            <button type="button" class="btn-outline" title="Lọc" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
+            <button type="button" class="btn-outline" title="Lọc" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Schedule New Class
+            <i class="fas fa-plus"></i> Lên lịch lớp mới
         </button>
+    </div>
+</div>
+
+<div id="classFilterPanel" class="card-plain" style="display:none;padding:16px 20px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Tìm lớp</label>
+            <input id="classFilterInput" type="text" class="form-control" placeholder="Mã lớp, tên lớp, khóa học, giáo viên, phòng" oninput="applyClassFilters()" />
+        </div>
+        <button type="button" class="btn-outline" onclick="clearClassFilter()">Xóa lọc</button>
     </div>
 </div>
 
@@ -22,21 +35,21 @@
             <div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div><span
             class="stat-badge blue">+5%</span>
         </div>
-        <div class="stat-label">Total Classes</div>
-        <div class="stat-value">@(Model?.TotalItems ?? 0)</div>
+        <div class="stat-label">Tổng lớp học</div>
+        <div class="stat-value">@pageModel.TotalItems</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header">
             <div class="stat-icon teal"><i class="fas fa-hourglass-half"></i></div>
         </div>
-        <div class="stat-label">Total Students</div>
-        <div class="stat-value">@(Model?.Items.Sum(l => l.MaHocViens.Count) ?? 0)</div>
+        <div class="stat-label">Tổng học viên</div>
+        <div class="stat-value">@pageModel.Items.Sum(l => l.MaHocViens?.Count ?? 0)</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header">
             <div class="stat-icon orange"><i class="fas fa-chart-pie"></i></div>
         </div>
-        <div class="stat-label">Avg. Capacity</div>
+        <div class="stat-label">Sức chứa trung bình</div>
         <div class="stat-value">88%</div>
     </div>
 </div>
@@ -56,28 +69,28 @@
 
 <div class="card-plain" style="padding:0;">
     <div style="padding:16px 24px;border-bottom:1px solid var(--surface-low);display:flex;align-items:center;gap:8px;">
-        <button class="filter-btn active">All Classes</button>
-        <button class="filter-btn">Active</button>
-        <button class="filter-btn">Completed</button>
+        <button class="filter-btn active">Tất cả lớp</button>
+        <button class="filter-btn">Đang hoạt động</button>
+        <button class="filter-btn">Đã hoàn thành</button>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Class ID</th>
-                <th>Class Name</th>
-                <th>Course</th>
-                <th>Teacher</th>
-                <th>Room</th>
-                <th>Students</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Mã lớp</th>
+                <th>Tên lớp</th>
+                <th>Khóa học</th>
+                <th>Giáo viên</th>
+                <th>Phòng</th>
+                <th>Học viên</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
-            @if (Model?.Items != null && Model.Items.Any())
+            @if (pageModel.Items.Any())
             {
-                @foreach (var lh in Model.Items)
+                @foreach (var lh in pageModel.Items)
                 {
-                    <tr>
+                    <tr class="class-row" data-students="@(lh.MaHocViens?.Count ?? 0)">
                         <td><span class="chip chip-gray">@lh.MaLop</span></td>
                         <td>
                             <div class="user-name">@(lh.TenLop ?? "—")</div>
@@ -89,15 +102,15 @@
                             <div class="progress-bar-wrap" style="width:60px;margin-bottom:4px;">
                                 <div class="progress-bar-fill" style="width:70%;"></div>
                             </div>
-                            <span class="smaller text-muted">@lh.MaHocViens.Count</span>
+                            <span class="smaller text-muted">@(lh.MaHocViens?.Count ?? 0)</span>
                         </td>
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
-                                <a href="/Admin/StudentsInClass/@lh.MaLop" class="btn-icon btn-outline btn-sm"
-                                   title="Students"><i class="fas fa-users"></i></a>
+                                          <a href="/Admin/StudentsInClass/@lh.MaLop" class="btn-icon btn-outline btn-sm"
+                                              title="Học viên"><i class="fas fa-users"></i></a>
 
                                 <a asp-controller="Admin" asp-action="EditLopHoc" asp-route-id="@lh.MaLop"
-                                   class="btn-icon btn-outline btn-sm" title="Edit class"><i class="fas fa-edit"></i></a>
+                                              class="btn-icon btn-outline btn-sm" title="Sửa lớp"><i class="fas fa-edit"></i></a>
                                 <button class="btn-icon btn-outline btn-sm" onclick="deleteClass('@lh.MaLop')">
                                     <i class="fas fa-trash" style="color:#ef4444;"></i>
                                 </button>
@@ -111,11 +124,18 @@
                 <tr>
                     <td colspan="7">
                         <div class="empty-state"><i class="fas fa-graduation-cap"></i>
-                            <p>No classes found</p>
+                            <p>Không tìm thấy lớp học nào</p>
                         </div>
                     </td>
                 </tr>
             }
+            <tr id="classFilterEmptyRow" style="display:none;">
+                <td colspan="7">
+                    <div class="empty-state"><i class="fas fa-filter"></i>
+                        <p>Không có lớp nào phù hợp với bộ lọc hiện tại</p>
+                    </div>
+                </td>
+            </tr>
         </tbody>
     </table>
 
@@ -130,13 +150,13 @@
     </div> *@
     <div class="pagination-bar">
         <span class="pagination-info">
-            Showing @Model.StartItem-@Model.EndItem of @Model.TotalItems classes
+            Đang hiển thị @pageModel.StartItem-@pageModel.EndItem trong tổng @pageModel.TotalItems lớp học
         </span>
 
         <div class="pagination-btns">
-            @if (Model.HasPrevious)
+            @if (pageModel.HasPrevious)
             {
-                <a class="page-btn" href="@Url.Action("LopHoc", new { page = Model.Page - 1, pageSize = Model.PageSize })">
+                <a class="page-btn" href="@Url.Action("LopHoc", new { page = pageModel.Page - 1, pageSize = pageModel.PageSize })">
                     <i class="fas fa-chevron-left" style="font-size:10px;"></i>
                 </a>
             }
@@ -147,21 +167,21 @@
                 </button>
             }
 
-            @for (int p = 1; p <= Model.TotalPages; p++)
+            @for (int p = 1; p <= pageModel.TotalPages; p++)
             {
-                if (p == Model.Page)
+                if (p == pageModel.Page)
                 {
                     <button class="page-btn active">@p</button>
                 }
                 else
                 {
-                    <a class="page-btn" href="@Url.Action("LopHoc", new { page = p, pageSize = Model.PageSize })">@p</a>
+                    <a class="page-btn" href="@Url.Action("LopHoc", new { page = p, pageSize = pageModel.PageSize })">@p</a>
                 }
             }
 
-            @if (Model.HasNext)
+            @if (pageModel.HasNext)
             {
-                <a class="page-btn" href="@Url.Action("LopHoc", new { page = Model.Page + 1, pageSize = Model.PageSize })">
+                <a class="page-btn" href="@Url.Action("LopHoc", new { page = pageModel.Page + 1, pageSize = pageModel.PageSize })">
                     <i class="fas fa-chevron-right" style="font-size:10px;"></i>
                 </a>
             }
@@ -180,18 +200,18 @@
      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
     <div
         style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;max-height:90vh;overflow-y:auto;">
-        <h4 style="margin-bottom:24px;">Schedule New Class</h4>
+        <h4 style="margin-bottom:24px;">Lên lịch lớp mới</h4>
         <form method="post" action="/Admin/AddLopHoc">
             @Html.AntiForgeryToken()
             <div class="form-group">
-                <label class="form-label">Class Name</label>
+                <label class="form-label">Tên lớp</label>
                 <input type="text" name="TenLop" class="form-control" required>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group">
-                    <label class="form-label">Course</label>
+                    <label class="form-label">Khóa học</label>
                     <select name="MaKhoaHoc" class="form-control form-select">
-                        <option value="">— Select —</option>
+                        <option value="">— Chọn —</option>
                         @if (ViewBag.KhoaHocs != null)
                         {
                             @foreach (var kh in (IEnumerable<BTL_Web.Models.KhoaHoc>)ViewBag.KhoaHocs)
@@ -202,9 +222,9 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Teacher</label>
+                    <label class="form-label">Giáo viên</label>
                     <select name="MaGv" class="form-control form-select">
-                        <option value="">— Select —</option>
+                        <option value="">— Chọn —</option>
                         @if (ViewBag.GiaoViens != null)
                         {
                             @foreach (var gv in (IEnumerable<BTL_Web.Models.GiaoVien>)ViewBag.GiaoViens)
@@ -216,9 +236,9 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Room</label>
+                <label class="form-label">Phòng</label>
                 <select name="MaPhong" class="form-control form-select">
-                    <option value="">— Select —</option>
+                    <option value="">— Chọn —</option>
                     @if (ViewBag.PhongHocs != null)
                     {
                         @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
@@ -230,8 +250,8 @@
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                 <button type="button" class="btn-outline"
-                        onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Create Class</button>
+                        onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Tạo lớp</button>
             </div>
         </form>
     </div>
@@ -239,14 +259,61 @@
 
 @section Scripts {
     <script>
+        let currentClassStatus = 'all';
+
+        function toggleClassFilterPanel() {
+            const panel = document.getElementById('classFilterPanel');
+            if (!panel) return;
+            panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+        }
+
+        function applyClassFilters() {
+            const query = (document.getElementById('classFilterInput')?.value || '').trim().toLowerCase();
+            const rows = document.querySelectorAll('.class-row');
+            let visible = 0;
+
+            rows.forEach(row => {
+                const students = Number(row.getAttribute('data-students') || '0');
+                let statusMatch = true;
+                if (currentClassStatus === 'active') statusMatch = students > 0;
+                if (currentClassStatus === 'completed') statusMatch = students === 0;
+
+                const text = (row.textContent || '').toLowerCase();
+                const queryMatch = !query || text.includes(query);
+
+                const show = statusMatch && queryMatch;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            const emptyRow = document.getElementById('classFilterEmptyRow');
+            if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+        }
+
+        function clearClassFilter() {
+            const input = document.getElementById('classFilterInput');
+            if (input) input.value = '';
+            currentClassStatus = 'all';
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            const allBtn = document.querySelector('.filter-btn');
+            if (allBtn) allBtn.classList.add('active');
+            applyClassFilters();
+        }
+
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
+
+                const text = (this.textContent || '').trim().toLowerCase();
+                    currentClassStatus = this.dataset.filter || 'all';
+
+                applyClassFilters();
             });
         });
+
         function deleteClass(id) {
-            if (confirm('Delete class ' + id + '?')) location.href = '/Admin/DeleteLopHoc/' + id;
+                if (confirm('Bạn có chắc muốn xóa lớp ' + id + '?')) location.href = '/Admin/DeleteLopHoc/' + id;
         }
     </script>
 }

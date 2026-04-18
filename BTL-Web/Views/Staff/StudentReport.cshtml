@@ -1,0 +1,67 @@
+@model IEnumerable<BTL_Web.ViewModels.StaffStudentReportRowViewModel>
+@{
+    ViewData["Title"] = "Báo cáo học viên";
+    var rows = Model?.ToList() ?? new List<BTL_Web.ViewModels.StaffStudentReportRowViewModel>();
+    var totalStudents = rows.Count;
+    var totalRegistrations = rows.Sum(r => r.SoKhoaHocDaDangKy);
+    var totalRevenue = rows.Sum(r => r.TongHocPhi);
+}
+
+<div class="page-header">
+    <div>
+        <h2>Báo cáo học viên phụ trách</h2>
+        <p>Tổng hợp học viên theo các giáo viên thuộc phạm vi quản lý của bạn</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng học viên</div>
+        <div class="stat-value">@totalStudents</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng lượt ghi danh</div>
+        <div class="stat-value">@totalRegistrations</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng học phí</div>
+        <div class="stat-value">@totalRevenue.ToString("N0")</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã học viên</th>
+                <th>Họ và tên</th>
+                <th>Số khóa đã đăng ký</th>
+                <th>Tổng học phí</th>
+                <th>Đăng ký gần nhất</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (rows.Any())
+            {
+                foreach (var row in rows)
+                {
+                    <tr>
+                        <td><div class="user-name">@row.MaHocVien</div></td>
+                        <td>@(row.HoVaTen ?? "-")</td>
+                        <td><span class="chip chip-blue">@row.SoKhoaHocDaDangKy</span></td>
+                        <td>@row.TongHocPhi.ToString("N0") VND</td>
+                        <td>@(row.NgayDangKyGanNhat?.ToString("dd/MM/yyyy") ?? "-")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state"><i class="fas fa-user-friends"></i><p>Chưa có dữ liệu học viên trong phạm vi phụ trách</p></div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

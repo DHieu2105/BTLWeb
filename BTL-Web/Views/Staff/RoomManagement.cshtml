@@ -1,15 +1,25 @@
 @model IEnumerable<BTL_Web.Models.PhongHoc>
 @{
-    ViewData["Title"] = "Room Management";
+    ViewData["Title"] = "Quản lý phòng học";
 }
 
 <div class="page-header">
     <div>
-        <h2>Room Management</h2>
-        <p>Manage classroom assignments and availability</p>
+        <h2>Quản lý phòng học</h2>
+        <p>Quản lý phân công phòng và trạng thái trống, đang sử dụng</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button type="button" class="btn-outline" onclick="toggleStaffRoomFilterPanel()"><i class="fas fa-filter"></i> Lọc</button>
+    </div>
+</div>
+
+<div id="staffRoomFilterPanel" class="card-plain" style="display:none;padding:12px 16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Bộ lọc nhanh</label>
+            <input id="staffRoomFilterInput" type="text" class="form-control" placeholder="Lọc theo phòng, trung tâm, giáo viên..." oninput="applyStaffRoomFilter()">
+        </div>
+        <button type="button" class="btn-outline" onclick="clearStaffRoomFilter()">Xóa lọc</button>
     </div>
 </div>
 
@@ -17,22 +27,22 @@
 <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-door-open"></i></div></div>
-        <div class="stat-label">Total Rooms</div>
+        <div class="stat-label">Tổng số phòng</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-check-circle"></i></div></div>
-        <div class="stat-label">Available</div>
+        <div class="stat-label">Phòng trống</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-tools"></i></div></div>
-        <div class="stat-label">Pending Tasks</div>
+        <div class="stat-label">Việc chờ xử lý</div>
         <div class="stat-value">3</div>
     </div>
     <div class="stat-card green">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-chart-pie"></i></div></div>
-        <div class="stat-label">Utilization</div>
+        <div class="stat-label">Mức sử dụng</div>
         <div class="stat-value">78%</div>
     </div>
 </div>
@@ -40,10 +50,10 @@
 <!-- Room Cards Grid -->
 <div style="margin-bottom:24px;">
     <div class="section-heading">
-        <h4>Room Overview</h4>
+        <h4>Tổng quan phòng</h4>
         <div style="display:flex;gap:8px;">
-            <span class="chip chip-green">Available</span>
-            <span class="chip chip-yellow">In Use</span>
+            <span class="chip chip-green">Trống</span>
+            <span class="chip chip-yellow">Đang dùng</span>
         </div>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;">
@@ -52,14 +62,14 @@
             @foreach (var ph in Model)
             {
                 var inUse = ph.LopHocs.Any();
-                <div class="card-plain" style="padding:20px;border-left:4px solid @(inUse ? "#f97316" : "#10b981");">
+                <div class="card-plain staff-room-card" style="padding:20px;border-left:4px solid @(inUse ? "#f97316" : "#10b981");">
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
                         <div>
                             <div class="user-name">@ph.TenPhong</div>
                             <div class="user-sub">@ph.MaPhong</div>
                         </div>
                         <span class="chip @(inUse ? "chip-yellow" : "chip-green")" style="font-size:10px;">
-                            @(inUse ? "In Use" : "Free")
+                            @(inUse ? "Đang dùng" : "Trống")
                         </span>
                     </div>
                     <div class="user-sub" style="margin-bottom:8px;">
@@ -68,11 +78,11 @@
                     </div>
                     <div class="user-sub">
                         <i class="fas fa-graduation-cap" style="margin-right:4px;"></i>
-                        @ph.LopHocs.Count classes
+                        @ph.LopHocs.Count lớp
                     </div>
                     <div style="display:flex;gap:8px;margin-top:12px;">
                         <button class="btn-outline btn-sm" style="flex:1;justify-content:center;">
-                            <i class="fas fa-calendar"></i> Schedule
+                            <i class="fas fa-calendar"></i> Lịch phòng
                         </button>
                     </div>
                 </div>
@@ -80,7 +90,7 @@
         }
         else
         {
-            <div style="grid-column:1/-1;"><div class="empty-state"><i class="fas fa-door-open"></i><p>No rooms found</p></div></div>
+            <div style="grid-column:1/-1;"><div class="empty-state"><i class="fas fa-door-open"></i><p>Không tìm thấy phòng học nào</p></div></div>
         }
     </div>
 </div>
@@ -88,22 +98,22 @@
 <!-- Staff Table -->
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Room-Staff Assignments</h5>
+        <h5>Phân công phòng - nhân sự</h5>
         <div style="display:flex;gap:8px;align-items:center;">
-            <span class="small text-muted">Filter by:</span>
+            <span class="small text-muted">Lọc theo:</span>
             <select class="form-control form-select" style="width:140px;padding:6px 12px;font-size:13px;">
-                <option>All Rooms</option>
+                <option>Tất cả phòng</option>
             </select>
         </div>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Staff Member</th>
-                <th>Assigned Room</th>
-                <th>Schedule</th>
-                <th>Capacity</th>
-                <th>Status</th>
+                <th>Nhân sự</th>
+                <th>Phòng được phân công</th>
+                <th>Lịch</th>
+                <th>Sức chứa</th>
+                <th>Trạng thái</th>
             </tr>
         </thead>
         <tbody>
@@ -115,7 +125,7 @@
                     {
                         var gvName = lop.MaGvNavigation?.Ten ?? "—";
                         var ini = string.Join("", gvName.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
-                        <tr>
+                        <tr class="staff-room-assignment-row">
                             <td>
                                 <div class="user-row">
                                     <div class="avatar">@ini</div>
@@ -134,16 +144,46 @@
                                 <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
                                     <div class="progress-bar-fill" style="width:70%;"></div>
                                 </div>
-                                <span class="smaller text-muted">@lop.MaHocViens.Count students</span>
+                                <span class="smaller text-muted">@lop.MaHocViens.Count học viên</span>
                             </td>
-                            <td><span class="chip chip-green">Active</span></td>
+                            <td><span class="chip chip-green">Đang hoạt động</span></td>
                         </tr>
+                    }
+
+                    @section Scripts {
+                    <script>
+                    function toggleStaffRoomFilterPanel() {
+                        const panel = document.getElementById('staffRoomFilterPanel');
+                        if (!panel) return;
+                        panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+                    }
+
+                    function applyStaffRoomFilter() {
+                        const query = (document.getElementById('staffRoomFilterInput')?.value || '').trim().toLowerCase();
+
+                        document.querySelectorAll('.staff-room-card').forEach(card => {
+                            const text = (card.textContent || '').toLowerCase();
+                            card.style.display = !query || text.includes(query) ? '' : 'none';
+                        });
+
+                        document.querySelectorAll('.staff-room-assignment-row').forEach(row => {
+                            const text = (row.textContent || '').toLowerCase();
+                            row.style.display = !query || text.includes(query) ? '' : 'none';
+                        });
+                    }
+
+                    function clearStaffRoomFilter() {
+                        const input = document.getElementById('staffRoomFilterInput');
+                        if (input) input.value = '';
+                        applyStaffRoomFilter();
+                    }
+                    </script>
                     }
                 }
             }
             @if (Model == null || !Model.Any(p => p.LopHocs.Any()))
             {
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-users-cog"></i><p>No assignments found</p></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-users-cog"></i><p>Không tìm thấy phân công nào</p></div></td></tr>
             }
         </tbody>
     </table>

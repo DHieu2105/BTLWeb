@@ -1,25 +1,25 @@
 @model BTL_Web.Models.GiaoVien
 @{
-    ViewData["Title"] = "Teacher Detail";
-    var name = Model?.Ten ?? "Unknown";
+    ViewData["Title"] = "Chi tiết giáo viên";
+    var name = Model?.Ten ?? "Không xác định";
     var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
 }
 
 <div class="page-header">
     <div>
         <a href="/Admin/GiaoVien" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Teachers
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách giáo viên
         </a>
-        <h2>Teacher Profile</h2>
+        <h2>Hồ sơ giáo viên</h2>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-edit"></i> Edit</button>
+        <button class="btn-outline"><i class="fas fa-edit"></i> Sửa</button>
     </div>
 </div>
 
 @if (Model == null)
 {
-    <div class="empty-state"><i class="fas fa-chalkboard-teacher"></i><p>Teacher not found</p></div>
+    <div class="empty-state"><i class="fas fa-chalkboard-teacher"></i><p>Không tìm thấy giáo viên</p></div>
 }
 else
 {
@@ -30,18 +30,18 @@ else
                 <div class="avatar" style="width:80px;height:80px;border-radius:20px;font-size:28px;margin:0 auto 16px;">@initials</div>
                 <h3 style="font-size:20px;margin-bottom:4px;">@name</h3>
                 <p class="text-muted small">@Model.MaGv</p>
-                <span class="chip chip-blue" style="margin-top:8px;">@(Model.ChuyenMon ?? "Teacher")</span>
+                <span class="chip chip-blue" style="margin-top:8px;">@(Model.ChuyenMon ?? "Giáo viên")</span>
                 <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;text-align:left;">
                     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
-                        <span class="small text-muted">Phone</span>
+                        <span class="small text-muted">Số điện thoại</span>
                         <span class="small fw-semibold">@(Model.Sdt ?? "—")</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
-                        <span class="small text-muted">Gender</span>
+                        <span class="small text-muted">Giới tính</span>
                         <span class="small fw-semibold">@(Model.GioiTinh ?? "—")</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                        <span class="small text-muted">Center</span>
+                        <span class="small text-muted">Trung tâm</span>
                         <span class="small fw-semibold">@(Model.MaTrungTamNavigation?.TenTrungTam ?? "—")</span>
                     </div>
                 </div>
@@ -51,11 +51,11 @@ else
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div class="card-plain" style="padding:16px;text-align:center;">
                     <div class="stat-value" style="font-size:24px;">@Model.LopHocs.Count</div>
-                    <div class="stat-label">Classes</div>
+                    <div class="stat-label">Lớp học</div>
                 </div>
                 <div class="card-plain" style="padding:16px;text-align:center;">
                     <div class="stat-value" style="font-size:24px;">@Model.MaHocViens.Count</div>
-                    <div class="stat-label">Students</div>
+                    <div class="stat-label">Học viên</div>
                 </div>
             </div>
         </div>
@@ -63,17 +63,17 @@ else
         <!-- Assigned Classes -->
         <div class="card-plain" style="padding:0;">
             <div class="card-header-plain">
-                <h5>Assigned Classes</h5>
-                <span class="chip chip-blue">@Model.LopHocs.Count classes</span>
+                <h5>Lớp đã phân công</h5>
+                <span class="chip chip-blue">@Model.LopHocs.Count lớp</span>
             </div>
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Class</th>
-                        <th>Course</th>
-                        <th>Room</th>
-                        <th>Students</th>
-                        <th>Status</th>
+                        <th>Lớp</th>
+                        <th>Khóa học</th>
+                        <th>Phòng</th>
+                        <th>Học viên</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -91,13 +91,13 @@ else
                                 <td>
                                     <span class="chip chip-blue">@lop.MaHocViens.Count</span>
                                 </td>
-                                <td><span class="chip chip-green">Active</span></td>
+                                <td><span class="chip chip-green">Đang hoạt động</span></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="5"><div class="empty-state" style="padding:24px;"><i class="fas fa-graduation-cap"></i><p>No classes assigned</p></div></td></tr>
+                        <tr><td colspan="5"><div class="empty-state" style="padding:24px;"><i class="fas fa-graduation-cap"></i><p>Chưa phân công lớp nào</p></div></td></tr>
                     }
                 </tbody>
             </table>

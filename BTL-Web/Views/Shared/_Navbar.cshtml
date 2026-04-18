@@ -39,15 +39,15 @@
     var featureUrl = navSection switch
     {
         "Admin" => "/Admin/TrungTam",
-        "NhanVien" => "/Admin/GiaoVien",
-        "GiaoVien" => "/Admin/MyTeachingCourses",
+        "NhanVien" => "/Staff/TeacherManagement",
+        "GiaoVien" => "/Teacher/MyCourses",
         "HocVien" => "/Student/MyCourses",
         _ => "/Home/Index"
     };
     var reportsUrl = navSection switch
     {
-        "Admin" => "/Admin/KetQua",
-        "NhanVien" => "/Admin/KhoaHoc",
+        "Admin" => "/Admin/ReportCenter",
+        "NhanVien" => "/Staff/RevenueReport",
         "GiaoVien" => "/Auth/Profile",
         "HocVien" => "/Student/Results",
         _ => "/Home/Index"
@@ -56,14 +56,14 @@
     {
         "Admin" => "Trung tâm & CSVC",
         "NhanVien" => "Giáo viên",
-        "GiaoVien" => "Khóa học phụ trách",
+        "GiaoVien" => "Khóa học",
         "HocVien" => "Khóa học",
         _ => "Tính năng"
     };
     var reportsLabel = navSection switch
     {
         "Admin" => "Báo cáo",
-        "NhanVien" => "Khóa học",
+        "NhanVien" => "Báo cáo",
         "GiaoVien" => "Tài khoản",
         "HocVien" => "Kết quả",
         _ => "Báo cáo"
@@ -74,21 +74,21 @@
     <div style="display:flex;align-items:center;gap:24px;flex:1;">
         <div class="search-box" style="max-width:360px;">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search students, staff or resources...">
+            <input type="text" placeholder="Tìm kiếm học viên, nhân viên hoặc tài nguyên...">
         </div>
         <div class="navbar-nav-links">
-            <a href="@overviewUrl" class="active">Dashboard</a>
+            <a href="@overviewUrl" class="active">Bảng điều khiển</a>
             <a href="@featureUrl">@featureLabel</a>
             <a href="@reportsUrl">@reportsLabel</a>
         </div>
     </div>
 
     <div class="navbar-actions">
-        <a class="navbar-btn" title="Notifications" href="@overviewUrl">
+        <a class="navbar-btn" title="Thông báo" href="@overviewUrl">
             <i class="far fa-bell" style="font-size:16px;"></i>
             <span class="badge-dot"></span>
         </a>
-        <a class="navbar-btn" title="Messages" href="/Auth/Profile">
+        <a class="navbar-btn" title="Tin nhắn" href="/Auth/Profile">
             <i class="far fa-comment-alt" style="font-size:16px;"></i>
         </a>
         <div class="navbar-divider"></div>

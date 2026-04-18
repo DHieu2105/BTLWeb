@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Staff-Teacher Assignment";
+    ViewData["Title"] = "Phân công nhân viên - giáo viên";
     var isAdmin = User.IsInRole("Admin");
     var nhanViens = ViewBag.NhanViens as IEnumerable<BTL_Web.Models.NhanVien> ?? new List<BTL_Web.Models.NhanVien>();
     var giaoViens = ViewBag.GiaoViens as IEnumerable<BTL_Web.Models.GiaoVien> ?? new List<BTL_Web.Models.GiaoVien>();
@@ -19,14 +19,14 @@
 
 <div class="page-header">
     <div>
-        <h2>Staff-Teacher Assignment</h2>
-        <p>@totalItems staff records in current filter</p>
+        <h2>Phân công nhân viên - giáo viên</h2>
+        <p>@totalItems bản ghi nhân viên trong bộ lọc hiện tại</p>
     </div>
     <div class="page-actions">
         <form method="get" style="display:flex;gap:8px;align-items:center;">
-            <input class="form-control" type="text" name="keyword" value="@keyword" placeholder="Search staff..." style="width:210px;" />
+            <input class="form-control" type="text" name="keyword" value="@keyword" placeholder="Tìm nhân viên..." style="width:210px;" />
             <select class="form-control form-select" name="center" style="width:170px;">
-                <option value="">All centers</option>
+                <option value="">Tất cả trung tâm</option>
                 @foreach (var tt in trungTams)
                 {
                     if (tt.MaTrungTam == center)
@@ -41,27 +41,27 @@
             </select>
             <label style="display:flex;gap:6px;align-items:center;font-size:13px;white-space:nowrap;">
                 <input type="checkbox" name="unassignedOnly" value="true" @(unassignedOnly ? "checked" : null) />
-                Unassigned only
+                Chỉ chưa phân công
             </label>
             <select class="form-control form-select" name="pageSize" style="width:110px;">
                 @foreach (var size in new[] { 10, 20, 50 })
                 {
                     if (size == pageSize)
                     {
-                        <option value="@size" selected>@size / page</option>
+                        <option value="@size" selected>@size / trang</option>
                     }
                     else
                     {
-                        <option value="@size">@size / page</option>
+                        <option value="@size">@size / trang</option>
                     }
                 }
             </select>
-            <button class="btn-outline" type="submit"><i class="fas fa-filter"></i> Filter</button>
+            <button class="btn-outline" type="submit"><i class="fas fa-filter"></i> Lọc</button>
         </form>
         @if (isAdmin)
         {
             <button class="btn-primary" onclick="document.getElementById('assignModal').style.display='flex'">
-                <i class="fas fa-plus"></i> New Assignment
+                <i class="fas fa-plus"></i> Phân công mới
             </button>
         }
     </div>
@@ -69,19 +69,19 @@
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
     <div class="card-plain" style="padding:20px;">
-        <div class="stat-label">Total Staff</div>
+        <div class="stat-label">Tổng nhân viên</div>
         <div class="stat-value">@totalStaff</div>
     </div>
     <div class="card-plain" style="padding:20px;">
-        <div class="stat-label">Total Teachers</div>
+        <div class="stat-label">Tổng giáo viên</div>
         <div class="stat-value">@totalTeachers</div>
     </div>
     <div class="card-plain" style="padding:20px;">
-        <div class="stat-label">Unassigned Teachers</div>
+        <div class="stat-label">Giáo viên chưa phân công</div>
         <div class="stat-value" style="color:#f97316;">@unassignedTeachers</div>
     </div>
     <div class="card-plain" style="padding:20px;">
-        <div class="stat-label">Max Workload</div>
+        <div class="stat-label">Tải công việc tối đa</div>
         <div class="stat-value" style="color:#10b981;">@maxTeachersPerStaff teachers</div>
     </div>
 </div>
@@ -98,16 +98,16 @@
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
     <div class="card-plain" style="padding:0;">
         <div class="card-header-plain">
-            <h5>Staff Assignments</h5>
-            <span class="chip chip-blue">@totalItems Staff Members</span>
+            <h5>Phân công nhân viên</h5>
+            <span class="chip chip-blue">@totalItems nhân viên</span>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Staff Member</th>
-                    <th>Assigned Teachers</th>
-                    <th>Workload</th>
-                    <th>Status</th>
+                    <th>Nhân viên</th>
+                    <th>Giáo viên đã gán</th>
+                    <th>Tải công việc</th>
+                    <th>Trạng thái</th>
                 </tr>
             </thead>
             <tbody>
@@ -153,9 +153,9 @@
                             }
                             else
                             {
-                                <span class="small text-muted">No teacher assigned</span>
+                                <span class="small text-muted">Chưa gán giáo viên</span>
                             }
-                            <span class="smaller text-muted" style="margin-top:4px;display:block;">@assignedCount / @maxTeachersPerStaff teachers</span>
+                            <span class="smaller text-muted" style="margin-top:4px;display:block;">@assignedCount / @maxTeachersPerStaff giáo viên</span>
                         </td>
                         <td>
                             <div class="progress-bar-wrap" style="width:100px;margin-bottom:4px;">
@@ -166,27 +166,27 @@
                         <td>
                             @if (assignedCount == 0)
                             {
-                                <span class="chip chip-gray">Idle</span>
+                                <span class="chip chip-gray">Rảnh</span>
                             }
                             else if (assignedCount >= maxTeachersPerStaff)
                             {
-                                <span class="chip" style="background:#fef2f2;color:#dc2626;">Full</span>
+                                <span class="chip" style="background:#fef2f2;color:#dc2626;">Đầy</span>
                             }
                             else
                             {
-                                <span class="chip chip-green">Active</span>
+                                <span class="chip chip-green">Đang hoạt động</span>
                             }
                         </td>
                     </tr>
                 }
                 @if (!nhanViens.Any())
                 {
-                    <tr><td colspan="4"><div class="empty-state"><i class="fas fa-users-cog"></i><p>No staff found</p></div></td></tr>
+                    <tr><td colspan="4"><div class="empty-state"><i class="fas fa-users-cog"></i><p>Không tìm thấy nhân viên nào</p></div></td></tr>
                 }
             </tbody>
         </table>
         <div class="pagination-bar">
-            <span class="pagination-info">Page @currentPage / @totalPages</span>
+            <span class="pagination-info">Trang @currentPage / @totalPages</span>
             <div class="pagination-btns">
                 <a class="page-btn" href="@Url.Action("StaffTeacherAssignment", new { page = currentPage > 1 ? currentPage - 1 : 1, pageSize, keyword, center, unassignedOnly })"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
                 @for (var i = 1; i <= totalPages; i++)
@@ -207,11 +207,11 @@
 
     <div style="display:flex;flex-direction:column;gap:16px;">
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;"><i class="fas fa-filter" style="color:var(--primary);margin-right:8px;"></i>Quick Filters</h5>
+            <h5 style="margin-bottom:16px;"><i class="fas fa-filter" style="color:var(--primary);margin-right:8px;"></i>Bộ lọc nhanh</h5>
             <div class="form-group">
-                <label class="form-label">Center</label>
+                <label class="form-label">Trung tâm</label>
                 <select class="form-control form-select" onchange="applyCenterFilter(this.value)">
-                    <option value="">All Centers</option>
+                    <option value="">Tất cả trung tâm</option>
                     @foreach (var tt in trungTams)
                     {
                         if (tt.MaTrungTam == center)
@@ -225,11 +225,11 @@
                     }
                 </select>
             </div>
-            <a class="btn-outline" href="@Url.Action("StaffTeacherAssignment")" style="justify-content:center;">Reset</a>
+            <a class="btn-outline" href="@Url.Action("StaffTeacherAssignment")" style="justify-content:center;">Đặt lại</a>
         </div>
 
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;">Recent Teachers</h5>
+            <h5 style="margin-bottom:16px;">Giáo viên gần đây</h5>
             <div style="display:flex;flex-direction:column;gap:12px;">
                 @foreach (var gv in giaoViens.Take(5))
                                 {
@@ -247,12 +247,12 @@
             </div>
         </div>
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:8px;">Assignment Rule</h5>
-            <p class="small text-muted" style="margin-bottom:16px;">One staff can supervise up to <strong>@maxTeachersPerStaff</strong> teachers. Full staff cannot receive new assignments.</p>
+            <h5 style="margin-bottom:8px;">Quy tắc phân công</h5>
+            <p class="small text-muted" style="margin-bottom:16px;">Một nhân viên có thể phụ trách tối đa <strong>@maxTeachersPerStaff</strong> giáo viên. Nhân viên đã đầy sẽ không nhận thêm phân công mới.</p>
             @if (isAdmin)
             {
                 <button class="btn-outline" style="width:100%;justify-content:center;" onclick="document.getElementById('assignModal').style.display='flex'">
-                    <i class="fas fa-user-plus"></i> Assign Now
+                    <i class="fas fa-user-plus"></i> Phân công ngay
                 </button>
             }
             else
@@ -267,13 +267,13 @@
 {
     <div id="assignModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
         <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-            <h4 style="margin-bottom:24px;">Assign Teacher to Staff</h4>
+            <h4 style="margin-bottom:24px;">Gán giáo viên cho nhân viên</h4>
             <form method="post" action="/Admin/AssignStaffTeacher">
                 @Html.AntiForgeryToken()
                 <div class="form-group">
-                    <label class="form-label">Staff Member</label>
+                    <label class="form-label">Nhân viên</label>
                     <select name="MaNv" id="assignStaffSelect" class="form-control form-select">
-                        <option value="">— Select Staff —</option>
+                        <option value="">— Chọn nhân viên —</option>
                         @foreach (var nv in (ViewBag.AllNhanViens as IEnumerable<BTL_Web.Models.NhanVien> ?? new List<BTL_Web.Models.NhanVien>()).OrderBy(n => n.MaNv))
                         {
                             <option value="@nv.MaNv">@(nv.HoVaTen ?? nv.MaNv) (@nv.MaNv)</option>
@@ -281,9 +281,9 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Teacher</label>
+                    <label class="form-label">Giáo viên</label>
                     <select name="MaGv" class="form-control form-select">
-                        <option value="">— Select Teacher —</option>
+                        <option value="">— Chọn giáo viên —</option>
                         @foreach (var gv in giaoViens.OrderBy(g => g.MaGv))
                         {
                             <option value="@gv.MaGv">@(gv.Ten ?? gv.MaGv) (@gv.MaGv)</option>
@@ -291,8 +291,8 @@
                     </select>
                 </div>
                 <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                    <button type="button" class="btn-outline" onclick="document.getElementById('assignModal').style.display='none'">Cancel</button>
-                    <button type="submit" class="btn-primary">Assign</button>
+                    <button type="button" class="btn-outline" onclick="document.getElementById('assignModal').style.display='none'">Hủy</button>
+                    <button type="submit" class="btn-primary">Gán</button>
                 </div>
             </form>
         </div>

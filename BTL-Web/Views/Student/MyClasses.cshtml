@@ -1,23 +1,23 @@
 @model IEnumerable<BTL_Web.Models.LopHoc>
 @{
-    ViewData["Title"] = "My Classes";
+    ViewData["Title"] = "Lớp của tôi";
     var classList = Model?.ToList() ?? new List<BTL_Web.Models.LopHoc>();
 }
 
 <div class="page-header">
     <div>
-        <h2>My Classes</h2>
-        <p>All classes you are currently enrolled in</p>
+        <h2>Lớp của tôi</h2>
+        <p>Tất cả các lớp bạn đang theo học</p>
     </div>
     <div class="page-actions">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="card-plain" style="padding:16px;text-align:center;">
                 <div class="stat-value" style="font-size:20px;">@classList.Count</div>
-                <div class="stat-label">Classes</div>
+                <div class="stat-label">Lớp học</div>
             </div>
             <div class="card-plain" style="padding:16px;text-align:center;">
                 <div class="stat-value" style="font-size:20px;">@classList.Sum(l => l.MaHocViens.Count)</div>
-                <div class="stat-label">Classmates</div>
+                <div class="stat-label">Bạn cùng lớp</div>
             </div>
         </div>
     </div>
@@ -32,28 +32,28 @@
     <div class="card-plain" style="padding:0;margin-bottom:24px;display:grid;grid-template-columns:1fr 1fr;overflow:hidden;">
         <div style="padding:32px;border-left:6px solid var(--primary);">
             <div style="display:flex;gap:8px;margin-bottom:16px;">
-                <span class="chip chip-green">Active</span>
-                <span id="featuredCourse" class="chip chip-blue">@(featured.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</span>
+                <span class="chip chip-green">Đang hoạt động</span>
+                <span id="featuredCourse" class="chip chip-blue">@(featured.MaKhoaHocNavigation?.TenKhoaHoc ?? "Chưa xác định")</span>
             </div>
             <h3 id="featuredTitle" style="font-size:22px;margin-bottom:8px;">@(featured.TenLop ?? featured.MaLop)</h3>
-            <p class="text-muted" style="margin-bottom:20px;font-size:14px;">Advanced course with focus on structural analysis and professional communication.</p>
+            <p class="text-muted" style="margin-bottom:20px;font-size:14px;">Khóa học nâng cao tập trung vào phân tích cấu trúc và giao tiếp chuyên nghiệp.</p>
             <div style="display:flex;gap:24px;margin-bottom:20px;">
                 <div>
-                    <div class="stat-label">Teacher</div>
+                    <div class="stat-label">Giáo viên</div>
                     <div id="featuredTeacher" class="user-name" style="font-size:14px;">@(featured.MaGvNavigation?.Ten ?? "—")</div>
                 </div>
                 <div>
-                    <div class="stat-label">Room</div>
-                    <div id="featuredRoom" class="user-name" style="font-size:14px;">@(featured.MaPhongNavigation?.TenPhong ?? "TBD")</div>
+                    <div class="stat-label">Phòng</div>
+                    <div id="featuredRoom" class="user-name" style="font-size:14px;">@(featured.MaPhongNavigation?.TenPhong ?? "Chưa xác định")</div>
                 </div>
                 <div>
-                    <div class="stat-label">Students</div>
+                    <div class="stat-label">Học viên</div>
                     <div id="featuredStudents" class="user-name" style="font-size:14px;">@featured.MaHocViens.Count</div>
                 </div>
             </div>
             <div style="display:flex;gap:8px;">
-                <a href="/Student/Schedule" class="btn-primary btn-sm"><i class="fas fa-calendar"></i> View Schedule</a>
-                <a href="/Student/Results" class="btn-outline btn-sm"><i class="fas fa-poll-h"></i> My Results</a>
+                <a href="/Student/Schedule" class="btn-primary btn-sm"><i class="fas fa-calendar"></i> Xem lịch học</a>
+                <a href="/Student/Results" class="btn-outline btn-sm"><i class="fas fa-poll-h"></i> Kết quả của tôi</a>
             </div>
         </div>
         <div style="background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
@@ -65,23 +65,32 @@
 <!-- All Classes -->
 <div class="card-plain" style="padding:0;margin-bottom:24px;">
     <div class="card-header-plain">
-        <h5>All My Classes</h5>
+        <h5>Tất cả lớp của tôi</h5>
         <div style="display:flex;gap:8px;">
-            <button class="filter-btn active">All</button>
-            <button class="filter-btn">Active</button>
-            <button class="filter-btn">Completed</button>
+            <button class="filter-btn active">Tất cả</button>
+            <button class="filter-btn">Đang hoạt động</button>
+            <button class="filter-btn">Đã hoàn thành</button>
+        </div>
+    </div>
+    <div style="padding:12px 16px;border-bottom:1px solid var(--surface-low);background:var(--surface);">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Bộ lọc nhanh</label>
+                <input id="studentClassFilterInput" type="text" class="form-control" placeholder="Lọc theo lớp, khóa học, giáo viên, phòng..." oninput="applyStudentClassFilters()">
+            </div>
+            <button type="button" class="btn-outline" onclick="clearStudentClassFilter()">Xóa lọc</button>
         </div>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Class</th>
-                <th>Course</th>
-                <th>Teacher</th>
-                <th>Room</th>
-                <th>Classmates</th>
-                <th>Status</th>
-                <th style="text-align:right;">Feature</th>
+                <th>Lớp</th>
+                <th>Khóa học</th>
+                <th>Giáo viên</th>
+                <th>Phòng</th>
+                <th>Bạn cùng lớp</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Xem nhanh</th>
             </tr>
         </thead>
         <tbody>
@@ -90,7 +99,7 @@
                 @for (int i = 0; i < classList.Count; i++)
                 {
                     var lop = classList[i];
-                    <tr>
+                    <tr class="student-class-row" data-students="@lop.MaHocViens.Count">
                         <td>
                             <div class="user-name">@(lop.TenLop ?? lop.MaLop)</div>
                             <div class="user-sub">@lop.MaLop</div>
@@ -104,16 +113,16 @@
                         </td>
                         <td class="user-sub">@(lop.MaPhongNavigation?.TenPhong ?? "—")</td>
                         <td><span class="chip chip-blue">@lop.MaHocViens.Count</span></td>
-                        <td><span class="chip chip-green">Active</span></td>
+                        <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
                             <button type="button"
                                     class="btn-outline btn-sm feature-btn"
                                     data-title="@(lop.TenLop ?? lop.MaLop)"
                                     data-course="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")"
                                     data-teacher="@(lop.MaGvNavigation?.Ten ?? "—")"
-                                    data-room="@(lop.MaPhongNavigation?.TenPhong ?? "TBD")"
+                                    data-room="@(lop.MaPhongNavigation?.TenPhong ?? "Chưa xác định")"
                                     data-students="@lop.MaHocViens.Count">
-                                Show
+                                Xem
                             </button>
                         </td>
                     </tr>
@@ -121,8 +130,9 @@
             }
             else
             {
-                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-graduation-cap"></i><p>No classes enrolled</p></div></td></tr>
+                <tr><td colspan="7"><div class="empty-state"><i class="fas fa-graduation-cap"></i><p>Chưa có lớp nào được ghi danh</p></div></td></tr>
             }
+            <tr id="studentClassFilterEmptyRow" style="display:none;"><td colspan="7"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có lớp nào khớp với bộ lọc hiện tại</p></div></td></tr>
         </tbody>
     </table>
 </div>
@@ -131,20 +141,20 @@
 <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;">
     <div class="card-plain" style="padding:32px;background:linear-gradient(135deg,rgba(43,84,191,0.05),rgba(73,110,218,0.1));border:1px solid rgba(43,84,191,0.15);">
         <div style="font-size:40px;color:rgba(43,84,191,0.3);margin-bottom:12px;"><i class="fas fa-trophy"></i></div>
-        <h4 style="margin-bottom:8px;">Academic Achievement</h4>
-        <p class="text-muted small" style="margin-bottom:16px;">You are 15 points away from the 'Platinum Scholar' badge. Complete the Literature Review by Friday!</p>
+        <h4 style="margin-bottom:8px;">Thành tích học tập</h4>
+        <p class="text-muted small" style="margin-bottom:16px;">Bạn còn 15 điểm nữa là đạt huy hiệu 'Platinum Scholar'. Hãy hoàn thành bài Literature Review trước thứ Sáu!</p>
         <div class="progress-bar-wrap" style="margin-bottom:8px;"><div class="progress-bar-fill" style="width:85%;"></div></div>
-        <span class="smaller text-muted">85% to next milestone</span>
+        <span class="smaller text-muted">85% đến mốc tiếp theo</span>
     </div>
 
     <div class="card-plain" style="padding:32px;">
         <div class="section-heading">
-            <h4>Attendance Overview</h4>
+            <h4>Tổng quan chuyên cần</h4>
         </div>
         <div style="display:flex;align-items:flex-end;gap:8px;height:120px;margin-top:16px;">
             @{
                 var bars = new[] { 90, 85, 95, 88, 100, 92 };
-                var months = new[] { "Jan", "Feb", "Mar", "Apr", "May", "Jun" };
+                var months = new[] { "T1", "T2", "T3", "T4", "T5", "T6" };
             }
             @for (int i = 0; i < bars.Length; i++)
             {
@@ -160,16 +170,56 @@
 @section Scripts {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    let studentClassStatus = 'all';
     const featuredTitle = document.getElementById('featuredTitle');
     const featuredCourse = document.getElementById('featuredCourse');
     const featuredTeacher = document.getElementById('featuredTeacher');
     const featuredRoom = document.getElementById('featuredRoom');
     const featuredStudents = document.getElementById('featuredStudents');
 
+    window.applyStudentClassFilters = function () {
+        const query = (document.getElementById('studentClassFilterInput')?.value || '').trim().toLowerCase();
+        const rows = document.querySelectorAll('.student-class-row');
+        let visible = 0;
+
+        rows.forEach(row => {
+            const students = Number(row.getAttribute('data-students') || '0');
+            let statusMatch = true;
+            if (studentClassStatus === 'active') statusMatch = students > 0;
+            if (studentClassStatus === 'completed') statusMatch = students === 0;
+
+            const text = (row.textContent || '').toLowerCase();
+            const queryMatch = !query || text.includes(query);
+            const show = statusMatch && queryMatch;
+            row.style.display = show ? '' : 'none';
+            if (show) visible++;
+        });
+
+        const emptyRow = document.getElementById('studentClassFilterEmptyRow');
+        if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+    };
+
+    window.clearStudentClassFilter = function () {
+        const input = document.getElementById('studentClassFilterInput');
+        if (input) input.value = '';
+        studentClassStatus = 'all';
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        const allBtn = document.querySelector('.filter-btn');
+        if (allBtn) allBtn.classList.add('active');
+        window.applyStudentClassFilters();
+    };
+
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             this.classList.add('active');
+
+            const text = (this.textContent || '').trim().toLowerCase();
+            if (text.includes('all')) studentClassStatus = 'all';
+            else if (text.includes('active')) studentClassStatus = 'active';
+            else studentClassStatus = 'completed';
+
+            window.applyStudentClassFilters();
         });
     });
 

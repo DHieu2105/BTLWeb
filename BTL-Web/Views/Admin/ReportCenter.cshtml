@@ -1,0 +1,44 @@
+@{
+    ViewData["Title"] = "Trung tâm báo cáo";
+}
+
+<div class="page-header">
+    <div>
+        <h2>Trung tâm báo cáo</h2>
+        <p>Tổng hợp nhanh các báo cáo và thống kê dành cho quản trị viên</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:20px;">
+    <a href="/Admin/RevenueReport" class="card-plain" style="display:block;padding:24px;text-decoration:none;color:inherit;border-left:4px solid #0ea5e9;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div class="stat-icon blue"><i class="fas fa-sack-dollar"></i></div>
+            <h5 style="margin:0;">Doanh thu học phí</h5>
+        </div>
+        <p class="small text-muted" style="margin:0;">Theo dõi tổng doanh thu từ đăng ký khóa học trong toàn hệ thống.</p>
+    </a>
+
+    <a href="/Admin/LopHoc" class="card-plain" style="display:block;padding:24px;text-decoration:none;color:inherit;border-left:4px solid #22c55e;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div class="stat-icon teal"><i class="fas fa-school"></i></div>
+            <h5 style="margin:0;">Tình hình lớp học</h5>
+        </div>
+        <p class="small text-muted" style="margin:0;">Xem trạng thái lớp, sĩ số và thông tin quản lý lớp học hiện tại.</p>
+    </a>
+
+    <a href="/Admin/KetQua" class="card-plain" style="display:block;padding:24px;text-decoration:none;color:inherit;border-left:4px solid #f97316;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
+            <h5 style="margin:0;">Kết quả học viên</h5>
+        </div>
+        <p class="small text-muted" style="margin:0;">Theo dõi điểm số, tỉ lệ đạt và hiệu quả học tập của học viên.</p>
+    </a>
+
+    <a href="/Admin/RoomEquipmentAssignment" class="card-plain" style="display:block;padding:24px;text-decoration:none;color:inherit;border-left:4px solid #6366f1;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+            <div class="stat-icon blue"><i class="fas fa-door-closed"></i></div>
+            <h5 style="margin:0;">Sử dụng phòng &amp; thiết bị</h5>
+        </div>
+        <p class="small text-muted" style="margin:0;">Kiểm soát việc gán thiết bị theo phòng và tình trạng sử dụng cơ sở vật chất.</p>
+    </a>
+</div>

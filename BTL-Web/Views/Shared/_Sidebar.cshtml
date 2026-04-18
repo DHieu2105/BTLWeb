@@ -29,206 +29,161 @@
             <i class="fas fa-graduation-cap"></i>
         </div>
         <div class="brand-text">
-            <div class="brand-title">Academic<br>Editorial</div>
-            <div class="brand-subtitle">Management Suite</div>
+            <div class="brand-title">Quản lý<br>học thuật</div>
+            <div class="brand-subtitle">Bộ công cụ trung tâm ngoại ngữ</div>
         </div>
     </div>
 
     <nav class="sidebar-nav">
         @if (navSection == "Admin")
         {
-            <div style="margin:8px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tổng quan</div>
+            <div style="margin:8px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tổng quan hệ thống</div>
             <a href="/Admin/Index" class="nav-item @IsActive("Index","Admin")">
-                <i class="fas fa-chart-line"></i> Dashboard
+                <i class="fas fa-chart-line"></i> Tổng quan hệ thống
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Trung tâm & Cơ sở vật chất</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Trung tâm &amp; Cơ sở vật chất</div>
             <a href="/Admin/TrungTam" class="nav-item @IsActive("TrungTam")">
-                <i class="fas fa-building"></i> Quản lý Trung tâm
+                <i class="fas fa-building"></i> Trung tâm
             </a>
             <a href="/Admin/PhongHoc" class="nav-item @IsActive("PhongHoc")">
-                <i class="fas fa-door-open"></i> Quản lý Phòng học
+                <i class="fas fa-door-open"></i> Phòng học
             </a>
             <a href="/Admin/ThietBi" class="nav-item @IsActive("ThietBi")">
-                <i class="fas fa-laptop"></i> Quản lý Thiết bị
+                <i class="fas fa-laptop"></i> Thiết bị
             </a>
             <a href="/Admin/RoomEquipmentAssignment" class="nav-item @IsActive("RoomEquipmentAssignment")">
-                <i class="fas fa-link"></i> Quản lý Sử dụng thiết bị
+                <i class="fas fa-link"></i> Phân bổ thiết bị phòng
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Nhân sự</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Nhân sự</div>
             <a href="/Admin/NhanVien" class="nav-item @IsActive("NhanVien")">
-                <i class="fas fa-user-tie"></i> Quản lý Nhân viên
+                <i class="fas fa-user-tie"></i> Nhân viên
             </a>
             <a href="/Admin/GiaoVien" class="nav-item @IsActive("GiaoVien")">
-                <i class="fas fa-chalkboard-teacher"></i> Quản lý Giáo viên
+                <i class="fas fa-chalkboard-teacher"></i> Giáo viên
             </a>
             <a href="/Admin/StaffTeacherAssignment" class="nav-item @IsActive("StaffTeacherAssignment")">
-                <i class="fas fa-people-arrows"></i> Phân công Nhân viên - Giáo viên
+                <i class="fas fa-people-arrows"></i> Phân công nhân viên
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Đào tạo</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Đào tạo</div>
             <a href="/Admin/KhoaHoc" class="nav-item @IsActive("KhoaHoc")">
-                <i class="fas fa-book"></i> Quản lý khóa học
+                <i class="fas fa-book"></i> Khóa học
             </a>
             <a href="/Admin/LopHoc" class="nav-item @IsActive("LopHoc")">
-                <i class="fas fa-graduation-cap"></i> Quản lý lớp học
+                <i class="fas fa-graduation-cap"></i> Lớp học
             </a>
             <a href="/Admin/LichHoc" class="nav-item @IsActive("LichHoc")">
-                <i class="far fa-calendar-alt"></i> Quản lý Lịch học
+                <i class="far fa-calendar-alt"></i> Lịch học
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Học viên</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Học viên</div>
             <a href="/Admin/HocVien" class="nav-item @IsActive("HocVien")">
-                <i class="fas fa-user-graduate"></i> Danh sách Học viên
-            </a>
-            <a href="/Admin/LopHoc" class="nav-item @IsActive("LopHoc")">
-                <i class="fas fa-file-signature"></i> Quản lý đăng ký lớp học
-            </a>
-            <a href="/Admin/LopHoc" class="nav-item @IsActive("LopHoc")">
-                <i class="fas fa-users"></i> Quản lý Tham gia lớp
+                <i class="fas fa-user-graduate"></i> Học viên
             </a>
             <a href="/Admin/KetQua" class="nav-item @IsActive("KetQua")">
-                <i class="fas fa-poll-h"></i> Quản lý Kết quả học tập
+                <i class="fas fa-poll-h"></i> Kết quả học tập
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Tài khoản & Bảo mật</div>
-            <a href="/Admin/TaiKhoan" class="nav-item @IsActive("TaiKhoan")">
-                <i class="fas fa-user-shield"></i> Quản lý Tài khoản
-            </a>
-            <a href="/Admin/TaiKhoan" class="nav-item @IsActive("TaiKhoan")">
-                <i class="fas fa-key"></i> Phân quyền & Role
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tài khoản &amp; bảo mật</div>
+            <a href="/Admin/TaiKhoan#account-directory" class="nav-item @IsActive("TaiKhoan")">
+                <i class="fas fa-user-shield"></i> Tài khoản &amp; phân quyền
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Báo cáo & Thống kê</div>
-            <a href="/Admin/KetQua" class="nav-item @IsActive("KetQua")">
-                <i class="fas fa-sack-dollar"></i> Báo cáo doanh thu học phí
-            </a>
-            <a href="/Admin/LopHoc" class="nav-item @IsActive("LopHoc")">
-                <i class="fas fa-school"></i> Báo cáo tình hình lớp học
-            </a>
-            <a href="/Admin/KetQua" class="nav-item @IsActive("KetQua")">
-                <i class="fas fa-chart-line"></i> Báo cáo kết quả học viên
-            </a>
-            <a href="/Admin/RoomEquipmentAssignment" class="nav-item @IsActive("RoomEquipmentAssignment")">
-                <i class="fas fa-door-closed"></i> Báo cáo sử dụng phòng & thiết bị
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Báo cáo &amp; phân tích</div>
+            <a href="/Admin/ReportCenter" class="nav-item @IsActive("ReportCenter")">
+                <i class="fas fa-chart-pie"></i> Trung tâm báo cáo
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Hệ thống</div>
-            <a href="/Admin/TrungTam" class="nav-item @IsActive("TrungTam")">
-                <i class="fas fa-sliders-h"></i> Cài đặt chung
-            </a>
-            <a href="/Admin/Index#audit" class="nav-item @IsActive("Index","Admin")">
-                <i class="fas fa-history"></i> Nhật ký hệ thống
-            </a>
         }
         else if (navSection == "NhanVien")
         {
             <div style="margin:8px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tổng quan</div>
             <a href="/Staff/Index" class="nav-item @IsActive("Index","Staff")">
-                <i class="fas fa-home"></i> Dashboard
+                <i class="fas fa-home"></i> Bảng điều khiển
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Học viên</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý học viên</div>
             <a href="/Staff/StudentManagement" class="nav-item @IsActive("StudentManagement")">
-                <i class="fas fa-users"></i> Danh sách Học viên
-            </a>
-            <a href="/Staff/ClassManagement" class="nav-item @IsActive("ClassManagement")">
-                <i class="fas fa-file-signature"></i> Quản lý đăng ký lớp học
-            </a>
-            <a href="/Staff/StudentManagement" class="nav-item @IsActive("StudentManagement")">
-                <i class="fas fa-user-edit"></i> Cập nhật thông tin học viên
+                <i class="fas fa-users"></i> Danh sách học viên
             </a>
             <a href="/Staff/ResultManagement" class="nav-item @IsActive("ResultManagement")">
                 <i class="fas fa-poll"></i> Xem kết quả học tập
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Lớp học & Đăng ký</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý lớp học &amp; đăng ký</div>
             <a href="/Staff/ClassManagement" class="nav-item @IsActive("ClassManagement")">
-                <i class="fas fa-chalkboard"></i> Xem danh sách Lớp học
+                <i class="fas fa-chalkboard"></i> Xem danh sách lớp học
             </a>
             <a href="/Staff/ScheduleManagement" class="nav-item @IsActive("ScheduleManagement")">
                 <i class="fas fa-clock"></i> Xem lịch học
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Giáo viên & Phân công</div>
-            <a href="/Admin/GiaoVien" class="nav-item @IsActive("GiaoVien","Admin")">
-                <i class="fas fa-chalkboard-teacher"></i> Xem danh sách Giáo viên
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý giáo viên &amp; phân công</div>
+            <a href="/Staff/TeacherManagement" class="nav-item @IsActive("TeacherManagement","Staff")">
+                <i class="fas fa-chalkboard-teacher"></i> Xem danh sách giáo viên
             </a>
-            <a href="/Admin/KhoaHoc" class="nav-item @IsActive("KhoaHoc","Admin")">
-                <i class="fas fa-book"></i> Xem danh sách Khóa học
+            <a href="/Staff/CourseManagement" class="nav-item @IsActive("CourseManagement","Staff")">
+                <i class="fas fa-book"></i> Xem danh sách khóa học
             </a>
-            <a href="/Admin/StaffTeacherAssignment" class="nav-item @IsActive("StaffTeacherAssignment","Admin")">
+            <a href="/Staff/StaffTeacherAssignment" class="nav-item @IsActive("StaffTeacherAssignment","Staff")">
                 <i class="fas fa-people-arrows"></i> Xem phân công
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Báo cáo cá nhân</div>
-            <a href="/Staff/StudentManagement#mine" class="nav-item @IsActive("StudentManagement")">
-                <i class="fas fa-user-friends"></i> Học viên do mình đăng ký
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Báo cáo</div>
+            <a href="/Staff/StudentReport" class="nav-item @IsActive("StudentReport","Staff")">
+                <i class="fas fa-user-friends"></i> Thống kê học viên
             </a>
-            <a href="/Staff/CourseManagement" class="nav-item @IsActive("CourseManagement")">
-                <i class="fas fa-chart-bar"></i> Doanh thu từ học viên tư vấn
+            <a href="/Staff/RevenueReport" class="nav-item @IsActive("RevenueReport","Staff")">
+                <i class="fas fa-chart-bar"></i> Báo cáo doanh thu
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tài khoản cá nhân</div>
-            <a href="/Auth/Profile" class="nav-item @IsActive("Profile","Auth")">
-                <i class="fas fa-user-circle"></i> Đổi mật khẩu / thông tin cá nhân
-            </a>
         }
         else if (navSection == "GiaoVien")
         {
             <div style="margin:8px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tổng quan</div>
             <a href="/Teacher/Index" class="nav-item @IsActive("Index","Teacher")">
-                <i class="fas fa-th-large"></i> Dashboard
+                <i class="fas fa-th-large"></i> Bảng điều khiển
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Lớp học của tôi</div>
             <a href="/Teacher/MyClasses" class="nav-item @IsActive("MyClasses")">
-                <i class="fas fa-list-ul"></i> Danh sách Lớp học đang dạy
-            </a>
-            <a href="/Teacher/StudentList" class="nav-item @IsActive("StudentList")">
-                <i class="fas fa-users"></i> Danh sách Học viên trong lớp
+                <i class="fas fa-list-ul"></i> Danh sách lớp học đang dạy
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý Học viên</div>
+            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Quản lý học viên</div>
             <a href="/Teacher/StudentList" class="nav-item @IsActive("StudentList")">
-                <i class="fas fa-user-check"></i> Danh sách Học viên mình giảng dạy
+                <i class="fas fa-user-check"></i> Danh sách học viên mình giảng dạy
             </a>
             <a href="/Teacher/ScoreManagement" class="nav-item @IsActive("ScoreManagement")">
-                <i class="fas fa-pen"></i> Nhập / Sửa điểm
+                <i class="fas fa-pen"></i> Nhập / sửa điểm
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Lịch giảng dạy</div>
             <a href="/Teacher/Schedule" class="nav-item @IsActive("Schedule")">
-                <i class="fas fa-calendar-check"></i> Xem lịch học
+                <i class="fas fa-calendar-check"></i> Xem lịch giảng dạy
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Khóa học</div>
-            <a href="/Admin/MyTeachingCourses" class="nav-item @IsActive("MyTeachingCourses","Admin")">
-                <i class="fas fa-book-open"></i> Khóa học phụ trách
+            <a href="/Teacher/MyCourses" class="nav-item @IsActive("MyCourses","Teacher")">
+                <i class="fas fa-book-open"></i> Khóa học đang phụ trách
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tài khoản cá nhân</div>
-            <a href="/Admin/MyTeacherProfile" class="nav-item @IsActive("MyTeacherProfile","Admin")">
-                <i class="fas fa-user-circle"></i> Thông tin giáo viên của tôi
-            </a>
-            <a href="/Auth/Profile" class="nav-item @IsActive("Profile","Auth")">
-                <i class="fas fa-key"></i> Đổi mật khẩu
-            </a>
         }
         else if (navSection == "HocVien")
         {
             <div style="margin:8px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tổng quan</div>
             <a href="/Student/Index" class="nav-item @IsActive("Index","Student")">
-                <i class="fas fa-home"></i> Dashboard
+                <i class="fas fa-home"></i> Bảng điều khiển
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Khóa học của tôi</div>
             <a href="/Student/MyCourses" class="nav-item @IsActive("MyCourses")">
-                <i class="fas fa-certificate"></i> Danh sách Khóa học đã đăng ký
+                <i class="fas fa-certificate"></i> Danh sách khóa học đã đăng ký
             </a>
             <a href="/Student/MyClasses" class="nav-item @IsActive("MyClasses")">
-                <i class="fas fa-university"></i> Danh sách Lớp đang tham gia
+                <i class="fas fa-university"></i> Danh sách lớp đang tham gia
             </a>
 
             <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Lịch học</div>
@@ -241,30 +196,18 @@
                 <i class="fas fa-star"></i> Kết quả học tập
             </a>
 
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Thông tin cá nhân</div>
-            <a href="/Auth/Profile" class="nav-item @IsActive("Profile","Auth")">
-                <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
-            </a>
-
-            <div style="margin:10px 12px 6px;color:rgba(255,255,255,0.55);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;">Tài khoản</div>
-            <a href="/Auth/Profile#register" class="nav-item @IsActive("Profile","Auth")">
-                <i class="fas fa-file-signature"></i> Đăng ký khóa học mới
-            </a>
-            <a href="/Auth/Profile#security" class="nav-item @IsActive("Profile","Auth")">
-                <i class="fas fa-key"></i> Đổi mật khẩu
-            </a>
         }
     </nav>
 
     <div class="sidebar-footer">
         <div class="sidebar-footer-links">
             <a href="/Auth/Profile" class="sidebar-footer-link">
-                <i class="fas fa-user-circle"></i> My Profile
+                <i class="fas fa-user-circle"></i> Hồ sơ cá nhân
             </a>
             <form method="post" action="/Auth/Logout" style="margin:0">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="sidebar-footer-link" style="width:100%;border:none;background:none;text-align:left;cursor:pointer;">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                    <i class="fas fa-sign-out-alt"></i> Đăng xuất
                 </button>
             </form>
         </div>

@@ -1,48 +1,48 @@
 @model IEnumerable<BTL_Web.Models.KetQua>
 @{
-    ViewData["Title"] = "My Results";
+    ViewData["Title"] = "Kết quả của tôi";
     var avgScore = Model?.Any() == true ? Model.Average(k => k.DiemTong ?? 0) : 0;
     var passRate = Model?.Any() == true ? (double)Model.Count(k => (k.DiemTong ?? 0) >= 60) / Model.Count() * 100 : 0;
 }
 
 <div class="page-header">
     <div>
-        <h2>My Results</h2>
-        <p>Your assessment results and academic performance</p>
+        <h2>Kết quả của tôi</h2>
+        <p>Kết quả đánh giá và hiệu quả học tập của bạn</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-download"></i> Export</button>
+        <button class="btn-outline"><i class="fas fa-download"></i> Xuất file</button>
     </div>
 </div>
 
 <!-- Hero Stats -->
 <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:24px;margin-bottom:24px;">
     <div class="card-plain" style="padding:32px;background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));color:white;position:relative;overflow:hidden;">
-        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:8px;">Academic Performance</div>
+        <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:8px;">Hiệu quả học tập</div>
         <h3 style="font-size:24px;font-weight:800;color:white;margin-bottom:16px;">
-            @(avgScore >= 90 ? "Exceptional Progress" : avgScore >= 75 ? "Good Progress" : "Keep Going!")
+            @(avgScore >= 90 ? "Tiến bộ xuất sắc" : avgScore >= 75 ? "Tiến bộ tốt" : "Tiếp tục cố gắng!")
         </h3>
         <div style="display:flex;gap:32px;">
             <div>
                 <div style="font-size:28px;font-weight:800;color:white;">@(Model?.Count() ?? 0)</div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.6);">Exams Taken</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.6);">Số bài thi đã làm</div>
             </div>
             <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
             <div>
                 <div style="font-size:28px;font-weight:800;color:white;">@passRate.ToString("F0")%</div>
-                <div style="font-size:12px;color:rgba(255,255,255,0.6);">Pass Rate</div>
+                <div style="font-size:12px;color:rgba(255,255,255,0.6);">Tỷ lệ đạt</div>
             </div>
         </div>
         <div style="position:absolute;right:-20px;bottom:-20px;width:120px;height:120px;background:rgba(255,255,255,0.05);border-radius:50%;"></div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-star"></i></div></div>
-        <div class="stat-label">Avg. Score</div>
+        <div class="stat-label">Điểm trung bình</div>
         <div class="stat-value">@avgScore.ToString("F1")</div>
     </div>
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-trophy"></i></div></div>
-        <div class="stat-label">Pass Rate</div>
+        <div class="stat-label">Tỷ lệ đạt</div>
         <div class="stat-value">@passRate.ToString("F0")%</div>
     </div>
 </div>
@@ -52,16 +52,16 @@
     <div style="display:flex;flex-direction:column;gap:24px;">
         <div class="card-plain" style="padding:0;">
             <div class="card-header-plain">
-                <h5>Assessment Results</h5>
+                <h5>Kết quả đánh giá</h5>
             </div>
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Course</th>
-                        <th>Listening</th>
-                        <th>Reading</th>
-                        <th>Total</th>
-                        <th>Status</th>
+                        <th>Khóa học</th>
+                        <th>Nghe</th>
+                        <th>Đọc</th>
+                        <th>Tổng</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,13 +84,13 @@
                                         <div class="progress-bar-fill" style="width:@(Math.Min(total, 100))%;"></div>
                                     </div>
                                 </td>
-                                <td><span class="chip @chipClass">@(total >= 60 ? "Passed" : "Failed")</span></td>
+                                <td><span class="chip @chipClass">@(total >= 60 ? "Đạt" : "Không đạt")</span></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="5"><div class="empty-state"><i class="fas fa-poll-h"></i><p>No results yet</p></div></td></tr>
+                        <tr><td colspan="5"><div class="empty-state"><i class="fas fa-poll-h"></i><p>Chưa có kết quả nào</p></div></td></tr>
                     }
                 </tbody>
             </table>
@@ -98,26 +98,26 @@
 
         <!-- Teacher Feedback -->
         <div class="card-plain" style="padding:32px;">
-            <h5 style="margin-bottom:20px;"><i class="fas fa-comment-alt" style="color:var(--primary);margin-right:8px;"></i>Teacher Feedback</h5>
+            <h5 style="margin-bottom:20px;"><i class="fas fa-comment-alt" style="color:var(--primary);margin-right:8px;"></i>Nhận xét của giáo viên</h5>
             <div style="padding:20px;background:var(--surface-low);border-radius:8px;border-left:3px solid var(--primary);margin-bottom:12px;">
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
                     <div class="avatar avatar-sm">EV</div>
                     <div>
                         <div class="user-name">Prof. Elena Vance</div>
-                        <span class="chip chip-blue" style="font-size:10px;">2 days ago</span>
+                        <span class="chip chip-blue" style="font-size:10px;">2 ngày trước</span>
                     </div>
                 </div>
-                <p class="small text-muted">"Excellent progress in academic writing. Your structural analysis has improved significantly. Keep focusing on citation formats."</p>
+                <p class="small text-muted">"Tiến bộ rất tốt trong kỹ năng viết học thuật. Phân tích cấu trúc của bạn đã cải thiện rõ rệt. Hãy tiếp tục chú ý đến định dạng trích dẫn."</p>
             </div>
             <div style="padding:20px;background:var(--surface-low);border-radius:8px;border-left:3px solid #0891b2;">
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
                     <div class="avatar avatar-sm">MT</div>
                     <div>
                         <div class="user-name">Dr. Marcus Thorne</div>
-                        <span class="chip chip-gray" style="font-size:10px;">1 week ago</span>
+                        <span class="chip chip-gray" style="font-size:10px;">1 tuần trước</span>
                     </div>
                 </div>
-                <p class="small text-muted">"The GRE sessions were intense but highly effective. Your verbal score increased by 12 points."</p>
+                <p class="small text-muted">"Các buổi GRE khá căng nhưng rất hiệu quả. Điểm phần ngôn ngữ của bạn đã tăng 12 điểm."</p>
             </div>
         </div>
     </div>
@@ -126,7 +126,7 @@
     <div style="display:flex;flex-direction:column;gap:16px;">
         <!-- Subject Mastery -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:20px;">Subject Mastery</h5>
+            <h5 style="margin-bottom:20px;">Mức độ thành thạo môn học</h5>
             <div style="display:flex;flex-direction:column;gap:14px;">
                 <div>
                     <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
@@ -153,47 +153,47 @@
                     <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:82%;"></div></div>
                 </div>
             </div>
-            <a href="/Student/ExportResults" class="btn-outline" style="width:100%;justify-content:center;margin-top:20px;">
-                Download Report <i class="fas fa-arrow-right" style="font-size:10px;margin-left:4px;"></i>
+                <a href="/Student/ExportResults" class="btn-outline" style="width:100%;justify-content:center;margin-top:20px;">
+                Tải báo cáo <i class="fas fa-arrow-right" style="font-size:10px;margin-left:4px;"></i>
             </a>
         </div>
 
         <!-- Milestone Alert -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:12px;">Milestone Alert</h5>
-            <p class="small text-muted" style="margin-bottom:16px;">You are 15 points away from the 'Platinum Scholar' badge. Complete the Literature Review by Friday!</p>
+            <h5 style="margin-bottom:12px;">Thông báo mốc thành tích</h5>
+            <p class="small text-muted" style="margin-bottom:16px;">Bạn còn 15 điểm nữa là đạt huy hiệu 'Platinum Scholar'. Hãy hoàn thành bài Literature Review trước thứ Sáu!</p>
             <div style="padding:12px;background:rgba(219,225,255,0.2);border-radius:8px;display:flex;gap:12px;align-items:center;">
                 <div class="activity-icon blue"><i class="fas fa-medal"></i></div>
                 <div>
                     <div class="user-name">Platinum Scholar</div>
-                    <div class="user-sub">85% complete</div>
+                    <div class="user-sub">Hoàn thành 85%</div>
                 </div>
             </div>
         </div>
 
         <!-- Upcoming Exams -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;">Upcoming Exams</h5>
+            <h5 style="margin-bottom:16px;">Bài kiểm tra sắp tới</h5>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <div style="padding:12px;background:var(--surface-low);border-radius:8px;display:flex;gap:10px;align-items:center;">
                     <div class="activity-icon blue" style="width:36px;height:36px;"><i class="fas fa-file-alt" style="font-size:12px;"></i></div>
                     <div>
-                        <div class="user-name" style="font-size:13px;">Midterm Review</div>
-                        <div class="user-sub">English 101 • Tomorrow</div>
+                        <div class="user-name" style="font-size:13px;">Ôn tập giữa kỳ</div>
+                        <div class="user-sub">English 101 • Ngày mai</div>
                     </div>
                 </div>
                 <div style="padding:12px;background:var(--surface-low);border-radius:8px;display:flex;gap:10px;align-items:center;">
                     <div class="activity-icon orange" style="width:36px;height:36px;"><i class="fas fa-pen" style="font-size:12px;"></i></div>
                     <div>
-                        <div class="user-name" style="font-size:13px;">Essay Submission</div>
-                        <div class="user-sub">Business Comm • Oct 14</div>
+                        <div class="user-name" style="font-size:13px;">Nộp bài luận</div>
+                        <div class="user-sub">Business Comm • 14/10</div>
                     </div>
                 </div>
                 <div style="padding:12px;background:var(--surface-low);border-radius:8px;display:flex;gap:10px;align-items:center;">
                     <div class="activity-icon purple" style="width:36px;height:36px;"><i class="fas fa-microphone" style="font-size:12px;"></i></div>
                     <div>
-                        <div class="user-name" style="font-size:13px;">Oral Presentation</div>
-                        <div class="user-sub">IELTS Speaking • Oct 15</div>
+                        <div class="user-name" style="font-size:13px;">Thuyết trình miệng</div>
+                        <div class="user-sub">IELTS Speaking • 15/10</div>
                     </div>
                 </div>
             </div>

@@ -1,16 +1,16 @@
 @model BTL_Web.Models.LopHoc
 @{
-    ViewData["Title"] = "Class Detail";
+    ViewData["Title"] = "Chi tiết lớp học";
     var allClasses = ViewBag.AllClasses as IEnumerable<BTL_Web.Models.LopHoc> ?? new List<BTL_Web.Models.LopHoc>();
 }
 
 <div class="page-header">
     <div>
-        <h2>Class Detail</h2>
-        <p>Overview and enrolled students for this class</p>
+        <h2>Chi tiết lớp học</h2>
+        <p>Tổng quan và danh sách học viên của lớp này</p>
     </div>
     <div class="page-actions">
-        <a href="/Staff/ClassManagement" class="btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+        <a href="/Staff/ClassManagement" class="btn-outline"><i class="fas fa-arrow-left"></i> Quay lại</a>
     </div>
 </div>
 
@@ -26,38 +26,38 @@
 @if (Model == null)
 {
     <div class="card-plain" style="padding:32px;">
-        <div class="empty-state"><i class="fas fa-chalkboard"></i><p>Class not found</p></div>
+        <div class="empty-state"><i class="fas fa-chalkboard"></i><p>Không tìm thấy lớp học</p></div>
     </div>
 }
 else
 {
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Class</div>
+            <div class="stat-label">Lớp học</div>
             <div class="stat-value" style="font-size:24px;">@(Model.TenLop ?? Model.MaLop)</div>
         </div>
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Course</div>
+            <div class="stat-label">Khóa học</div>
             <div class="stat-value" style="font-size:18px;">@(Model.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</div>
         </div>
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Students</div>
+            <div class="stat-label">Học viên</div>
             <div class="stat-value" style="font-size:24px;">@(Model.MaHocViens?.Count ?? 0)</div>
         </div>
     </div>
 
     <div class="card-plain" style="padding:0;">
         <div class="card-header-plain">
-            <h5>Student Roster</h5>
-            <a href="/Staff/AddStudentToClass" class="btn-outline btn-sm"><i class="fas fa-user-plus"></i> Add Student</a>
+            <h5>Danh sách học viên</h5>
+            <a href="/Staff/AddStudentToClass" class="btn-outline btn-sm"><i class="fas fa-user-plus"></i> Thêm học viên</a>
         </div>
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Phone</th>
-                    <th>Gender</th>
-                    <th style="text-align:right;">Actions</th>
+                    <th>Học viên</th>
+                    <th>Số điện thoại</th>
+                    <th>Giới tính</th>
+                    <th style="text-align:right;">Thao tác</th>
                 </tr>
             </thead>
             <tbody>
@@ -74,7 +74,7 @@ else
                             <td>@(sv.GioiTinh ?? "—")</td>
                             <td style="text-align:right;">
                                 <div style="display:flex;gap:6px;justify-content:flex-end;">
-                                    <button type="button" class="btn-icon btn-outline btn-sm" title="Transfer class"
+                                    <button type="button" class="btn-icon btn-outline btn-sm" title="Chuyển lớp"
                                             onclick="openTransferModal('@sv.MaHocVien', '@Html.Raw((sv.HoVaTen ?? sv.MaHocVien).Replace("'", "\\'"))')">
                                         <i class="fas fa-right-left"></i>
                                     </button>
@@ -82,7 +82,7 @@ else
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="maLop" value="@Model.MaLop" />
                                         <input type="hidden" name="maHocVien" value="@sv.MaHocVien" />
-                                        <button type="submit" class="btn-icon btn-outline btn-sm" title="Remove from class">
+                                        <button type="submit" class="btn-icon btn-outline btn-sm" title="Xóa khỏi lớp">
                                             <i class="fas fa-times" style="color:#ef4444;"></i>
                                         </button>
                                     </form>
@@ -93,7 +93,7 @@ else
                 }
                 else
                 {
-                    <tr><td colspan="4"><div class="empty-state"><i class="fas fa-users"></i><p>No students enrolled</p></div></td></tr>
+                    <tr><td colspan="4"><div class="empty-state"><i class="fas fa-users"></i><p>Chưa có học viên nào</p></div></td></tr>
                 }
             </tbody>
         </table>
@@ -102,14 +102,14 @@ else
 
 <div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2100;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:28px;width:520px;max-width:92vw;">
-        <h4 style="margin-bottom:18px;">Transfer Student To Another Class</h4>
+        <h4 style="margin-bottom:18px;">Chuyển học viên sang lớp khác</h4>
         <div class="small" id="transferStudentLabel" style="margin-bottom:16px;color:rgba(0,0,0,0.65);"></div>
         <form method="post" action="/Staff/UpdateStudentClass">
             @Html.AntiForgeryToken()
             <input type="hidden" name="oldMaLop" value="@(Model?.MaLop)">
             <input type="hidden" name="maHocVien" id="transferStudentId">
             <div class="form-group">
-                <label class="form-label">Target class</label>
+                <label class="form-label">Lớp đích</label>
                 <select name="newMaLop" class="form-control form-select" required>
                     @foreach (var lop in allClasses.Where(c => c.MaLop != Model?.MaLop))
                     {
@@ -118,8 +118,8 @@ else
                 </select>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('transferModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Transfer</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('transferModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Chuyển lớp</button>
             </div>
         </form>
     </div>

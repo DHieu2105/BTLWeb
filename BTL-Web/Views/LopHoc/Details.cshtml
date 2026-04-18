@@ -4,24 +4,24 @@
 	ViewData["Title"] = "Chi tiet lop hoc";
 }
 
-<h1>Chi tiet lop hoc</h1>
+<h1>Chi tiết lớp học</h1>
 
 <dl class="row">
-	<dt class="col-sm-3">Ma lop</dt>
+	<dt class="col-sm-3">Mã lớp</dt>
 	<dd class="col-sm-9">@Model.MaLop</dd>
 
-	<dt class="col-sm-3">Ten lop</dt>
+	<dt class="col-sm-3">Tên lớp</dt>
 	<dd class="col-sm-9">@Model.TenLop</dd>
 
-	<dt class="col-sm-3">Giao vien</dt>
+	<dt class="col-sm-3">Giáo viên</dt>
 	<dd class="col-sm-9">@Model.MaGvNavigation?.Ten (@Model.MaGv)</dd>
 
-	<dt class="col-sm-3">Khoa hoc</dt>
+	<dt class="col-sm-3">Khóa học</dt>
 	<dd class="col-sm-9">@Model.MaKhoaHocNavigation?.TenKhoaHoc (@Model.MaKhoaHoc)</dd>
 
-	<dt class="col-sm-3">Phong hoc</dt>
+	<dt class="col-sm-3">Phòng học</dt>
 	<dd class="col-sm-9">@Model.MaPhong</dd>
 </dl>
 
-<a asp-action="Edit" asp-route-id="@Model.MaLop" class="btn btn-primary">Sua</a>
-<a asp-action="Index" class="btn btn-secondary">Quay lai</a>
+<a asp-action="Edit" asp-route-id="@Model.MaLop" class="btn btn-primary">Sửa</a>
+<a asp-action="Index" class="btn btn-secondary">Quay lại</a>

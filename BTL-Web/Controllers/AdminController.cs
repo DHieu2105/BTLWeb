@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using BTL_Web.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using BTL_Web.Services;
+using BTL_Web.ViewModels;
 
 namespace BTL_Web.Controllers
 {
@@ -10,7 +12,13 @@ namespace BTL_Web.Controllers
     public class AdminController : Controller
     {
         private readonly TtanContext _db;
-        public AdminController(TtanContext db) => _db = db;
+        private readonly IWebHostEnvironment _environment;
+
+        public AdminController(TtanContext db, IWebHostEnvironment environment)
+        {
+            _db = db;
+            _environment = environment;
+        }
 
         public async Task<IActionResult> Index()
         {
@@ -114,7 +122,10 @@ namespace BTL_Web.Controllers
         }
 
         public async Task<IActionResult> ThietBi()
-            => View(await _db.ThietBis.Include(t => t.MaPhongs).ToListAsync());
+        {
+            ViewBag.PhongHocs = await _db.PhongHocs.AsNoTracking().OrderBy(p => p.TenPhong).ToListAsync();
+            return View(await _db.ThietBis.Include(t => t.MaPhongs).ToListAsync());
+        }
 
         public async Task<IActionResult> TrungTam()
             => View(await _db.TrungTams.ToListAsync());
@@ -131,8 +142,87 @@ namespace BTL_Web.Controllers
                 .ToListAsync());
         }
 
-        public async Task<IActionResult> TaiKhoan()
-            => View(await _db.TaiKhoans.ToListAsync());
+        public async Task<IActionResult> TaiKhoan(int page = 1, int pageSize = 10, string? keyword = null, string? role = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _db.TaiKhoans
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var search = keyword.Trim().ToLower();
+                query = query.Where(t =>
+                    t.Username.ToLower().Contains(search) ||
+                    (t.Role != null && t.Role.ToLower().Contains(search)) ||
+                    (t.MaNv != null && t.MaNv.ToLower().Contains(search)) ||
+                    (t.MaGv != null && t.MaGv.ToLower().Contains(search)) ||
+                    (t.MaHocVien != null && t.MaHocVien.ToLower().Contains(search)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(role))
+            {
+                query = query.Where(t => t.Role == role);
+            }
+
+            query = query.OrderBy(t => t.Username);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Keyword = keyword ?? string.Empty;
+            ViewBag.RoleFilter = role ?? string.Empty;
+            ViewBag.AdminCount = await _db.TaiKhoans.CountAsync(x => x.Role == "Admin");
+            ViewBag.StaffCount = await _db.TaiKhoans.CountAsync(x => x.Role == "NhanVien");
+            ViewBag.TeacherCount = await _db.TaiKhoans.CountAsync(x => x.Role == "GiaoVien");
+            ViewBag.StudentCount = await _db.TaiKhoans.CountAsync(x => x.Role == "HocVien");
+
+            return View(items);
+        }
+
+        public async Task<IActionResult> RevenueReport()
+        {
+            var rows = await _db.DangKis
+                .Include(d => d.MaKhoaHocNavigation)
+                .AsNoTracking()
+                .GroupBy(d => new
+                {
+                    d.MaKhoaHoc,
+                    TenKhoaHoc = d.MaKhoaHocNavigation.TenKhoaHoc,
+                    HocPhi = d.MaKhoaHocNavigation.HocPhi ?? 0
+                })
+                .Select(g => new StaffRevenueReportRowViewModel
+                {
+                    MaKhoaHoc = g.Key.MaKhoaHoc,
+                    TenKhoaHoc = g.Key.TenKhoaHoc,
+                    HocPhi = g.Key.HocPhi,
+                    SoDangKy = g.Count(),
+                    SoHocVien = g.Select(x => x.MaHocVien).Distinct().Count(),
+                    TongDoanhThu = g.Count() * g.Key.HocPhi
+                })
+                .OrderByDescending(x => x.TongDoanhThu)
+                .ThenBy(x => x.TenKhoaHoc)
+                .ToListAsync();
+
+            return View(rows);
+        }
+
+        public IActionResult ReportCenter()
+        {
+            return View();
+        }
 
         public async Task<IActionResult> KetQua(int page = 1, int pageSize = 10, int? minScore = null, int? maxScore = null)
         {
@@ -233,7 +323,75 @@ namespace BTL_Web.Controllers
                 .Include(h => h.KetQuas).ThenInclude(k => k.MaKhoaHocNavigation)
                 .Include(h => h.MaLops).ThenInclude(l => l.MaGvNavigation)
                 .FirstOrDefaultAsync(h => h.MaHocVien == id);
+
+            ViewBag.StudentImageUrl = GetStudentImageUrl(id);
             return View(sv);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadStudentImage(string id, IFormFile? image)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["Error"] = "Mã học viên không hợp lệ.";
+                return RedirectToAction(nameof(HocVien));
+            }
+
+            var studentExists = await _db.HocViens.AnyAsync(h => h.MaHocVien == id);
+            if (!studentExists)
+            {
+                TempData["Error"] = "Không tìm thấy học viên.";
+                return RedirectToAction(nameof(HocVien));
+            }
+
+            if (image == null || image.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn ảnh để tải lên.";
+                return RedirectToAction(nameof(StudentDetail), new { id });
+            }
+
+            if (image.Length > 2 * 1024 * 1024)
+            {
+                TempData["Error"] = "Ảnh vượt quá dung lượng 2MB.";
+                return RedirectToAction(nameof(StudentDetail), new { id });
+            }
+
+            var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            if (!allowed.Contains(extension))
+            {
+                TempData["Error"] = "Định dạng ảnh không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG hoặc WEBP.";
+                return RedirectToAction(nameof(StudentDetail), new { id });
+            }
+
+            var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "students");
+            Directory.CreateDirectory(uploadsDir);
+
+            foreach (var ext in allowed)
+            {
+                var oldPath = Path.Combine(uploadsDir, $"{id}{ext}");
+                if (System.IO.File.Exists(oldPath))
+                {
+                    System.IO.File.Delete(oldPath);
+                }
+            }
+
+            var fileName = $"{id}{extension}";
+            var filePath = Path.Combine(uploadsDir, fileName);
+            await using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(stream);
+            }
+
+            HttpContext.Session.SetString("LastUploadedStudentId", id);
+            Response.Cookies.Append(
+                "LastUploadedStudentImage",
+                $"/uploads/students/{fileName}",
+                new CookieOptions { HttpOnly = true, IsEssential = true, Expires = DateTimeOffset.UtcNow.AddDays(7) });
+
+            TempData["Success"] = "Tải ảnh học viên thành công.";
+            return RedirectToAction(nameof(StudentDetail), new { id });
         }
 
         public async Task<IActionResult> TeacherDetail(string id)
@@ -341,10 +499,59 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddThietBi(ThietBi m)
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddThietBi(ThietBi m, string? maPhong)
         {
             m.MaThietBi = "TB" + DateTime.Now.Ticks.ToString().Substring(10);
-            _db.ThietBis.Add(m); await _db.SaveChangesAsync();
+            _db.ThietBis.Add(m);
+
+            if (!string.IsNullOrWhiteSpace(maPhong))
+            {
+                var room = await _db.PhongHocs.FindAsync(maPhong);
+                if (room != null)
+                {
+                    m.MaPhongs.Add(room);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            return RedirectToAction("ThietBi");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateThietBi(string maThietBi, string? tenThietBi, int? soLuong, string? maPhong)
+        {
+            if (string.IsNullOrWhiteSpace(maThietBi))
+            {
+                return RedirectToAction("ThietBi");
+            }
+
+            var existing = await _db.ThietBis
+                .Include(t => t.MaPhongs)
+                .FirstOrDefaultAsync(t => t.MaThietBi == maThietBi);
+
+            if (existing == null)
+            {
+                TempData["Error"] = "Không tìm thấy thiết bị cần cập nhật.";
+                return RedirectToAction("ThietBi");
+            }
+
+            existing.TenThietBi = tenThietBi;
+            existing.SoLuong = soLuong;
+
+            existing.MaPhongs.Clear();
+            if (!string.IsNullOrWhiteSpace(maPhong))
+            {
+                var room = await _db.PhongHocs.FindAsync(maPhong);
+                if (room != null)
+                {
+                    existing.MaPhongs.Add(room);
+                }
+            }
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật thiết bị thành công.";
             return RedirectToAction("ThietBi");
         }
 
@@ -405,9 +612,46 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTaiKhoan(TaiKhoan m)
         {
-            _db.TaiKhoans.Add(m); await _db.SaveChangesAsync();
+            if (!string.IsNullOrWhiteSpace(m.Password))
+            {
+                m.Password = PasswordHasher.Hash(m.Password);
+            }
+
+            _db.TaiKhoans.Add(m);
+            await _db.SaveChangesAsync();
+            return RedirectToAction("TaiKhoan");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateTaiKhoan(string Username, string? Password, string? Role)
+        {
+            if (string.IsNullOrWhiteSpace(Username))
+            {
+                return RedirectToAction("TaiKhoan");
+            }
+
+            var existing = await _db.TaiKhoans.FindAsync(Username);
+            if (existing == null)
+            {
+                return RedirectToAction("TaiKhoan");
+            }
+
+            if (!string.IsNullOrWhiteSpace(Password))
+            {
+                existing.Password = PasswordHasher.Hash(Password);
+            }
+
+            if (!string.IsNullOrWhiteSpace(Role))
+            {
+                existing.Role = Role;
+            }
+
+            _db.TaiKhoans.Update(existing);
+            await _db.SaveChangesAsync();
             return RedirectToAction("TaiKhoan");
         }
 
@@ -867,6 +1111,33 @@ namespace BTL_Web.Controllers
             }
 
             return candidate;
+        }
+
+        private string? GetStudentImageUrl(string? studentId)
+        {
+            if (string.IsNullOrWhiteSpace(studentId))
+            {
+                return null;
+            }
+
+            var uploadDir = Path.Combine(_environment.WebRootPath, "uploads", "students");
+            if (!Directory.Exists(uploadDir))
+            {
+                return null;
+            }
+
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            foreach (var ext in allowed)
+            {
+                var fileName = $"{studentId}{ext}";
+                var fullPath = Path.Combine(uploadDir, fileName);
+                if (System.IO.File.Exists(fullPath))
+                {
+                    return $"/uploads/students/{fileName}?v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                }
+            }
+
+            return null;
         }
     }
 }

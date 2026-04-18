@@ -588,6 +588,35 @@ h1,h2,h3,h4,h5,h6,.display-font {
 .filter-btn:hover { background: var(--surface-low); }
 .filter-btn.active { background: var(--primary); color: white; }
 
+/* Segmented control used in teacher schedule header */
+.schedule-view-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    background: var(--surface-high);
+    overflow: hidden;
+}
+
+.schedule-view-switch .filter-btn {
+    min-width: 84px;
+    justify-content: center;
+    padding: 10px 16px;
+    border-radius: 8px;
+    line-height: 1;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.schedule-view-switch .filter-btn:hover:not(.active) {
+    background: rgba(100,116,139,0.15);
+}
+
+.schedule-view-switch .filter-btn.active {
+    box-shadow: 0 2px 8px rgba(43,84,191,0.28);
+}
+
 /* ===== FORM ELEMENTS ===== */
 .form-group { margin-bottom: 20px; }
 .form-label { font-size: 13px; font-weight: 700; color: var(--on-surface-variant); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }

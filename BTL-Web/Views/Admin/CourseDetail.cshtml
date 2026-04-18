@@ -1,21 +1,21 @@
 @model BTL_Web.Models.KhoaHoc
 @{
-    ViewData["Title"] = "Course Detail";
+    ViewData["Title"] = "Chi tiết khóa học";
     var title = Model?.TenKhoaHoc ?? "Unknown";
 }
 
 <div class="page-header">
     <div>
         <a href="/Admin/KhoaHoc" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Courses
+            <i class="fas fa-arrow-left"></i> Trở lại các khóa học
         </a>
-        <h2>Course Detail</h2>
+        <h2>Chi tiết khóa học</h2>
     </div>
 </div>
 
 @if (Model == null)
 {
-    <div class="empty-state"><i class="fas fa-book"></i><p>Course not found</p></div>
+    <div class="empty-state"><i class="fas fa-book"></i><p>Khóa học không tồn tại</p></div>
 }
 else
 {

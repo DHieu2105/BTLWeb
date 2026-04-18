@@ -1,17 +1,17 @@
 @model IEnumerable<BTL_Web.Models.LichHoc>
 @{
-    ViewData["Title"] = "Schedule Management";
+    ViewData["Title"] = "Quản lý lịch học";
 }
 
 <div class="page-header">
     <div>
-        <h2>Schedule Management</h2>
-        <p>Manage and coordinate all class schedules and sessions</p>
+        <h2>Quản lý lịch học</h2>
+        <p>Quản lý và điều phối toàn bộ lịch và buổi học của lớp</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-calendar-week"></i> Week View</button>
+        <button class="btn-outline"><i class="fas fa-calendar-week"></i> Xem theo tuần</button>
         <button class="btn-primary" onclick="openAddScheduleModal()">
-            <i class="fas fa-plus"></i> Add Schedule
+            <i class="fas fa-plus"></i> Thêm lịch học
         </button>
     </div>
 </div>
@@ -21,23 +21,23 @@
     <div class="stat-card blue">
         <div class="stat-card-header">
             <div class="stat-icon blue"><i class="fas fa-calendar-check"></i></div><span
-            class="stat-badge blue">Live</span>
+            class="stat-badge blue">Trực tiếp</span>
         </div>
-        <div class="stat-label">Active Sessions</div>
+        <div class="stat-label">Buổi học đang hoạt động</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header">
             <div class="stat-icon teal"><i class="fas fa-door-open"></i></div>
         </div>
-        <div class="stat-label">Room Occupancy</div>
+        <div class="stat-label">Mức sử dụng phòng</div>
         <div class="stat-value">75%</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header">
             <div class="stat-icon orange"><i class="fas fa-exclamation-triangle"></i></div>
         </div>
-        <div class="stat-label">Pending Requests</div>
+        <div class="stat-label">Yêu cầu chờ xử lý</div>
         <div class="stat-value">24</div>
     </div>
 </div>
@@ -45,22 +45,22 @@
 <!-- Schedule Table -->
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Schedule List</h5>
+        <h5>Danh sách lịch học</h5>
         <div style="display:flex;gap:8px;">
-            <button class="filter-btn active" data-filter="all">All</button>
-            <button class="filter-btn" data-filter="today">Today</button>
-            <button class="filter-btn" data-filter="week">This Week</button>
+            <button class="filter-btn active" data-filter="all">Tất cả</button>
+            <button class="filter-btn" data-filter="today">Hôm nay</button>
+            <button class="filter-btn" data-filter="week">Tuần này</button>
         </div>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Class</th>
-                <th>Room</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Ngày</th>
+                <th>Giờ</th>
+                <th>Lớp</th>
+                <th>Phòng</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -76,7 +76,7 @@
                         </td>
                         <td>@(lh.MaLopNavigation?.TenLop ?? lh.MaLop ?? "—")</td>
                         <td>@(lh.MaPhongNavigation?.TenPhong ?? "—")</td>
-                        <td><span class="chip chip-green">Active</span></td>
+                        <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
                                 <button type="button" class="btn-icon btn-outline btn-sm edit-schedule-btn"
@@ -94,7 +94,7 @@
                     <tr id="filterEmptyRow" style="display:none;">
                         <td colspan="6">
                             <div class="empty-state"><i class="fas fa-calendar-times"></i>
-                                <p>No schedules match this filter</p>
+                                <p>Không có lịch nào khớp với bộ lọc này</p>
                             </div>
                         </td>
                     </tr>
@@ -104,7 +104,7 @@
                     <tr>
                         <td colspan="6">
                             <div class="empty-state"><i class="fas fa-calendar-alt"></i>
-                                <p>No schedules found</p>
+                                <p>Không tìm thấy lịch học nào</p>
                             </div>
                         </td>
                     </tr>
@@ -112,7 +112,7 @@
             </tbody>
         </table>
         <div class="pagination-bar">
-            <span class="pagination-info" id="scheduleCount">Showing @(Model?.Count() ?? 0) sessions</span>
+            <span class="pagination-info" id="scheduleCount">Đang hiển thị @(Model?.Count() ?? 0) buổi học</span>
             <div class="pagination-btns">
                 <button type="button" class="page-btn" id="prevPageBtn"><i class="fas fa-chevron-left"
                                                                                style="font-size:10px;"></i></button>
@@ -127,13 +127,13 @@
             <div id="addModal"
                  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
                 <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
-                    <h4 style="margin-bottom:24px;">Add Schedule</h4>
+                    <h4 style="margin-bottom:24px;">Thêm lịch học</h4>
                     <form method="post" action="/Staff/AddSchedule" id="scheduleForm">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="MaLichHoc" id="scheduleId" value="">
                         <div style="display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:16px;">
                             <div class="form-group">
-                                <label class="form-label">Class</label>
+                                <label class="form-label">Lớp</label>
                                 <select id="classSelect" name="MaLop" class="form-control form-select">
                                     @if (ViewBag.LopHocs != null)
                                     {
@@ -151,47 +151,47 @@
                         </div>
                         <div class="card-plain" style="padding:16px;margin-bottom:16px;background:var(--surface-low);">
                             <div class="section-heading" style="margin-bottom:12px;">
-                                <h5 style="margin:0;">Selected Class Info</h5>
+                                <h5 style="margin:0;">Thông tin lớp đã chọn</h5>
                             </div>
                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                                 <div>
-                                    <div class="stat-label">Class Name</div>
+                                    <div class="stat-label">Tên lớp</div>
                                     <div id="modalClassName" class="user-name" style="font-size:14px;">—</div>
                                 </div>
                                 <div>
-                                    <div class="stat-label">Teacher</div>
+                                    <div class="stat-label">Giáo viên</div>
                                     <div id="modalTeacherName" class="user-name" style="font-size:14px;">—</div>
                                 </div>
                             </div>
                             <div style="margin-top:12px;">
-                                <div class="stat-label">Course</div>
+                                <div class="stat-label">Khóa học</div>
                                 <div id="modalCourseName" class="user-name" style="font-size:14px;">—</div>
                             </div>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                             <div class="form-group">
-                                <label class="form-label">Date</label>
+                                <label class="form-label">Ngày</label>
                                 <input type="date" name="NgayHoc" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">Room</label>
-                                <input type="text" class="form-control" value="Auto from selected class" readonly>
+                                <label class="form-label">Phòng</label>
+                                <input type="text" class="form-control" value="Tự động lấy từ lớp đã chọn" readonly>
                             </div>
                         </div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                             <div class="form-group">
-                                <label class="form-label">Start</label>
+                                <label class="form-label">Bắt đầu</label>
                                 <input type="time" name="GioBatDau" class="form-control">
                             </div>
                             <div class="form-group">
-                                <label class="form-label">End</label>
+                                <label class="form-label">Kết thúc</label>
                                 <input type="time" name="GioKetThuc" class="form-control">
                             </div>
                         </div>
                         <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                             <button type="button" class="btn-outline"
-                                    onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                            <button type="submit" id="scheduleSubmitBtn" class="btn-primary">Add Schedule</button>
+                                    onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                            <button type="submit" id="scheduleSubmitBtn" class="btn-primary">Thêm lịch học</button>
                         </div>
                     </form>
                 </div>
@@ -328,9 +328,9 @@
 
                             if (scheduleCount) {
                                 if (totalItems === 0) {
-                                    scheduleCount.textContent = 'Showing 0 sessions';
+                                        scheduleCount.textContent = 'Đang hiển thị 0 buổi học';
                                 } else {
-                                    scheduleCount.textContent = 'Showing ' + (startIndex + 1) + '-' + endIndex + ' of ' + totalItems + ' sessions';
+                                        scheduleCount.textContent = 'Đang hiển thị ' + (startIndex + 1) + '-' + endIndex + ' trên ' + totalItems + ' buổi học';
                                 }
                             }
 
@@ -412,8 +412,8 @@
                                 classSelect.selectedIndex = 0;
                             }
 
-                            scheduleSubmitBtn.textContent = 'Add Schedule';
-                            modalTitle.textContent = 'Add Schedule';
+                            scheduleSubmitBtn.textContent = 'Thêm lịch học';
+                            modalTitle.textContent = 'Thêm lịch học';
                             updateClassInfo();
                             document.getElementById('addModal').style.display = 'flex';
                         };

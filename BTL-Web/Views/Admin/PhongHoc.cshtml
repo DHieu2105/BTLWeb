@@ -1,18 +1,28 @@
 @model IEnumerable<BTL_Web.Models.PhongHoc>
 @{
-    ViewData["Title"] = "Manage Rooms";
+    ViewData["Title"] = "Quản lý phòng học";
 }
 
 <div class="page-header">
     <div>
-        <h2>Manage Rooms</h2>
-        <p>Classroom and facility management across all buildings</p>
+        <h2>Quản lý phòng học</h2>
+        <p>Quản lý phòng học và cơ sở vật chất trong toàn bộ tòa nhà</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button type="button" class="btn-outline" title="Lọc" onclick="toggleRoomFilter()"><i class="fas fa-filter"></i></button>
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Add Room
+            <i class="fas fa-plus"></i> Thêm phòng
         </button>
+    </div>
+</div>
+
+<div id="roomFilterPanel" class="card-plain" style="display:none;padding:16px 20px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Tìm phòng</label>
+            <input id="roomFilterInput" type="text" class="form-control" placeholder="Tên phòng, mã phòng hoặc trung tâm" oninput="applyRoomFilter()" />
+        </div>
+        <button type="button" class="btn-outline" onclick="clearRoomFilter()">Xóa lọc</button>
     </div>
 </div>
 
@@ -23,21 +33,21 @@
             <div class="stat-icon blue"><i class="fas fa-door-open"></i></div>
             <span class="stat-badge blue">+2</span>
         </div>
-        <div class="stat-label">Total Rooms</div>
+        <div class="stat-label">Tổng phòng học</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-chalkboard"></i></div></div>
-        <div class="stat-label">Active Classes</div>
+        <div class="stat-label">Lớp đang hoạt động</div>
         <div class="stat-value">18</div>
     </div>
     <div class="stat-card highlighted" style="background:var(--sidebar-bg);">
         <div class="stat-card-header">
             <div class="stat-icon white"><i class="fas fa-info-circle"></i></div>
         </div>
-        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Room Utilization</div>
-        <div class="stat-value" style="color:white;font-size:20px;">78% Peak Hours</div>
-        <div class="smaller" style="color:rgba(255,255,255,0.6);margin-top:4px;">09:00 AM - 12:00 PM</div>
+        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Mức sử dụng phòng</div>
+        <div class="stat-value" style="color:white;font-size:20px;">78% giờ cao điểm</div>
+        <div class="smaller" style="color:rgba(255,255,255,0.6);margin-top:4px;">09:00 - 12:00</div>
     </div>
 </div>
 
@@ -45,20 +55,20 @@
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
         <div style="display:flex;align-items:center;gap:12px;">
-            <h5>Room Inventory</h5>
-            <span class="chip chip-blue">All Rooms</span>
-            <span class="chip chip-gray">Available</span>
+            <h5>Danh sách phòng</h5>
+            <span class="chip chip-blue">Tất cả phòng</span>
+            <span class="chip chip-gray">Còn trống</span>
         </div>
-        <button class="btn-icon btn-outline"><i class="fas fa-filter"></i></button>
+        <button type="button" class="btn-icon btn-outline" onclick="toggleRoomFilter()"><i class="fas fa-filter"></i></button>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Room</th>
-                <th>Building / Location</th>
-                <th>Capacity</th>
-                <th>Equipment</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Phòng</th>
+                <th>Tòa nhà / Vị trí</th>
+                <th>Sức chứa</th>
+                <th>Thiết bị</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -66,7 +76,7 @@
             {
                 @foreach (var ph in Model)
                 {
-                    <tr>
+                    <tr class="room-row">
                         <td>
                             <div style="display:flex;align-items:center;gap:12px;">
                                 <div class="avatar" style="background:rgba(219,225,255,0.3);color:var(--primary);">
@@ -103,7 +113,7 @@
                                 <a href="/Admin/RoomEquipmentAssignment?roomId=@ph.MaPhong" class="btn-icon btn-outline btn-sm" title="Equipment">
                                     <i class="fas fa-tools"></i>
                                 </a>
-                                <a href="/Admin/RoomDetail/@ph.MaPhong" class="btn-icon btn-outline btn-sm" title="Detail"><i class="fas fa-edit"></i></a>
+                                <a href="/Admin/RoomDetail/@ph.MaPhong" class="btn-icon btn-outline btn-sm" title="Chi tiết"><i class="fas fa-edit"></i></a>
                                 <button class="btn-icon btn-outline btn-sm" onclick="deleteRoom('@ph.MaPhong')">
                                     <i class="fas fa-trash" style="color:#ef4444;"></i>
                                 </button>
@@ -114,12 +124,15 @@
             }
             else
             {
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-door-open"></i><p>No rooms found</p></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-door-open"></i><p>Không tìm thấy phòng nào</p></div></td></tr>
             }
+            <tr id="roomFilterEmptyRow" style="display:none;">
+                <td colspan="5"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có phòng nào phù hợp với bộ lọc hiện tại</p></div></td></tr>
+            </tr>
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) rooms</span>
+        <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) phòng</span>
         <div class="pagination-btns">
             <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
             <button class="page-btn active">1</button>
@@ -132,20 +145,20 @@
 <!-- Add Modal -->
 <div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Add New Room</h4>
+        <h4 style="margin-bottom:24px;">Thêm phòng mới</h4>
         <form method="post" action="/Admin/AddPhongHoc">
             @Html.AntiForgeryToken()
             <div class="form-group">
-                <label class="form-label">Room Name</label>
+                <label class="form-label">Tên phòng</label>
                 <input type="text" name="TenPhong" class="form-control" required>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group">
-                    <label class="form-label">Capacity</label>
+                    <label class="form-label">Sức chứa</label>
                     <input type="number" name="SucChua" class="form-control" min="1">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Center</label>
+                    <label class="form-label">Trung tâm</label>
                     <select name="MaTrungTam" class="form-control form-select">
                         @if (ViewBag.TrungTams != null)
                         {
@@ -158,12 +171,12 @@
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Location / Floor</label>
-                <input type="text" name="ViTri" class="form-control" placeholder="e.g. Level 2, West Sector">
+                <label class="form-label">Vị trí / Tầng</label>
+                <input type="text" name="ViTri" class="form-control" placeholder="Ví dụ: Tầng 2, khu Tây">
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Add Room</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Thêm phòng</button>
             </div>
         </form>
     </div>
@@ -171,8 +184,37 @@
 
 @section Scripts {
 <script>
+function toggleRoomFilter() {
+    const panel = document.getElementById('roomFilterPanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+}
+
+function applyRoomFilter() {
+    const input = document.getElementById('roomFilterInput');
+    const query = (input?.value || '').trim().toLowerCase();
+    const rows = document.querySelectorAll('.room-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        const show = !query || text.includes(query);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('roomFilterEmptyRow');
+    if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+}
+
+function clearRoomFilter() {
+    const input = document.getElementById('roomFilterInput');
+    if (input) input.value = '';
+    applyRoomFilter();
+}
+
 function deleteRoom(id) {
-    if (confirm('Delete room ' + id + '?')) location.href = '/Admin/DeletePhongHoc/' + id;
+    if (confirm('Bạn có chắc muốn xóa phòng ' + id + '?')) location.href = '/Admin/DeletePhongHoc/' + id;
 }
 </script>
 }

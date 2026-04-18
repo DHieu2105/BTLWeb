@@ -1,6 +1,6 @@
 @model BTL_Web.ViewModels.TeacherScoreManagementViewModel
 @{
-    ViewData["Title"] = "Score Management";
+    ViewData["Title"] = "Quản lý điểm";
     var selectedClass = Model.Classes.FirstOrDefault(c => c.MaLop == Model.SelectedClassId);
     var enterRows = Model.Rows.Where(r => !r.HasScore).ToList();
     var editRows = Model.Rows.Where(r => r.HasScore).ToList();
@@ -12,7 +12,7 @@
         <p>Hệ thống hiện chỉ xét 2 đầu điểm Listening và Reading.</p>
     </div>
     <div class="page-actions">
-        <a href="/Teacher/MyClasses" class="btn-outline"><i class="fas fa-list"></i> My Classes</a>
+        <a href="/Teacher/MyClasses" class="btn-outline"><i class="fas fa-list"></i> Danh sách lớp</a>
     </div>
 </div>
 
@@ -32,7 +32,7 @@
 <div class="card-plain" style="padding:24px;margin-bottom:20px;">
     <form method="get" action="/Teacher/ScoreManagement" style="display:flex;gap:12px;align-items:end;flex-wrap:wrap;">
         <div style="min-width:280px;">
-            <label class="form-label">Class</label>
+            <label class="form-label">Lớp</label>
             <select class="form-control form-select" name="maLop" onchange="this.form.submit()">
                 @if (Model.Classes.Any())
                 {
@@ -54,7 +54,7 @@
                 }
                 else
                 {
-                    <option value="">No classes assigned</option>
+                    <option value="">Chưa có lớp nào được phân công</option>
                 }
             </select>
         </div>
@@ -64,17 +64,17 @@
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div></div>
-        <div class="stat-label">Students In Class</div>
+        <div class="stat-label">Số học viên trong lớp</div>
         <div class="stat-value">@Model.Rows.Count</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-book"></i></div></div>
-        <div class="stat-label">Selected Class</div>
+        <div class="stat-label">Lớp được chọn</div>
         <div class="stat-value" style="font-size:20px;">@(selectedClass?.TenLop ?? "-")</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-line"></i></div></div>
-        <div class="stat-label">Average Total</div>
+        <div class="stat-label">Điểm trung bình tổng</div>
         <div class="stat-value">
             @(Model.Rows.Any(r => r.DiemTong.HasValue) ? Model.Rows.Where(r => r.DiemTong.HasValue).Average(r => r.DiemTong!.Value).ToString("F0") : "-")
         </div>
@@ -95,11 +95,11 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Course</th>
+                    <th>Học viên</th>
+                    <th>Khóa học</th>
                     <th>Listening</th>
                     <th>Reading</th>
-                    <th>Total</th>
+                    <th>Tổng điểm</th>
                     <th style="text-align:right;">Nhập điểm</th>
                 </tr>
             </thead>
@@ -131,7 +131,7 @@
                                     <input type="hidden" name="maHocVien" value="@row.MaHocVien" />
                                     <input type="hidden" name="maKhoaHoc" value="@row.MaKhoaHoc" />
                                     <input type="hidden" name="maLop" value="@Model.SelectedClassId" />
-                                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Add</button>
+                                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-plus"></i> Thêm</button>
                                 </form>
                             </td>
                         </tr>
@@ -153,11 +153,11 @@
         <table class="data-table">
             <thead>
                 <tr>
-                    <th>Student</th>
-                    <th>Course</th>
+                    <th>Học viên</th>
+                    <th>Khóa học</th>
                     <th>Listening</th>
                     <th>Reading</th>
-                    <th>Total</th>
+                    <th>Tổng điểm</th>
                     <th style="text-align:right;">Sửa điểm</th>
                 </tr>
             </thead>
@@ -190,7 +190,7 @@
                                     <input type="hidden" name="maHocVien" value="@row.MaHocVien" />
                                     <input type="hidden" name="maKhoaHoc" value="@row.MaKhoaHoc" />
                                     <input type="hidden" name="maLop" value="@Model.SelectedClassId" />
-                                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-save"></i> Save</button>
+                                    <button type="submit" class="btn-primary btn-sm"><i class="fas fa-save"></i> Lưu</button>
                                 </form>
                             </td>
                         </tr>
@@ -220,13 +220,17 @@ function showScoreTab(tab) {
     if (tab === 'enter') {
         enterTab.style.display = 'block';
         editTab.style.display = 'none';
-        enterBtn.className = 'btn-primary btn-sm';
-        editBtn.className = 'btn-outline btn-sm';
+        enterBtn.classList.remove('btn-outline');
+        enterBtn.classList.add('btn-primary');
+        editBtn.classList.remove('btn-primary');
+        editBtn.classList.add('btn-outline');
     } else {
         enterTab.style.display = 'none';
         editTab.style.display = 'block';
-        enterBtn.className = 'btn-outline btn-sm';
-        editBtn.className = 'btn-primary btn-sm';
+        editBtn.classList.remove('btn-outline');
+        editBtn.classList.add('btn-primary');
+        enterBtn.classList.remove('btn-primary');
+        enterBtn.classList.add('btn-outline');
     }
 }
 </script>

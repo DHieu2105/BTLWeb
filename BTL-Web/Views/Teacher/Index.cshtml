@@ -1,42 +1,40 @@
 @{
-    ViewData["Title"] = "Teacher Dashboard";
+    ViewData["Title"] = "Bảng điều khiển giáo viên";
 }
 
 <div class="page-header">
     <div>
-        <h2>Welcome, @User.Identity?.Name</h2>
-        <p>Here's your teaching overview for today.</p>
+        <h2>Chào mừng, @User.Identity?.Name</h2>
+        <p>Đây là tổng quan giảng dạy của bạn hôm nay.</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-file-alt"></i> Export Report</button>
-        <a href="/Teacher/MyClasses" class="btn-primary"><i class="fas fa-plus"></i> View Classes</a>
+        <button class="btn-outline"><i class="fas fa-file-alt"></i> Xuất báo cáo</button>
+        <a href="/Teacher/MyClasses" class="btn-primary"><i class="fas fa-plus"></i> Xem lớp</a>
     </div>
 </div>
 
-<!-- Stats -->
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div><span class="stat-badge blue">Active</span></div>
-        <div class="stat-label">My Classes</div>
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div><span class="stat-badge blue">Đang hoạt động</span></div>
+        <div class="stat-label">Lớp của tôi</div>
         <div class="stat-value">@(ViewBag.TotalClasses ?? 3)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-users"></i></div></div>
-        <div class="stat-label">Total Students</div>
+        <div class="stat-label">Tổng học viên</div>
         <div class="stat-value">@(ViewBag.TotalStudents ?? 0)</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-clipboard-check"></i></div></div>
-        <div class="stat-label">Pending Reviews</div>
+        <div class="stat-label">Bài chờ duyệt</div>
         <div class="stat-value">12</div>
     </div>
 </div>
 
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
-    <!-- Today's Schedule -->
     <div class="card-plain" style="padding:0;">
         <div class="card-header-plain">
-            <h5>Today's Schedule</h5>
+            <h5>Lịch hôm nay</h5>
             <span class="chip chip-blue">@DateTime.Now.ToString("dddd, MMM dd")</span>
         </div>
         <div style="padding:24px;display:flex;flex-direction:column;gap:12px;">
@@ -51,9 +49,9 @@
                         </div>
                         <div style="flex:1;">
                             <div class="user-name">@cls.TenLopHoc</div>
-                            <div class="user-sub">@cls.TenPhong • @cls.SoHocVien students</div>
+                            <div class="user-sub">@cls.TenPhong • @cls.SoHocVien học viên</div>
                         </div>
-                        <a href="/Teacher/ClassDetail/@cls.MaLopHoc" class="btn-outline btn-sm">View</a>
+                        <a href="/Teacher/ClassDetail/@cls.MaLopHoc" class="btn-outline btn-sm">Xem</a>
                     </div>
                 }
             }
@@ -65,10 +63,10 @@
                         <div class="user-sub">10:30</div>
                     </div>
                     <div style="flex:1;">
-                        <div class="user-name">Advanced Linguistics C1</div>
-                        <div class="user-sub">Room 402 • 12 Students • Mid-term Review</div>
+                        <div class="user-name">Ngôn ngữ học nâng cao C1</div>
+                        <div class="user-sub">Phòng 402 • 12 học viên • Ôn tập giữa kỳ</div>
                     </div>
-                    <a href="/Teacher/MyClasses" class="btn-outline btn-sm">View</a>
+                    <a href="/Teacher/MyClasses" class="btn-outline btn-sm">Xem</a>
                 </div>
                 <div style="display:flex;gap:16px;padding:16px;background:rgba(73,110,218,0.08);border-radius:8px;border-left:4px solid var(--primary-dark);position:relative;overflow:hidden;">
                     <div style="position:absolute;right:0;top:0;bottom:0;width:80px;background:rgba(73,110,218,0.1);"></div>
@@ -77,10 +75,10 @@
                         <div class="user-sub">12:30</div>
                     </div>
                     <div style="flex:1;">
-                        <div class="user-name">Business English Intensive</div>
-                        <div class="user-sub">Room 201 • 8 Students <span class="chip chip-green" style="font-size:10px;padding:2px 8px;margin-left:8px;">In Session</span></div>
+                        <div class="user-name">Tiếng Anh thương mại tăng cường</div>
+                        <div class="user-sub">Phòng 201 • 8 học viên <span class="chip chip-green" style="font-size:10px;padding:2px 8px;margin-left:8px;">Đang học</span></div>
                     </div>
-                    <a href="/Teacher/MyClasses" class="btn-outline btn-sm">View</a>
+                    <a href="/Teacher/MyClasses" class="btn-outline btn-sm">Xem</a>
                 </div>
                 <div style="display:flex;gap:16px;padding:16px;background:var(--surface-low);border-radius:8px;border-left:4px solid #94a3b8;">
                     <div style="min-width:80px;text-align:center;">
@@ -88,45 +86,42 @@
                         <div class="user-sub">15:30</div>
                     </div>
                     <div style="flex:1;">
-                        <div class="user-name">English Lit: Modernism</div>
-                        <div class="user-sub">Lecture Hall 1 • 45 Students</div>
+                        <div class="user-name">Văn học Anh: Chủ nghĩa hiện đại</div>
+                        <div class="user-sub">Giảng đường 1 • 45 học viên</div>
                     </div>
-                    <a href="/Teacher/MyClasses" class="btn-outline btn-sm">View</a>
+                    <a href="/Teacher/MyClasses" class="btn-outline btn-sm">Xem</a>
                 </div>
             }
         </div>
     </div>
 
-    <!-- Sidebar -->
     <div style="display:flex;flex-direction:column;gap:24px;">
-        <!-- Quick Stats -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="card-plain" style="padding:20px;text-align:center;">
                 <div class="stat-value" style="font-size:24px;">94.2%</div>
-                <div class="stat-label">Attendance</div>
+                <div class="stat-label">Chuyên cần</div>
             </div>
             <div class="card-plain" style="padding:20px;text-align:center;">
                 <div class="stat-value" style="font-size:24px;">12</div>
-                <div class="stat-label">Pending</div>
+                <div class="stat-label">Chờ xử lý</div>
             </div>
         </div>
 
-        <!-- Resources -->
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;">Teaching Resources</h5>
+            <h5 style="margin-bottom:16px;">Tài nguyên giảng dạy</h5>
             <div style="display:flex;flex-direction:column;gap:8px;">
                 <a href="/Teacher/MyClasses" class="activity-item" style="text-decoration:none;padding:12px;background:var(--surface-low);border-radius:8px;">
                     <div class="activity-icon blue"><i class="fas fa-file-pdf"></i></div>
                     <div class="activity-content">
-                        <div class="activity-title">Course Syllabus</div>
-                        <div class="activity-desc">Updated 2 days ago</div>
+                        <div class="activity-title">Đề cương khóa học</div>
+                        <div class="activity-desc">Đã cập nhật 2 ngày trước</div>
                     </div>
                 </a>
                 <a href="/Teacher/Schedule" class="activity-item" style="text-decoration:none;padding:12px;background:var(--surface-low);border-radius:8px;">
                     <div class="activity-icon purple"><i class="fas fa-video"></i></div>
                     <div class="activity-content">
-                        <div class="activity-title">Phonetics Lecture 04</div>
-                        <div class="activity-desc">Video Resource</div>
+                        <div class="activity-title">Bài giảng ngữ âm 04</div>
+                        <div class="activity-desc">Tài nguyên video</div>
                     </div>
                 </a>
             </div>

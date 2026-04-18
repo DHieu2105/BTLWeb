@@ -1,6 +1,6 @@
 @model IEnumerable<BTL_Web.Models.KetQua>
 @{
-    ViewData["Title"] = "Manage Results";
+    ViewData["Title"] = "Quản lý kết quả";
     int page = ViewBag.Page ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
     int pageSize = ViewBag.PageSize ?? 10;
@@ -16,56 +16,56 @@
 
 <div class="page-header">
     <div>
-        <h2>Manage Results</h2>
-        <p>Student assessment results and performance tracking (view only)</p>
+        <h2>Quản lý kết quả</h2>
+        <p>Kết quả đánh giá học viên và theo dõi hiệu suất học tập (chỉ xem)</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-download"></i> Export</button>
+        <button class="btn-outline"><i class="fas fa-download"></i> Xuất dữ liệu</button>
     </div>
 </div>
 
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-percentage"></i></div><span class="stat-badge blue">↑</span></div>
-        <div class="stat-label">Pass Rate</div>
+        <div class="stat-label">Tỷ lệ đạt</div>
         <div class="stat-value">@passRate.ToString("F0")%</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-star"></i></div></div>
-        <div class="stat-label">Avg. Score</div>
+        <div class="stat-label">Điểm trung bình</div>
         <div class="stat-value">@avgScore.ToString("F1")</div>
     </div>
     <div class="stat-card highlighted" style="background:var(--sidebar-bg);">
         <div class="stat-card-header"><div class="stat-icon white"><i class="fas fa-trophy"></i></div></div>
-        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Total Records</div>
+        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Tổng bản ghi</div>
         <div class="stat-value" style="color:white;">@totalItems</div>
     </div>
 </div>
 
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Assessment Results</h5>
+        <h5>Kết quả đánh giá</h5>
         <form method="get" action="/Admin/KetQua" style="display:flex;gap:8px;align-items:center;">
-            <label style="font-size:14px;color:rgba(0,0,0,0.6);">Score Range:</label>
-            <input type="number" name="minScore" class="form-control" placeholder="Min" value="@(ViewBag.MinScore ?? "")" style="width:80px;">
+            <label style="font-size:14px;color:rgba(0,0,0,0.6);">Khoảng điểm:</label>
+            <input type="number" name="minScore" class="form-control" placeholder="Tối thiểu" value="@(ViewBag.MinScore ?? "")" style="width:80px;">
             <span style="color:rgba(0,0,0,0.4);">-</span>
-            <input type="number" name="maxScore" class="form-control" placeholder="Max" value="@(ViewBag.MaxScore ?? "")" style="width:80px;">
-            <button type="submit" class="btn-outline btn-sm"><i class="fas fa-search"></i> Filter</button>
+            <input type="number" name="maxScore" class="form-control" placeholder="Tối đa" value="@(ViewBag.MaxScore ?? "")" style="width:80px;">
+            <button type="submit" class="btn-outline btn-sm"><i class="fas fa-search"></i> Lọc</button>
             @if (ViewBag.MinScore != null || ViewBag.MaxScore != null)
             {
-                <a href="/Admin/KetQua" class="btn-outline btn-sm"><i class="fas fa-times"></i> Clear</a>
+                <a href="/Admin/KetQua" class="btn-outline btn-sm"><i class="fas fa-times"></i> Xóa lọc</a>
             }
         </form>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Student</th>
-                <th>Course</th>
-                <th>Listening</th>
-                <th>Reading</th>
-                <th>Total</th>
-                <th>Status</th>
+                <th>Học viên</th>
+                <th>Khóa học</th>
+                <th>Nghe</th>
+                <th>Đọc</th>
+                <th>Tổng điểm</th>
+                <th>Trạng thái</th>
             </tr>
         </thead>
         <tbody>
@@ -98,18 +98,18 @@
                                 <div class="progress-bar-fill" style="width:@(Math.Min(total, 100))%;"></div>
                             </div>
                         </td>
-                        <td><span class="chip @chipClass">@(total >= 60 ? "Passed" : "Failed")</span></td>
+                        <td><span class="chip @chipClass">@(total >= 60 ? "Đạt" : "Không đạt")</span></td>
                     </tr>
                 }
             }
             else
             {
-                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-poll-h"></i><p>No results found</p></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-poll-h"></i><p>Không tìm thấy kết quả nào</p></div></td></tr>
             }
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) / @totalItems results</span>
+        <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) / @totalItems kết quả</span>
         <div class="pagination-btns">
             <a class="page-btn" href="/Admin/KetQua?page=@Math.Max(1, page - 1)&pageSize=@pageSize&minScore=@(ViewBag.MinScore ?? "")&maxScore=@(ViewBag.MaxScore ?? "")"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
             @for (int p = startPage; p <= endPage; p++)

@@ -1,0 +1,76 @@
+@model IEnumerable<BTL_Web.ViewModels.TeacherCourseViewModel>
+@{
+    ViewData["Title"] = "Khóa học của tôi";
+    var courses = Model?.ToList() ?? new List<BTL_Web.ViewModels.TeacherCourseViewModel>();
+}
+
+<div class="page-header">
+    <div>
+        <p class="small text-muted" style="margin-bottom:4px;">Cổng giảng dạy</p>
+        <h2>Khóa học của tôi</h2>
+        <p>Danh sách các khóa học bạn đang phụ trách</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="card-plain" style="padding:20px;display:flex;align-items:center;gap:16px;">
+        <div class="stat-icon blue" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"><i class="fas fa-book-open" style="font-size:20px;"></i></div>
+        <div>
+            <div class="stat-label">Tổng khóa học</div>
+            <div class="stat-value">@courses.Count</div>
+        </div>
+    </div>
+    <div class="card-plain" style="padding:20px;display:flex;align-items:center;gap:16px;">
+        <div class="stat-icon teal" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"><i class="fas fa-layer-group" style="font-size:20px;"></i></div>
+        <div>
+            <div class="stat-label">Tổng lớp thuộc khóa</div>
+            <div class="stat-value">@courses.Sum(c => c.ClassCount)</div>
+        </div>
+    </div>
+    <div class="card-plain" style="padding:20px;display:flex;align-items:center;gap:16px;">
+        <div class="stat-icon green" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;"><i class="fas fa-user-graduate" style="font-size:20px;"></i></div>
+        <div>
+            <div class="stat-label">Tổng học viên</div>
+            <div class="stat-value">@courses.Sum(c => c.StudentCount)</div>
+        </div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã khóa học</th>
+                <th>Tên khóa học</th>
+                <th>Thời lượng</th>
+                <th>Học phí</th>
+                <th>Số lớp</th>
+                <th>Học viên</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (courses.Any())
+            {
+                foreach (var course in courses)
+                {
+                    <tr>
+                        <td><div class="user-name">@course.MaKhoaHoc</div></td>
+                        <td><div class="user-name">@course.TenKhoaHoc</div></td>
+                        <td>@(course.ThoiLuong?.ToString() ?? "-") giờ</td>
+                        <td>@(course.HocPhi?.ToString("N0") ?? "0") VND</td>
+                        <td><span class="chip chip-blue">@course.ClassCount lớp</span></td>
+                        <td><span class="chip chip-green">@course.StudentCount học viên</span></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state"><i class="fas fa-book"></i><p>Không có khóa học được phân công</p></div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

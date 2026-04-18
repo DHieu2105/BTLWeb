@@ -1,71 +1,116 @@
 @model IEnumerable<BTL_Web.Models.ThietBi>
 @{
-    ViewData["Title"] = "Manage Equipment";
+    ViewData["Title"] = "Quản lý thiết bị";
+}
+
+@functions {
+    private static string GetEquipType(string? name)
+    {
+        var value = (name ?? string.Empty).Trim().ToLowerInvariant();
+        if (value.Contains("máy chiếu") || value.Contains("may chieu") || value.Contains("projector"))
+        {
+            return "Máy chiếu";
+        }
+
+        if (value.Contains("máy tính") || value.Contains("may tinh") || value.Contains("computer") || value.Contains("pc") || value.Contains("laptop"))
+        {
+            return "Máy tính";
+        }
+
+        if (value.Contains("loa") || value.Contains("micro") || value.Contains("âm thanh") || value.Contains("am thanh") || value.Contains("sound"))
+        {
+            return "Âm thanh";
+        }
+
+        return "Chung";
+    }
 }
 
 <div class="page-header">
     <div>
-        <h2>Manage Equipment</h2>
-        <p>Track and manage all academic equipment and assets</p>
+        <h2>Quản lý thiết bị</h2>
+        <p>Theo dõi và quản lý toàn bộ thiết bị, tài sản học thuật</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button type="button" class="btn-outline" onclick="toggleEquipFilterPanel()"><i class="fas fa-filter"></i> Lọc</button>
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Add Equipment
+            <i class="fas fa-plus"></i> Thêm thiết bị
         </button>
     </div>
 </div>
 
-<!-- Stats -->
+@if (TempData["Success"] != null)
+{
+    <div style="padding:12px 14px;border-radius:8px;background:#e9f7ee;color:#1f6d3d;font-weight:600;margin-bottom:16px;">
+        @TempData["Success"]
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div style="padding:12px 14px;border-radius:8px;background:#fdecec;color:#9f1f1f;font-weight:600;margin-bottom:16px;">
+        @TempData["Error"]
+    </div>
+}
+
+<div id="equipFilterPanel" class="card-plain" style="display:none;padding:12px 16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Lọc nhanh</label>
+            <input id="equipFilterInput" type="text" class="form-control" placeholder="Lọc theo thiết bị, phòng, trạng thái..." oninput="applyEquipFilters()">
+        </div>
+        <button type="button" class="btn-outline" onclick="clearEquipFilters()">Xóa lọc</button>
+    </div>
+</div>
+
 <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header">
             <div class="stat-icon blue"><i class="fas fa-laptop"></i></div>
             <span class="stat-badge blue">+3</span>
         </div>
-        <div class="stat-label">Total Assets</div>
+        <div class="stat-label">Tổng tài sản</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-check-circle"></i></div></div>
-        <div class="stat-label">Active In Use</div>
+        <div class="stat-label">Đang sử dụng</div>
         <div class="stat-value">94</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-tools"></i></div></div>
-        <div class="stat-label">Maintenance Due</div>
+        <div class="stat-label">Đến hạn bảo trì</div>
         <div class="stat-value">06</div>
     </div>
     <div class="stat-card green">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-chart-line"></i></div></div>
-        <div class="stat-label">Operational Rate</div>
+        <div class="stat-label">Tỷ lệ hoạt động</div>
         <div class="stat-value">98.2%</div>
     </div>
 </div>
 
-<!-- Table -->
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Equipment Inventory</h5>
+        <h5>Danh sách thiết bị</h5>
         <div style="display:flex;gap:8px;align-items:center;">
-            <span class="small text-muted">Sort by:</span>
-            <select class="form-control form-select" style="width:140px;padding:6px 12px;font-size:13px;">
-                <option>All Types</option>
-                <option>Projectors</option>
-                <option>Computers</option>
-                <option>Audio</option>
+            <span class="small text-muted">Sắp xếp theo:</span>
+            <select id="equipTypeFilter" class="form-control form-select" style="width:140px;padding:6px 12px;font-size:13px;" onchange="applyEquipFilters()">
+                <option value="all">Tất cả loại</option>
+                <option value="Máy chiếu">Máy chiếu</option>
+                <option value="Máy tính">Máy tính</option>
+                <option value="Âm thanh">Âm thanh</option>
+                <option value="Chung">Chung</option>
             </select>
         </div>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Equipment</th>
-                <th>Type</th>
-                <th>Assigned Room</th>
-                <th>Condition</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Thiết bị</th>
+                <th>Loại</th>
+                <th>Phòng đã gán</th>
+                <th>Tình trạng</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -73,7 +118,9 @@
             {
                 @foreach (var tb in Model)
                 {
-                    <tr>
+                    var assignedRoom = tb.MaPhongs.FirstOrDefault();
+                    var inferredType = GetEquipType(tb.TenThietBi);
+                    <tr class="equip-row" data-type="@inferredType">
                         <td>
                             <div style="display:flex;align-items:center;gap:12px;">
                                 <div class="avatar" style="background:rgba(219,225,255,0.3);color:var(--primary);">
@@ -85,17 +132,24 @@
                                 </div>
                             </div>
                         </td>
-                        <td>General</td>
-                        <td>@(tb.MaPhongs.FirstOrDefault()?.TenPhong ?? "Unassigned")</td>
+                        <td>@inferredType</td>
+                        <td>@(assignedRoom?.TenPhong ?? "Chưa gán")</td>
                         <td>
                             <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
                                 <div class="progress-bar-fill" style="width:85%;"></div>
                             </div>
-                            <span class="smaller text-muted">Good</span>
+                            <span class="smaller text-muted">Tốt</span>
                         </td>
-                        <td><span class="chip chip-green">Operational</span></td>
+                        <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
-                            <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon btn-outline btn-sm"
+                                    onclick="openEditEquip(this)"
+                                    data-id="@tb.MaThietBi"
+                                    data-name="@(tb.TenThietBi ?? string.Empty)"
+                                    data-quantity="@(tb.SoLuong?.ToString() ?? string.Empty)"
+                                    data-room="@(assignedRoom?.MaPhong ?? string.Empty)">
+                                <i class="fas fa-edit"></i>
+                            </button>
                             <button class="btn-icon btn-outline btn-sm" onclick="deleteEquip('@tb.MaThietBi')">
                                 <i class="fas fa-trash" style="color:#ef4444;"></i>
                             </button>
@@ -105,12 +159,13 @@
             }
             else
             {
-                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-laptop"></i><p>No equipment found</p></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-laptop"></i><p>Không tìm thấy thiết bị nào</p></div></td></tr>
             }
+            <tr id="equipFilterEmptyRow" style="display:none;"><td colspan="6"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có thiết bị nào phù hợp với bộ lọc hiện tại</p></div></td></tr>
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) items</span>
+        <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) mục</span>
         <div class="pagination-btns">
             <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
             <button class="page-btn active">1</button>
@@ -120,25 +175,24 @@
     </div>
 </div>
 
-<!-- Add Modal -->
 <div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Add New Equipment</h4>
+        <h4 style="margin-bottom:24px;">Thêm thiết bị mới</h4>
         <form method="post" action="/Admin/AddThietBi">
             @Html.AntiForgeryToken()
             <div class="form-group">
-                <label class="form-label">Equipment Name</label>
+                <label class="form-label">Tên thiết bị</label>
                 <input type="text" name="TenThietBi" class="form-control" required>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group">
-                    <label class="form-label">Type</label>
-                    <input type="text" name="LoaiThietBi" class="form-control" placeholder="Projector, PC...">
+                    <label class="form-label">Số lượng</label>
+                    <input type="number" name="SoLuong" class="form-control" min="0" value="1">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Assign to Room</label>
-                    <select name="MaPhong" class="form-control form-select">
-                        <option value="">— Unassigned —</option>
+                    <label class="form-label">Gán vào phòng</label>
+                    <select name="maPhong" class="form-control form-select">
+                        <option value="">— Chưa gán —</option>
                         @if (ViewBag.PhongHocs != null)
                         {
                             @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
@@ -150,8 +204,49 @@
                 </div>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Add Equipment</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Thêm thiết bị</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Sửa thiết bị</h4>
+        <form method="post" action="/Admin/UpdateThietBi">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editMaThietBi" name="maThietBi" />
+            <div class="form-group">
+                <label class="form-label">Mã thiết bị</label>
+                <input type="text" id="editMaThietBiDisplay" class="form-control" disabled>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tên thiết bị</label>
+                <input type="text" id="editTenThietBi" name="tenThietBi" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Số lượng</label>
+                    <input type="number" id="editSoLuong" name="soLuong" class="form-control" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gán vào phòng</label>
+                    <select id="editMaPhong" name="maPhong" class="form-control form-select">
+                        <option value="">— Chưa gán —</option>
+                        @if (ViewBag.PhongHocs != null)
+                        {
+                            @foreach (var ph in (IEnumerable<BTL_Web.Models.PhongHoc>)ViewBag.PhongHocs)
+                            {
+                                <option value="@ph.MaPhong">@ph.TenPhong</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu thay đổi</button>
             </div>
         </form>
     </div>
@@ -159,8 +254,59 @@
 
 @section Scripts {
 <script>
+function toggleEquipFilterPanel() {
+    const panel = document.getElementById('equipFilterPanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+}
+
+function applyEquipFilters() {
+    const query = (document.getElementById('equipFilterInput')?.value || '').trim().toLowerCase();
+    const selectedType = document.getElementById('equipTypeFilter')?.value || 'all';
+    const rows = document.querySelectorAll('.equip-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        const rowType = row.getAttribute('data-type') || '';
+        const queryMatch = !query || text.includes(query);
+        const typeMatch = selectedType === 'all' || rowType === selectedType;
+        const show = queryMatch && typeMatch;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('equipFilterEmptyRow');
+    if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+}
+
+function clearEquipFilters() {
+    const input = document.getElementById('equipFilterInput');
+    if (input) input.value = '';
+
+    const typeFilter = document.getElementById('equipTypeFilter');
+    if (typeFilter) typeFilter.value = 'all';
+
+    applyEquipFilters();
+}
+
+function openEditEquip(button) {
+    const modal = document.getElementById('editModal');
+    if (!modal) return;
+
+    document.getElementById('editMaThietBi').value = button.dataset.id || '';
+    document.getElementById('editMaThietBiDisplay').value = button.dataset.id || '';
+    document.getElementById('editTenThietBi').value = button.dataset.name || '';
+    document.getElementById('editSoLuong').value = button.dataset.quantity || '';
+    document.getElementById('editMaPhong').value = button.dataset.room || '';
+
+    modal.style.display = 'flex';
+}
+
 function deleteEquip(id) {
-    if (confirm('Delete equipment ' + id + '?')) location.href = '/Admin/DeleteThietBi/' + id;
+    if (confirm('Bạn có chắc muốn xóa thiết bị ' + id + '?')) {
+        location.href = '/Admin/DeleteThietBi/' + encodeURIComponent(id);
+    }
 }
 </script>
 }

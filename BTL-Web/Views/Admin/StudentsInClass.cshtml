@@ -1,6 +1,6 @@
 @model BTL_Web.Models.LopHoc
 @{
-    ViewData["Title"] = "Students In Class";
+    ViewData["Title"] = "Học viên trong lớp";
     var allStudents = ViewBag.AllStudents as IEnumerable<BTL_Web.Models.HocVien> ?? new List<BTL_Web.Models.HocVien>();
     var allClasses = ViewBag.AllClasses as IEnumerable<BTL_Web.Models.LopHoc> ?? new List<BTL_Web.Models.LopHoc>();
     var enrolledIds = Model?.MaHocViens.Select(h => h.MaHocVien).ToHashSet() ?? new HashSet<string>();
@@ -10,13 +10,13 @@
 <div class="page-header">
     <div>
         <a href="/Admin/LopHoc" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Classes
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách lớp
         </a>
-        <h2>@(Model?.TenLop ?? "Class Detail")</h2>
-        <p>@(Model?.MaKhoaHocNavigation?.TenKhoaHoc ?? "—") — Teacher: @(Model?.MaGvNavigation?.Ten ?? "—")</p>
+        <h2>@(Model?.TenLop ?? "Chi tiết lớp")</h2>
+        <p>@(Model?.MaKhoaHocNavigation?.TenKhoaHoc ?? "—") — Giáo viên: @(Model?.MaGvNavigation?.Ten ?? "—")</p>
     </div>
     <div class="page-actions">
-        <span class="chip chip-blue">@(Model?.MaHocViens.Count ?? 0) Students</span>
+        <span class="chip chip-blue">@(Model?.MaHocViens.Count ?? 0) học viên</span>
     </div>
 </div>
 
@@ -34,10 +34,10 @@
     <div class="card-plain" style="padding:0;">
         <div class="card-header-plain">
             <div>
-                <h5>Currently Enrolled</h5>
-                <p class="small text-muted">@(Model?.MaHocViens.Count ?? 0) students in this class</p>
+                <h5>Đang ghi danh</h5>
+                <p class="small text-muted">@(Model?.MaHocViens.Count ?? 0) học viên trong lớp này</p>
             </div>
-            <span class="chip chip-green">@(Model?.MaHocViens.Count ?? 0) / Active</span>
+            <span class="chip chip-green">@(Model?.MaHocViens.Count ?? 0) / Đang hoạt động</span>
         </div>
         @if (Model?.MaHocViens.Any() == true)
         {
@@ -55,8 +55,8 @@
                             </div>
                         </div>
                         <div style="display:flex;gap:8px;align-items:center;">
-                            <span class="chip chip-green" style="font-size:11px;">Enrolled</span>
-                            <button type="button" class="btn-icon btn-outline btn-sm" title="Transfer class"
+                            <span class="chip chip-green" style="font-size:11px;">Đã ghi danh</span>
+                            <button type="button" class="btn-icon btn-outline btn-sm" title="Chuyển lớp"
                                     onclick="openTransferModal('@sv.MaHocVien', '@Html.Raw(name.Replace("'", "\\'"))')">
                                 <i class="fas fa-right-left"></i>
                             </button>
@@ -64,7 +64,7 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="maLop" value="@Model.MaLop">
                                 <input type="hidden" name="maHocVien" value="@sv.MaHocVien">
-                                <button type="submit" class="btn-icon btn-outline btn-sm" title="Remove">
+                                <button type="submit" class="btn-icon btn-outline btn-sm" title="Xóa khỏi lớp">
                                     <i class="fas fa-times" style="color:#ef4444;"></i>
                                 </button>
                             </form>
@@ -75,19 +75,19 @@
         }
         else
         {
-            <div class="empty-state"><i class="fas fa-users"></i><p>No students enrolled yet</p></div>
+            <div class="empty-state"><i class="fas fa-users"></i><p>Chưa có học viên nào ghi danh</p></div>
         }
     </div>
 
     <!-- Available Students -->
     <div class="card-plain" style="padding:0;">
         <div class="card-header-plain">
-            <h5>Available Students</h5>
+            <h5>Học viên khả dụng</h5>
         </div>
         <div style="padding:16px;">
             <div class="search-box" style="margin-bottom:16px;">
                 <i class="fas fa-search"></i>
-                <input type="text" id="searchStudent" placeholder="Search by name or ID..." oninput="filterStudents(this.value)">
+                <input type="text" id="searchStudent" placeholder="Tìm theo tên hoặc mã..." oninput="filterStudents(this.value)">
             </div>
             <div id="studentList" style="display:flex;flex-direction:column;gap:6px;max-height:400px;overflow-y:auto;">
                 @foreach (var sv in available)
@@ -106,7 +106,7 @@
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="maLop" value="@(Model?.MaLop)">
                             <input type="hidden" name="maHocVien" value="@sv.MaHocVien">
-                            <button type="submit" class="btn-icon btn-primary btn-sm" title="Add">
+                            <button type="submit" class="btn-icon btn-primary btn-sm" title="Thêm">
                                 <i class="fas fa-plus"></i>
                             </button>
                         </form>
@@ -114,7 +114,7 @@
                 }
                 @if (!available.Any())
                 {
-                    <div class="empty-state" style="padding:24px;"><i class="fas fa-check-circle" style="color:#10b981;"></i><p>All students enrolled</p></div>
+                    <div class="empty-state" style="padding:24px;"><i class="fas fa-check-circle" style="color:#10b981;"></i><p>Tất cả học viên đã ghi danh</p></div>
                 }
             </div>
         </div>
@@ -123,14 +123,14 @@
 
 <div id="transferModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2100;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:28px;width:520px;max-width:92vw;">
-        <h4 style="margin-bottom:18px;">Transfer Student To Another Class</h4>
+        <h4 style="margin-bottom:18px;">Chuyển học viên sang lớp khác</h4>
         <div class="small" id="transferStudentLabel" style="margin-bottom:16px;color:rgba(0,0,0,0.65);"></div>
         <form method="post" action="/Admin/UpdateStudentClass">
             @Html.AntiForgeryToken()
             <input type="hidden" name="oldMaLop" value="@(Model?.MaLop)">
             <input type="hidden" name="maHocVien" id="transferStudentId">
             <div class="form-group">
-                <label class="form-label">Target class</label>
+                <label class="form-label">Lớp đích</label>
                 <select name="newMaLop" class="form-control form-select" required>
                     @foreach (var lop in allClasses.Where(c => c.MaLop != Model?.MaLop))
                     {
@@ -139,8 +139,8 @@
                 </select>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('transferModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Transfer</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('transferModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Chuyển</button>
             </div>
         </form>
     </div>

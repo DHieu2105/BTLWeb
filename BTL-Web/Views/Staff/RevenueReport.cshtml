@@ -1,0 +1,69 @@
+@model IEnumerable<BTL_Web.ViewModels.StaffRevenueReportRowViewModel>
+@{
+    ViewData["Title"] = "Báo cáo doanh thu";
+    var rows = Model?.ToList() ?? new List<BTL_Web.ViewModels.StaffRevenueReportRowViewModel>();
+    var totalRevenue = rows.Sum(r => r.TongDoanhThu);
+    var totalRegistrations = rows.Sum(r => r.SoDangKy);
+    var totalStudents = rows.Sum(r => r.SoHocVien);
+}
+
+<div class="page-header">
+    <div>
+        <h2>Báo cáo doanh thu</h2>
+        <p>Doanh thu ước tính từ các ghi danh thuộc phạm vi học viên bạn phụ trách</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng doanh thu</div>
+        <div class="stat-value">@totalRevenue.ToString("N0")</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng lượt ghi danh</div>
+        <div class="stat-value">@totalRegistrations</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Số học viên</div>
+        <div class="stat-value">@totalStudents</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã khóa học</th>
+                <th>Tên khóa học</th>
+                <th>Học phí</th>
+                <th>Lượt đăng ký</th>
+                <th>Học viên</th>
+                <th>Tổng doanh thu</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (rows.Any())
+            {
+                foreach (var row in rows)
+                {
+                    <tr>
+                        <td><div class="user-name">@row.MaKhoaHoc</div></td>
+                        <td>@(row.TenKhoaHoc ?? "-")</td>
+                        <td>@row.HocPhi.ToString("N0") VND</td>
+                        <td><span class="chip chip-blue">@row.SoDangKy</span></td>
+                        <td><span class="chip chip-green">@row.SoHocVien</span></td>
+                        <td><strong>@row.TongDoanhThu.ToString("N0") VND</strong></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state"><i class="fas fa-chart-line"></i><p>Chưa có dữ liệu doanh thu trong phạm vi phụ trách</p></div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

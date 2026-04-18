@@ -1,0 +1,69 @@
+@model IEnumerable<BTL_Web.Models.GiaoVien>
+@{
+    ViewData["Title"] = "Quản lý giáo viên";
+    var teachers = Model?.ToList() ?? new List<BTL_Web.Models.GiaoVien>();
+}
+
+<div class="page-header">
+    <div>
+        <h2>Quản lý giáo viên</h2>
+        <p>Xem toàn bộ giáo viên và các phân công hiện tại</p>
+    </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;">
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng giáo viên</div>
+        <div class="stat-value">@teachers.Count</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Tổng lớp</div>
+        <div class="stat-value">@teachers.Sum(t => t.LopHocs?.Count ?? 0)</div>
+    </div>
+    <div class="card-plain" style="padding:20px;">
+        <div class="stat-label">Khóa học được phân công</div>
+        <div class="stat-value">@teachers.Count(t => !string.IsNullOrWhiteSpace(t.MaKhoaHoc))</div>
+    </div>
+</div>
+
+<div class="card-plain" style="padding:0;">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã GV</th>
+                <th>Họ tên</th>
+                <th>Chuyên môn</th>
+                <th>Khóa học</th>
+                <th>Trung tâm</th>
+                <th>Số lớp</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (teachers.Any())
+            {
+                foreach (var teacher in teachers.OrderBy(t => t.MaGv))
+                {
+                    <tr>
+                        <td><div class="user-name">@teacher.MaGv</div></td>
+                        <td>
+                            <div class="user-name">@(teacher.Ten ?? "-")</div>
+                            <div class="user-sub">@(teacher.Sdt ?? "-")</div>
+                        </td>
+                        <td>@(teacher.ChuyenMon ?? "-")</td>
+                        <td>@(teacher.MaKhoaHocNavigation?.TenKhoaHoc ?? teacher.MaKhoaHoc ?? "-")</td>
+                        <td>@(teacher.MaTrungTamNavigation?.TenTrungTam ?? teacher.MaTrungTam ?? "-")</td>
+                        <td><span class="chip chip-blue">@(teacher.LopHocs?.Count ?? 0) lớp</span></td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state"><i class="fas fa-chalkboard-teacher"></i><p>Không có dữ liệu giáo viên</p></div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

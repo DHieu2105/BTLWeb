@@ -14,11 +14,13 @@ public class AuthController : Controller
 {
     private readonly IAuthService _authService;
     private readonly IUserInfoService _userInfoService;
+    private readonly IWebHostEnvironment _environment;
 
-    public AuthController(IAuthService authService, IUserInfoService userInfoService)
+    public AuthController(IAuthService authService, IUserInfoService userInfoService, IWebHostEnvironment environment)
     {
         _authService = authService;
         _userInfoService = userInfoService;
+        _environment = environment;
     }
 
     [HttpGet]
@@ -112,6 +114,9 @@ public class AuthController : Controller
             return RedirectToAction("Login");
 
         var userInfo = await _userInfoService.GetUserInfoAsync(username, role);
+        var imageKey = GetProfileImageKey();
+
+        ViewBag.ProfileImageUrl = GetProfileImageUrl(imageKey);
         
         return View(new { Account = userInfo, RoleDisplay = AppRoles.GetRoleDisplayName(role) });
     }
@@ -182,6 +187,123 @@ public class AuthController : Controller
 
         TempData["Success"] = "Đổi mật khẩu thành công";
         return RedirectToAction("Profile");
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UploadProfileImage(IFormFile? image)
+    {
+        if (!User.Identity?.IsAuthenticated ?? true)
+            return RedirectToAction("Login");
+
+        if (image == null || image.Length == 0)
+        {
+            TempData["Error"] = "Vui lòng chọn ảnh để tải lên.";
+            return RedirectToAction("Profile");
+        }
+
+        if (image.Length > 2 * 1024 * 1024)
+        {
+            TempData["Error"] = "Ảnh vượt quá dung lượng 2MB.";
+            return RedirectToAction("Profile");
+        }
+
+        var extension = Path.GetExtension(image.FileName).ToLowerInvariant();
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        if (!allowed.Contains(extension))
+        {
+            TempData["Error"] = "Định dạng ảnh không hợp lệ. Chỉ chấp nhận JPG, JPEG, PNG hoặc WEBP.";
+            return RedirectToAction("Profile");
+        }
+
+        var imageKey = GetProfileImageKey();
+        if (string.IsNullOrWhiteSpace(imageKey))
+        {
+            TempData["Error"] = "Không xác định được tài khoản hiện tại.";
+            return RedirectToAction("Profile");
+        }
+
+        var uploadsDir = Path.Combine(_environment.WebRootPath, "uploads", "profiles");
+        Directory.CreateDirectory(uploadsDir);
+
+        foreach (var ext in allowed)
+        {
+            var oldPath = Path.Combine(uploadsDir, $"{imageKey}{ext}");
+            if (System.IO.File.Exists(oldPath))
+            {
+                System.IO.File.Delete(oldPath);
+            }
+        }
+
+        var fileName = $"{imageKey}{extension}";
+        var filePath = Path.Combine(uploadsDir, fileName);
+        await using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await image.CopyToAsync(stream);
+        }
+
+        TempData["Success"] = "Cập nhật ảnh hồ sơ thành công.";
+        return RedirectToAction("Profile");
+    }
+
+    private string? GetProfileImageKey()
+    {
+        var role = User.FindFirst(ClaimTypes.Role)?.Value;
+        var username = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        if (string.IsNullOrWhiteSpace(role) || string.IsNullOrWhiteSpace(username))
+        {
+            return null;
+        }
+
+        var rolePrefix = role.ToLowerInvariant();
+
+        if (role == AppRoles.HocVien)
+        {
+            var maHocVien = User.FindFirst("MaHocVien")?.Value;
+            if (!string.IsNullOrWhiteSpace(maHocVien)) return $"{rolePrefix}-{maHocVien}";
+        }
+
+        if (role == AppRoles.GiaoVien)
+        {
+            var maGv = User.FindFirst("MaGV")?.Value;
+            if (!string.IsNullOrWhiteSpace(maGv)) return $"{rolePrefix}-{maGv}";
+        }
+
+        if (role == AppRoles.NhanVien)
+        {
+            var maNv = User.FindFirst("MaNV")?.Value;
+            if (!string.IsNullOrWhiteSpace(maNv)) return $"{rolePrefix}-{maNv}";
+        }
+
+        return $"{rolePrefix}-{username}";
+    }
+
+    private string? GetProfileImageUrl(string? imageKey)
+    {
+        if (string.IsNullOrWhiteSpace(imageKey))
+        {
+            return null;
+        }
+
+        var uploadDir = Path.Combine(_environment.WebRootPath, "uploads", "profiles");
+        if (!Directory.Exists(uploadDir))
+        {
+            return null;
+        }
+
+        var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+        foreach (var ext in allowed)
+        {
+            var fileName = $"{imageKey}{ext}";
+            var fullPath = Path.Combine(uploadDir, fileName);
+            if (System.IO.File.Exists(fullPath))
+            {
+                return $"/uploads/profiles/{fileName}?v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+            }
+        }
+
+        return null;
     }
 
     // DEBUG: Setup Admin Account

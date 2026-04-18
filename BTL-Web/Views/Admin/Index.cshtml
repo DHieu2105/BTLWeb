@@ -1,18 +1,18 @@
 @{
-    ViewData["Title"] = "Admin Dashboard";
+    ViewData["Title"] = "Bảng điều khiển quản trị";
 }
 
 <div class="page-header">
     <div>
-        <h2>Centre Insights</h2>
-        <p>Welcome back, @User.Identity?.Name. Here's what's happening today.</p>
+        <h2>Thông tin trung tâm</h2>
+        <p>Chào mừng trở lại, @User.Identity?.Name. Hôm nay đang có gì mới.</p>
     </div>
     <div class="page-actions">
         <button class="btn-outline">
-            <i class="far fa-file-alt"></i> Export Report
+            <i class="far fa-file-alt"></i> Xuất báo cáo
         </button>
         <a href="/Admin/LopHoc" class="btn-primary">
-            <i class="fas fa-plus"></i> Quick Class Enrollment
+            <i class="fas fa-plus"></i> Ghi danh lớp nhanh
         </a>
     </div>
 </div>
@@ -24,23 +24,23 @@
             <div class="stat-icon blue"><i class="fas fa-users"></i></div>
             <span class="stat-badge blue">+12%</span>
         </div>
-        <div class="stat-label">Total Students</div>
+        <div class="stat-label">Tổng học viên</div>
         <div class="stat-value">@(ViewBag.TotalStudents ?? 1248)</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header">
             <div class="stat-icon orange"><i class="fas fa-chalkboard-teacher"></i></div>
-            <span class="stat-badge orange">Active</span>
+            <span class="stat-badge orange">Đang hoạt động</span>
         </div>
-        <div class="stat-label">Total Teachers</div>
+        <div class="stat-label">Tổng giáo viên</div>
         <div class="stat-value">@(ViewBag.TotalTeachers ?? 42)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header">
             <div class="stat-icon teal"><i class="fas fa-book-open"></i></div>
-            <span class="stat-badge teal">18 Today</span>
+            <span class="stat-badge teal">18 hôm nay</span>
         </div>
-        <div class="stat-label">Active Classes</div>
+        <div class="stat-label">Lớp đang hoạt động</div>
         <div class="stat-value">@(ViewBag.TotalClasses ?? 86)</div>
     </div>
     <div class="stat-card highlighted">
@@ -48,7 +48,7 @@
             <div class="stat-icon white"><i class="fas fa-dollar-sign"></i></div>
             <span class="stat-badge white">+4.2%</span>
         </div>
-        <div class="stat-label">Monthly Revenue</div>
+        <div class="stat-label">Doanh thu tháng</div>
         <div class="stat-value">$52,490</div>
     </div>
 </div>
@@ -59,8 +59,8 @@
     <div class="card-plain" style="padding:32px;">
         <div class="section-heading">
             <div>
-                <h4 style="margin-bottom:4px;">Student Registrations</h4>
-                <p class="small text-muted">New enrollments over the last 6 months</p>
+                <h4 style="margin-bottom:4px;">Ghi danh học viên</h4>
+                <p class="small text-muted">Số lượt ghi danh mới trong 6 tháng gần đây</p>
             </div>
             <button class="btn-icon btn-outline"><i class="fas fa-ellipsis-h"></i></button>
         </div>
@@ -95,40 +95,40 @@
     <!-- Recent Activity -->
     <div class="card-plain" style="padding:32px;">
         <div class="section-heading">
-            <h4>Recent Events</h4>
-            <a href="/Admin/NhanVien">SEE ALL</a>
+            <h4>Sự kiện gần đây</h4>
+            <a href="/Admin/NhanVien">XEM TẤT CẢ</a>
         </div>
         <div>
             <div class="activity-item">
                 <div class="activity-icon blue"><i class="fas fa-user-plus"></i></div>
                 <div class="activity-content">
-                    <div class="activity-title">New Student Enrolled</div>
-                    <div class="activity-desc">Sarah Jenkins joined <strong>IELTS Prep B2</strong></div>
-                    <div class="activity-time">2 minutes ago</div>
+                    <div class="activity-title">Học viên mới đã ghi danh</div>
+                    <div class="activity-desc">Sarah Jenkins tham gia <strong>IELTS Prep B2</strong></div>
+                    <div class="activity-time">2 phút trước</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon orange"><i class="fas fa-credit-card"></i></div>
                 <div class="activity-content">
-                    <div class="activity-title">Payment Received</div>
-                    <div class="activity-desc">Tuition fee for <strong>Marc Oliver</strong> processed</div>
-                    <div class="activity-time">45 minutes ago</div>
+                    <div class="activity-title">Đã nhận thanh toán</div>
+                    <div class="activity-desc">Học phí của <strong>Marc Oliver</strong> đã được xử lý</div>
+                    <div class="activity-time">45 phút trước</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon purple"><i class="fas fa-file-alt"></i></div>
                 <div class="activity-content">
-                    <div class="activity-title">Exam Results Published</div>
-                    <div class="activity-desc">Final results for <strong>C1 Advanced Group 3</strong></div>
-                    <div class="activity-time">2 hours ago</div>
+                    <div class="activity-title">Đã công bố kết quả thi</div>
+                    <div class="activity-desc">Kết quả cuối cùng của <strong>C1 Advanced Group 3</strong></div>
+                    <div class="activity-time">2 giờ trước</div>
                 </div>
             </div>
             <div class="activity-item">
                 <div class="activity-icon red"><i class="fas fa-times-circle"></i></div>
                 <div class="activity-content">
-                    <div class="activity-title">Class Canceled</div>
-                    <div class="activity-desc">Business English <strong>Room 402</strong> (Instructor ill)</div>
-                    <div class="activity-time">5 hours ago</div>
+                    <div class="activity-title">Đã hủy lớp học</div>
+                    <div class="activity-desc">Business English <strong>Phòng 402</strong> (giảng viên bị ốm)</div>
+                    <div class="activity-time">5 giờ trước</div>
                 </div>
             </div>
         </div>
@@ -138,19 +138,19 @@
 <!-- Department Leads Table -->
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Department Leads</h5>
+        <h5>Trưởng bộ phận</h5>
         <a href="/Admin/NhanVien" class="small" style="color:var(--primary);font-weight:700;text-decoration:none;">
-            View Directory <i class="fas fa-arrow-right" style="font-size:10px;"></i>
+            Xem danh bạ <i class="fas fa-arrow-right" style="font-size:10px;"></i>
         </a>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Staff Member</th>
-                <th>Department</th>
-                <th>Capacity</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Nhân sự</th>
+                <th>Phòng ban</th>
+                <th>Phân bổ</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -164,14 +164,14 @@
                         </div>
                     </div>
                 </td>
-                <td>Head of Examinations</td>
+                <td>Trưởng bộ phận khảo thí</td>
                 <td>
                     <div class="progress-bar-wrap" style="width:100px;margin-bottom:4px;">
                         <div class="progress-bar-fill" style="width:85%;"></div>
                     </div>
-                    <span class="smaller text-muted">85% Loaded</span>
+                    <span class="smaller text-muted">Đã tải 85%</span>
                 </td>
-                <td><span class="chip chip-blue">On Campus</span></td>
+                <td><span class="chip chip-blue">Tại trung tâm</span></td>
                 <td style="text-align:right;">
                     <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
                 </td>
@@ -186,14 +186,14 @@
                         </div>
                     </div>
                 </td>
-                <td>Curriculum Development</td>
+                <td>Phát triển chương trình</td>
                 <td>
                     <div class="progress-bar-wrap" style="width:100px;margin-bottom:4px;">
                         <div class="progress-bar-fill" style="width:42%;"></div>
                     </div>
-                    <span class="smaller text-muted">42% Loaded</span>
+                    <span class="smaller text-muted">Đã tải 42%</span>
                 </td>
-                <td><span class="chip chip-yellow">Remote</span></td>
+                <td><span class="chip chip-yellow">Từ xa</span></td>
                 <td style="text-align:right;">
                     <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
                 </td>

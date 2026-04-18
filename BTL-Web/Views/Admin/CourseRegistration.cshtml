@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Course Registration";
+    ViewData["Title"] = "Ghi danh khóa học";
     var hocViens  = ViewBag.HocViens  as IEnumerable<BTL_Web.Models.HocVien>  ?? new List<BTL_Web.Models.HocVien>();
     var khoaHocs  = ViewBag.KhoaHocs  as IEnumerable<BTL_Web.Models.KhoaHoc>  ?? new List<BTL_Web.Models.KhoaHoc>();
     var lopHocs   = ViewBag.LopHocs   as IEnumerable<BTL_Web.Models.LopHoc>   ?? new List<BTL_Web.Models.LopHoc>();
@@ -18,10 +18,10 @@
 <div class="page-header">
     <div>
         <a href="/Admin/Index" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Dashboard
+            <i class="fas fa-arrow-left"></i>Trở lại trang chủ
         </a>
-        <h2>Course Enrollment</h2>
-        <p>Register a student to a course and assign to a class</p>
+        <h2>Đăng ký khóa học</h2>
+        <p>Đăng ký học viên vào khóa học và phân lớp</p>
     </div>
 </div>
 
@@ -32,12 +32,12 @@
         <div class="card-plain" style="padding:32px;border-left:4px solid var(--primary);">
             <h5 style="margin-bottom:20px;display:flex;align-items:center;gap:10px;">
                 <span style="width:28px;height:28px;background:var(--primary);color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">1</span>
-                Student Profile
+                Thông tin học viên
             </h5>
             <div class="form-group">
-                <label class="form-label">Find Student</label>
+                <label class="form-label">Tìm học viên</label>
                 <select id="studentSelect" class="form-control form-select" onchange="updateStudentInfo(this)">
-                    <option value="">— Search or select student —</option>
+                    <option value="">— Tìm kiếm hoặc chọn sinh viên —</option>
                     @foreach (var sv in hocViens)
                     {
                         <option value="@sv.MaHocVien" data-name="@sv.HoVaTen" data-phone="@sv.Sdt">
@@ -61,7 +61,7 @@
         <div class="card-plain" style="padding:32px;border-left:4px solid #0891b2;">
             <h5 style="margin-bottom:20px;display:flex;align-items:center;gap:10px;">
                 <span style="width:28px;height:28px;background:#0891b2;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">2</span>
-                Course Selection
+                Lựa chọn khóa học
             </h5>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 @foreach (var kh in khoaHocs.Take(4))
@@ -81,13 +81,13 @@
         <div class="card-plain" style="padding:32px;border-left:4px solid #f97316;">
             <h5 style="margin-bottom:20px;display:flex;align-items:center;gap:10px;">
                 <span style="width:28px;height:28px;background:#f97316;color:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">3</span>
-                Payment Status
+                Trạng thái thanh toán
             </h5>
             <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;">
-                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Paid"> <span class="chip chip-green">Paid in Full</span></label>
-                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Partial"> <span class="chip chip-yellow">Partial Payment</span></label>
-                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Pending"> <span class="chip chip-gray">Pending</span></label>
-                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Trial"> <span class="chip chip-blue">Trial</span></label>
+                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Paid"> <span class="chip chip-green">Đã thanh toán đầy đủ</span></label>
+                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Partial"> <span class="chip chip-yellow">Thanh toán một phần</span></label>
+                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Pending"> <span class="chip chip-gray">Đang chờ</span></label>
+                <label style="cursor:pointer;"><input type="radio" name="payStatus" value="Trial"> <span class="chip chip-blue">Thử nghiệm</span></label>
             </div>
             <form method="post" action="/Admin/RegisterCourse" id="regForm">
                 @Html.AntiForgeryToken()
@@ -95,18 +95,18 @@
                 <input type="hidden" name="MaKhoaHoc" id="hiddenCourse">
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
                     <div class="form-group">
-                        <label class="form-label">Tuition Fee</label>
+                        <label class="form-label">Học phí</label>
                         <div style="position:relative;">
                             <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--outline);">₫</span>
                             <input type="number" name="HocPhi" class="form-control" style="padding-left:28px;" placeholder="0">
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Discount %</label>
+                        <label class="form-label">Giảm giá %</label>
                         <input type="number" name="GiamGia" class="form-control" min="0" max="100" placeholder="0">
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Amount Paid</label>
+                        <label class="form-label">Số tiền đã thanh toán</label>
                         <div style="position:relative;">
                             <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--outline);">₫</span>
                             <input type="number" name="DaThanhToan" class="form-control" style="padding-left:28px;" placeholder="0">
@@ -114,9 +114,9 @@
                     </div>
                 </div>
                 <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                    <a href="/Admin/Index" class="btn-outline">Cancel</a>
+                    <a href="/Admin/Index" class="btn-outline">Hủy</a>
                     <button type="submit" class="btn-primary">
-                        <i class="fas fa-check"></i> Complete Registration
+                        <i class="fas fa-check"></i> Hoàn tất Đăng ký
                     </button>
                 </div>
             </form>
@@ -156,7 +156,7 @@
                                 <div class="user-sub">@sv.MaHocVien</div>
                             </div>
                         </div>
-                        <span class="chip chip-green" style="font-size:10px;">Active</span>
+                        <span class="chip chip-green" style="font-size:10px;">Đang hoạt động</span>
                     </div>
                 }
             </div>

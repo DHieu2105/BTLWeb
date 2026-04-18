@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Add Student to Class";
+    ViewData["Title"] = "Thêm học viên vào lớp";
     var lopHocs  = ViewBag.LopHocs  as IEnumerable<BTL_Web.Models.LopHoc>  ?? new List<BTL_Web.Models.LopHoc>();
     var hocViens = ViewBag.HocViens as IEnumerable<BTL_Web.Models.HocVien> ?? new List<BTL_Web.Models.HocVien>();
 }
@@ -7,10 +7,10 @@
 <div class="page-header">
     <div>
         <a href="/Staff/ClassManagement" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Classes
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách lớp
         </a>
-        <h2>Add Student to Class</h2>
-        <p>Assign enrolled students to specific class sessions</p>
+        <h2>Thêm học viên vào lớp</h2>
+        <p>Phân công học viên đã ghi danh vào từng lớp học cụ thể</p>
     </div>
 </div>
 
@@ -19,14 +19,14 @@
     <div class="card-plain" style="padding:32px;">
         <h5 style="margin-bottom:24px;display:flex;align-items:center;gap:10px;">
             <div class="stat-icon blue" style="width:40px;height:40px;border-radius:10px;flex-shrink:0;"><i class="fas fa-chalkboard"></i></div>
-            Select Class & Student
+            Chọn lớp và học viên
         </h5>
         <form method="post" action="/Staff/AddStudentToClassSubmit">
             @Html.AntiForgeryToken()
             <div class="form-group">
-                <label class="form-label">Target Class</label>
+                <label class="form-label">Lớp mục tiêu</label>
                 <select name="MaLop" class="form-control form-select" onchange="updateClassInfo(this)">
-                    <option value="">— Select Class —</option>
+                    <option value="">— Chọn lớp —</option>
                     @foreach (var lop in lopHocs)
                     {
                         <option value="@lop.MaLop" data-course="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")" data-count="@lop.MaHocViens.Count">
@@ -41,16 +41,16 @@
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <div>
                         <div class="user-name" id="classCourseName">—</div>
-                        <div class="user-sub" id="classStudentCount">— students enrolled</div>
+                        <div class="user-sub" id="classStudentCount">— học viên đã ghi danh</div>
                     </div>
-                    <span class="chip chip-green">Active</span>
+                    <span class="chip chip-green">Đang hoạt động</span>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Student</label>
+                <label class="form-label">Học viên</label>
                 <select name="MaHocVien" class="form-control form-select">
-                    <option value="">— Select Student —</option>
+                    <option value="">— Chọn học viên —</option>
                     @foreach (var sv in hocViens)
                     {
                         <option value="@sv.MaHocVien">@sv.HoVaTen (@sv.MaHocVien)</option>
@@ -60,14 +60,14 @@
 
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group">
-                    <label class="form-label">Enrollment Date</label>
+                    <label class="form-label">Ngày ghi danh</label>
                     <input type="date" name="NgayDangKi" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Schedule</label>
+                    <label class="form-label">Hình thức học</label>
                     <div style="display:flex;gap:8px;">
-                        <button type="button" class="filter-btn active">Online</button>
-                        <button type="button" class="filter-btn">Offline</button>
+                        <button type="button" class="filter-btn active">Trực tuyến</button>
+                        <button type="button" class="filter-btn">Trực tiếp</button>
                     </div>
                 </div>
             </div>
@@ -75,18 +75,18 @@
             <div style="display:flex;gap:12px;margin-top:8px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                     <input type="checkbox" name="SendNotif" value="true">
-                    <span class="small">Send enrollment notification</span>
+                    <span class="small">Gửi thông báo ghi danh</span>
                 </label>
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
                     <input type="checkbox" name="TrialMode" value="true">
-                    <span class="small">Trial mode (no payment required)</span>
+                    <span class="small">Chế độ thử nghiệm (không cần thanh toán)</span>
                 </label>
             </div>
 
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <a href="/Staff/ClassManagement" class="btn-outline">Cancel</a>
+                <a href="/Staff/ClassManagement" class="btn-outline">Hủy</a>
                 <button type="submit" class="btn-primary">
-                    <i class="fas fa-plus"></i> Add to Class
+                    <i class="fas fa-plus"></i> Thêm vào lớp
                 </button>
             </div>
         </form>
@@ -96,19 +96,19 @@
     <div style="display:flex;flex-direction:column;gap:16px;">
         <!-- Class Spotlight -->
         <div class="card-plain" style="padding:24px;border-left:4px solid var(--primary);">
-            <div class="stat-label" style="margin-bottom:12px;">Class Spotlight</div>
+            <div class="stat-label" style="margin-bottom:12px;">Lớp nổi bật</div>
             <div id="spotlightClass" style="text-align:center;padding:16px;">
                 <div class="avatar" style="width:64px;height:64px;border-radius:16px;font-size:24px;margin:0 auto 12px;background:rgba(219,225,255,0.3);color:var(--primary);">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <div class="user-sub">Select a class to see details</div>
+                <div class="user-sub">Chọn một lớp để xem chi tiết</div>
             </div>
         </div>
 
         <!-- Recent Activity -->
         <div class="card-plain" style="padding:24px;">
             <div class="section-heading">
-                <h5>Recent Additions</h5>
+                <h5>Thêm gần đây</h5>
             </div>
             @foreach (var sv in hocViens.Take(4))
             {
@@ -129,14 +129,14 @@
 
         <!-- Class Insights -->
         <div class="card-plain" style="padding:24px;background:rgba(219,225,255,0.1);border:1px solid rgba(43,84,191,0.15);">
-            <div class="stat-label" style="margin-bottom:12px;">Class Insights</div>
+            <div class="stat-label" style="margin-bottom:12px;">Thông tin lớp học</div>
             <div style="display:flex;flex-direction:column;gap:12px;">
                 <div style="display:flex;justify-content:space-between;">
-                    <span class="small">Class Diversity</span>
-                    <span class="small fw-bold">6 backgrounds</span>
+                    <span class="small">Độ đa dạng của lớp</span>
+                    <span class="small fw-bold">6 nền tảng</span>
                 </div>
                 <div style="display:flex;justify-content:space-between;">
-                    <span class="small">Average GPA</span>
+                    <span class="small">GPA trung bình</span>
                     <span class="small fw-bold" style="color:#10b981;">3.72 ↑</span>
                 </div>
             </div>
@@ -151,11 +151,11 @@ function updateClassInfo(sel) {
     if (sel.value) {
         document.getElementById('classInfo').style.display = 'block';
         document.getElementById('classCourseName').textContent = opt.dataset.course || '—';
-        document.getElementById('classStudentCount').textContent = (opt.dataset.count || 0) + ' students enrolled';
+        document.getElementById('classStudentCount').textContent = (opt.dataset.count || 0) + ' học viên đã ghi danh';
         document.getElementById('spotlightClass').innerHTML = `
             <div class="user-name" style="font-size:16px;margin-bottom:4px;">${opt.text.split('—')[0].trim()}</div>
             <div class="user-sub">${opt.dataset.course || '—'}</div>
-            <div class="chip chip-green" style="margin-top:8px;">Active</div>`;
+            <div class="chip chip-green" style="margin-top:8px;">Đang hoạt động</div>`;
     } else {
         document.getElementById('classInfo').style.display = 'none';
     }

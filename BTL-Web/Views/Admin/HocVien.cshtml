@@ -1,6 +1,6 @@
 @model IEnumerable<BTL_Web.Models.HocVien>
 @{
-    ViewData["Title"] = "Manage Students";
+    ViewData["Title"] = "Quản lý học viên";
     int page = ViewBag.Page ?? 1;
     int totalPages = ViewBag.TotalPages ?? 1;
     int pageSize = ViewBag.PageSize ?? 10;
@@ -13,20 +13,20 @@
 
 <div class="page-header">
     <div>
-        <h2>Manage Students</h2>
-        <p>@(Model?.Count() ?? 0) students enrolled across all programs</p>
+        <h2>Quản lý học viên</h2>
+        <p>@(Model?.Count() ?? 0) học viên đã ghi danh ở các chương trình</p>
     </div>
     <div class="page-actions">
-        <form method="get" action="/Admin/HocVien" style="display:flex;gap:8px;align-items:center;">
-            <input type="text" name="searchStudent" class="form-control" placeholder="Search by name or ID" value="@(ViewBag.SearchStudent ?? "")" style="width:240px;">
-            <button type="submit" class="btn-outline"><i class="fas fa-search"></i> Search</button>
+        <form id="studentSearchForm" method="get" action="/Admin/HocVien" data-page-size="@pageSize" style="display:flex;gap:8px;align-items:center;">
+            <input id="studentSearchInput" type="text" name="searchStudent" class="form-control" placeholder="Tìm theo tên hoặc mã" value="@(ViewBag.SearchStudent ?? "")" style="width:240px;">
+            <button type="submit" class="btn-outline"><i class="fas fa-search"></i> Tìm kiếm</button>
             @if (!string.IsNullOrWhiteSpace(ViewBag.SearchStudent))
             {
-                <a href="/Admin/HocVien" class="btn-outline"><i class="fas fa-times"></i> Clear</a>
+                <a href="/Admin/HocVien" class="btn-outline"><i class="fas fa-times"></i> Xóa</a>
             }
         </form>
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Add Student
+            <i class="fas fa-plus"></i> Thêm học viên
         </button>
     </div>
 </div>
@@ -34,47 +34,56 @@
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
         <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+8%</span></div>
-        <div class="stat-label">Total Students</div>
+        <div class="stat-label">Tổng học viên</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card orange">
         <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-user-clock"></i></div></div>
-        <div class="stat-label">Active Trials</div>
+        <div class="stat-label">Học thử đang hoạt động</div>
         <div class="stat-value">42</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-dollar-sign"></i></div></div>
-        <div class="stat-label">Pending Payments</div>
+        <div class="stat-label">Học phí chờ xử lý</div>
         <div class="stat-value">$42,900</div>
     </div>
 </div>
 
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Student Records</h5>
+        <h5>Danh sách học viên</h5>
         <div style="display:flex;gap:8px;">
-            <button class="btn-outline btn-sm"><i class="fas fa-filter"></i> Filter</button>
+            <button type="button" class="btn-outline btn-sm" onclick="toggleStudentFilter()"><i class="fas fa-filter"></i> Lọc</button>
             <button class="btn-icon btn-outline"><i class="fas fa-ellipsis-v"></i></button>
+        </div>
+    </div>
+    <div id="studentFilterPanel" style="display:none;padding:12px 16px;border-bottom:1px solid var(--surface-low);background:var(--surface);">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Lọc nhanh</label>
+                <input id="studentFilterInput" type="text" class="form-control" placeholder="Lọc theo tên, mã, số điện thoại, khóa học..." oninput="applyStudentFilter()">
+            </div>
+            <button type="button" class="btn-outline" onclick="clearStudentFilter()">Xóa lọc</button>
         </div>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Student</th>
-                <th>Student ID</th>
-                <th>Enrolled Course</th>
-                <th>Phone</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Học viên</th>
+                <th>Mã học viên</th>
+                <th>Khóa học đã đăng ký</th>
+                <th>Số điện thoại</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="studentTableBody">
             @if (Model != null && Model.Any())
             {
                 @foreach (var sv in Model)
                 {
                     var name = sv.HoVaTen ?? sv.MaHocVien;
                     var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
-                    <tr>
+                    <tr class="student-row">
                         <td>
                             <div class="user-row">
                                 <div class="avatar">@initials</div>
@@ -103,12 +112,13 @@
             }
             else
             {
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-graduate"></i><p>No students found</p></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-graduate"></i><p>Không tìm thấy học viên</p></div></td></tr>
             }
+            <tr id="studentFilterEmptyRow" style="display:none;"><td colspan="5"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có học viên phù hợp bộ lọc hiện tại</p></div></td></tr>
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) / @totalItems records</span>
+        <span class="pagination-info">Hiển thị @(Model?.Count() ?? 0) / @totalItems bản ghi</span>
         <div class="pagination-btns">
             <a class="page-btn" href="/Admin/HocVien?page=@Math.Max(1, page - 1)&pageSize=@pageSize&searchStudent=@(ViewBag.SearchStudent ?? "")"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
             @for (int p = startPage; p <= endPage; p++)
@@ -129,24 +139,24 @@
 
 <div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Add New Student</h4>
+        <h4 style="margin-bottom:24px;">Thêm học viên mới</h4>
         <form method="post" action="/Admin/AddHocVien">
             @Html.AntiForgeryToken()
             <div class="form-group">
-                <label class="form-label">Student ID</label>
-                <input type="text" class="form-control" value="Auto-generated by system (HV000001, HV000002...)" readonly>
+                <label class="form-label">Mã học viên</label>
+                <input type="text" class="form-control" value="Tự động sinh bởi hệ thống (HV000001, HV000002...)" readonly>
             </div>
             <div class="form-group">
-                <label class="form-label">Full Name</label>
-                <input type="text" name="HoVaTen" class="form-control" placeholder="Enter full name" required>
+                <label class="form-label">Họ và tên</label>
+                <input type="text" name="HoVaTen" class="form-control" placeholder="Nhập họ và tên" required>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group">
-                    <label class="form-label">Phone</label>
+                    <label class="form-label">Số điện thoại</label>
                     <input type="text" name="Sdt" class="form-control" placeholder="+84...">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Gender</label>
+                    <label class="form-label">Giới tính</label>
                     <select name="GioiTinh" class="form-control form-select">
                         <option value="Nam">Nam</option>
                         <option value="Nu">Nữ</option>
@@ -154,8 +164,8 @@
                 </div>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Add Student</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Thêm học viên</button>
             </div>
         </form>
     </div>
@@ -163,25 +173,25 @@
 
 <div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Edit Student</h4>
+        <h4 style="margin-bottom:24px;">Sửa học viên</h4>
         <form method="post" action="/Admin/EditHocVien">
             @Html.AntiForgeryToken()
             <input type="hidden" name="MaHocVien" id="editMaHocVien">
             <div class="form-group">
-                <label class="form-label">Student ID</label>
+                <label class="form-label">Mã học viên</label>
                 <input type="text" id="editMaHocVienReadonly" class="form-control" readonly>
             </div>
             <div class="form-group">
-                <label class="form-label">Full Name</label>
+                <label class="form-label">Họ và tên</label>
                 <input type="text" name="HoVaTen" id="editHoVaTen" class="form-control" required>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group">
-                    <label class="form-label">Phone</label>
+                    <label class="form-label">Số điện thoại</label>
                     <input type="text" name="Sdt" id="editSdt" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Gender</label>
+                    <label class="form-label">Giới tính</label>
                     <select name="GioiTinh" id="editGioiTinh" class="form-control form-select">
                         <option value="Nam">Nam</option>
                         <option value="Nu">Nữ</option>
@@ -189,8 +199,8 @@
                 </div>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Save Changes</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu thay đổi</button>
             </div>
         </form>
     </div>
@@ -198,6 +208,138 @@
 
 @section Scripts {
 <script>
+const studentSearchInput = document.getElementById('studentSearchInput');
+const studentTableBody = document.getElementById('studentTableBody');
+const studentSearchForm = document.getElementById('studentSearchForm');
+let ajaxSearchTimer;
+
+const escapeHtml = window.appEscapeHtml || function (value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+};
+
+function buildStudentRow(student) {
+    const name = student.hoVaTen || student.maHocVien;
+    const initials = name
+        .split(' ')
+        .slice(0, 2)
+        .map(w => (w || '').charAt(0).toUpperCase())
+        .join('');
+    const safeName = escapeHtml(name);
+    const safeId = escapeHtml(student.maHocVien);
+    const safeCourse = escapeHtml(student.courseName || '—');
+    const safePhone = escapeHtml(student.sdt || '—');
+    const safeGender = escapeHtml(student.gioiTinh || '—');
+
+    return `
+        <tr class="student-row">
+            <td>
+                <div class="user-row">
+                    <div class="avatar">${escapeHtml(initials)}</div>
+                    <div>
+                        <div class="user-name">${safeName}</div>
+                        <div class="user-sub">${safeGender}</div>
+                    </div>
+                </div>
+            </td>
+            <td><span class="chip chip-blue">${safeId}</span></td>
+            <td>${safeCourse}</td>
+            <td class="user-sub">${safePhone}</td>
+            <td style="text-align:right;">
+                <div style="display:flex;gap:4px;justify-content:flex-end;">
+                    <a href="/Admin/StudentDetail/${encodeURIComponent(student.maHocVien)}" class="btn-icon btn-outline btn-sm"><i class="fas fa-eye"></i></a>
+                    <button class="btn-icon btn-outline btn-sm" onclick="deleteStudent('${safeId}')">
+                        <i class="fas fa-trash" style="color:#ef4444;"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>`;
+}
+
+function toggleStudentFilter() {
+    const panel = document.getElementById('studentFilterPanel');
+    if (!panel) {
+        return;
+    }
+
+    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+}
+
+function applyStudentFilter() {
+    const input = document.getElementById('studentFilterInput');
+    const query = (input?.value || '').trim().toLowerCase();
+    const rows = document.querySelectorAll('#studentTableBody .student-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        const show = !query || text.includes(query);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('studentFilterEmptyRow');
+    if (emptyRow) {
+        emptyRow.style.display = visible === 0 ? '' : 'none';
+    }
+}
+
+function clearStudentFilter() {
+    const input = document.getElementById('studentFilterInput');
+    if (input) {
+        input.value = '';
+    }
+    applyStudentFilter();
+}
+
+function renderEmptyState() {
+    studentTableBody.innerHTML = '<tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-graduate"></i><p>Không tìm thấy học viên</p></div></td></tr>';
+}
+
+async function runStudentAjaxSearch(keyword) {
+    if (!studentTableBody || !studentSearchForm) {
+        return;
+    }
+
+    const pageSize = Number(studentSearchForm.dataset.pageSize || 10);
+    const endpoint = `/api/students?keyword=${encodeURIComponent(keyword || '')}&page=1&pageSize=${pageSize}`;
+
+    try {
+        const response = await fetch(endpoint, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        const data = await response.json();
+        if (!data.items || data.items.length === 0) {
+            renderEmptyState();
+            return;
+        }
+
+        studentTableBody.innerHTML = data.items.map(buildStudentRow).join('');
+        applyStudentFilter();
+    } catch {
+        // Keep server-rendered content when API fails.
+    }
+}
+
+if (studentSearchInput) {
+    studentSearchInput.addEventListener('input', function (event) {
+        clearTimeout(ajaxSearchTimer);
+        const keyword = event.target.value || '';
+        ajaxSearchTimer = setTimeout(() => runStudentAjaxSearch(keyword), 300);
+    });
+}
+
 function openEditStudent(id, name, phone, gender) {
     document.getElementById('editMaHocVien').value = id;
     document.getElementById('editMaHocVienReadonly').value = id;
@@ -207,7 +349,7 @@ function openEditStudent(id, name, phone, gender) {
     document.getElementById('editModal').style.display = 'flex';
 }
 function deleteStudent(id) {
-    if (confirm('Delete student ' + id + '?')) location.href = '/Admin/DeleteHocVien/' + id;
+    if (confirm('Bạn có chắc muốn xóa học viên ' + id + '?')) location.href = '/Admin/DeleteHocVien/' + id;
 }
 </script>
 }

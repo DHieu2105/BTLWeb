@@ -1,16 +1,16 @@
 @model BTL_Web.Models.LopHoc
 @{
-    ViewData["Title"] = "Edit Class";
+    ViewData["Title"] = "Sửa lớp học";
 }
 
 <div class="page-header">
     <div>
         <a asp-controller="Admin" asp-action="LopHoc"
                style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Classes
+            <i class="fas fa-arrow-left"></i> Trở lại lớp học
         </a>
-        <h2>Edit Class</h2>
-        <p>Update class details and assignments</p>
+        <h2>Chỉnh sửa lớp học</h2>
+        <p>Cập nhật thông tin lớp học và bài tập</p>
     </div>
 </div>
 
@@ -23,46 +23,46 @@
         <input type="hidden" asp-for="MaLop" />
 
         <div class="form-group">
-            <label class="form-label">Class ID</label>
+            <label class="form-label">Mã lớp</label>
             <input class="form-control" value="@Model.MaLop" disabled />
         </div>
 
         <div class="form-group">
-            <label asp-for="TenLop" class="form-label">Class Name</label>
+            <label asp-for="TenLop" class="form-label">Tên lớp</label>
             <input asp-for="TenLop" class="form-control" />
             <span asp-validation-for="TenLop" class="text-danger"></span>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
             <div class="form-group">
-                <label asp-for="MaKhoaHoc" class="form-label">Course</label>
+                <label asp-for="MaKhoaHoc" class="form-label">Khóa học</label>
                 <select asp-for="MaKhoaHoc" class="form-control form-select" asp-items="ViewBag.MaKhoaHoc">
-                    <option value="">-- Select course --</option>
+                    <option value="">-- Chọn khóa học --</option>
                 </select>
                 <span asp-validation-for="MaKhoaHoc" class="text-danger"></span>
             </div>
 
             <div class="form-group">
-                <label asp-for="MaGv" class="form-label">Teacher</label>
+                <label asp-for="MaGv" class="form-label">Giáo viên</label>
                 <select asp-for="MaGv" class="form-control form-select" asp-items="ViewBag.MaGv">
-                    <option value="">-- Select teacher --</option>
+                    <option value="">-- Chọn giáo viên --</option>
                 </select>
                 <span asp-validation-for="MaGv" class="text-danger"></span>
             </div>
         </div>
 
         <div class="form-group">
-            <label asp-for="MaPhong" class="form-label">Room</label>
+            <label asp-for="MaPhong" class="form-label">Phòng học</label>
             <select asp-for="MaPhong" class="form-control form-select" asp-items="ViewBag.MaPhong">
-                <option value="">-- Select room --</option>
+                <option value="">-- Chọn phòng --</option>
             </select>
             <span asp-validation-for="MaPhong" class="text-danger"></span>
         </div>
 
         <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-            <a asp-controller="Admin" asp-action="LopHoc" class="btn-outline">Cancel</a>
+            <a asp-controller="Admin" asp-action="LopHoc" class="btn-outline">Hủy</a>
             <button type="submit" class="btn-primary">
-                <i class="fas fa-save"></i> Save Changes
+                <i class="fas fa-save"></i> Lưu thay đổi
             </button>
         </div>
     </form>

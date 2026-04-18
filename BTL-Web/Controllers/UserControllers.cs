@@ -127,6 +127,113 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> CourseManagement()
             => View(await _db.KhoaHocs.Include(k => k.LopHocs).ToListAsync());
 
+        public async Task<IActionResult> TeacherManagement()
+            => View(await _db.GiaoViens
+                .Include(g => g.MaKhoaHocNavigation)
+                .Include(g => g.MaTrungTamNavigation)
+                .Include(g => g.LopHocs)
+                .AsNoTracking()
+                .ToListAsync());
+
+        public async Task<IActionResult> StaffTeacherAssignment()
+        {
+            ViewBag.NhanViens = await _db.NhanViens
+                .Include(n => n.MaGvs)
+                .Include(n => n.MaTrungTamNavigation)
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.GiaoViens = await _db.GiaoViens
+                .Include(g => g.MaNvs)
+                .AsNoTracking()
+                .ToListAsync();
+
+            ViewBag.TrungTams = await _db.TrungTams
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View("~/Views/Admin/StaffTeacherAssignment.cshtml");
+        }
+
+        public async Task<IActionResult> StudentReport()
+        {
+            var maNv = GetMaNv();
+            if (string.IsNullOrWhiteSpace(maNv))
+            {
+                return View(new List<StaffStudentReportRowViewModel>());
+            }
+
+            var teacherIds = await _db.NhanViens
+                .Where(n => n.MaNv == maNv)
+                .SelectMany(n => n.MaGvs.Select(g => g.MaGv))
+                .Distinct()
+                .ToListAsync();
+
+            if (!teacherIds.Any())
+            {
+                return View(new List<StaffStudentReportRowViewModel>());
+            }
+
+            var rows = await _db.HocViens
+                .Where(h => h.MaGvs.Any(g => teacherIds.Contains(g.MaGv)))
+                .Select(h => new StaffStudentReportRowViewModel
+                {
+                    MaHocVien = h.MaHocVien,
+                    HoVaTen = h.HoVaTen,
+                    SoKhoaHocDaDangKy = h.DangKis.Count,
+                    TongHocPhi = h.DangKis.Sum(d => d.MaKhoaHocNavigation.HocPhi ?? 0),
+                    NgayDangKyGanNhat = h.DangKis
+                        .Select(d => d.NgayDangKi)
+                        .OrderByDescending(x => x)
+                        .FirstOrDefault()
+                })
+                .OrderByDescending(x => x.NgayDangKyGanNhat)
+                .ThenBy(x => x.HoVaTen)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(rows);
+        }
+
+        public async Task<IActionResult> RevenueReport()
+        {
+            var maNv = GetMaNv();
+            if (string.IsNullOrWhiteSpace(maNv))
+            {
+                return View(new List<StaffRevenueReportRowViewModel>());
+            }
+
+            var teacherIds = await _db.NhanViens
+                .Where(n => n.MaNv == maNv)
+                .SelectMany(n => n.MaGvs.Select(g => g.MaGv))
+                .Distinct()
+                .ToListAsync();
+
+            if (!teacherIds.Any())
+            {
+                return View(new List<StaffRevenueReportRowViewModel>());
+            }
+
+            var rows = await _db.DangKis
+                .Where(d => d.MaHocVienNavigation.MaGvs.Any(g => teacherIds.Contains(g.MaGv)))
+                .GroupBy(d => new { d.MaKhoaHoc, d.MaKhoaHocNavigation.TenKhoaHoc, HocPhi = d.MaKhoaHocNavigation.HocPhi ?? 0 })
+                .Select(g => new StaffRevenueReportRowViewModel
+                {
+                    MaKhoaHoc = g.Key.MaKhoaHoc,
+                    TenKhoaHoc = g.Key.TenKhoaHoc,
+                    HocPhi = g.Key.HocPhi,
+                    SoDangKy = g.Count(),
+                    SoHocVien = g.Select(x => x.MaHocVien).Distinct().Count(),
+                    TongDoanhThu = g.Count() * g.Key.HocPhi
+                })
+                .OrderByDescending(x => x.TongDoanhThu)
+                .ThenBy(x => x.TenKhoaHoc)
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(rows);
+        }
+
         public async Task<IActionResult> RoomManagement()
             => View(await _db.PhongHocs.Include(p => p.MaTrungTamNavigation).ToListAsync());
 
@@ -572,6 +679,43 @@ namespace BTL_Web.Controllers
                 .ToListAsync());
         }
 
+        public async Task<IActionResult> MyCourses()
+        {
+            var maGv = GetMaGv();
+
+            var teacherClasses = await _db.LopHocs
+                .Where(l => l.MaGv == maGv)
+                .Include(l => l.MaKhoaHocNavigation)
+                .Include(l => l.MaHocViens)
+                .AsNoTracking()
+                .ToListAsync();
+
+            var courses = teacherClasses
+                .Where(l => l.MaKhoaHocNavigation != null)
+                .GroupBy(l => l.MaKhoaHocNavigation!.MaKhoaHoc)
+                .Select(group =>
+                {
+                    var course = group.First().MaKhoaHocNavigation!;
+                    return new TeacherCourseViewModel
+                    {
+                        MaKhoaHoc = course.MaKhoaHoc,
+                        TenKhoaHoc = course.TenKhoaHoc ?? course.MaKhoaHoc,
+                        ThoiLuong = course.ThoiLuong,
+                        HocPhi = course.HocPhi,
+                        ClassCount = group.Count(),
+                        StudentCount = group
+                            .SelectMany(c => c.MaHocViens)
+                            .Select(h => h.MaHocVien)
+                            .Distinct()
+                            .Count()
+                    };
+                })
+                .OrderBy(c => c.TenKhoaHoc)
+                .ToList();
+
+            return View(courses);
+        }
+
         public async Task<IActionResult> ClassDetail(string id)
         {
             var lop = await _db.LopHocs
@@ -627,7 +771,7 @@ namespace BTL_Web.Controllers
                 {
                     MaHocVien = h.MaHocVien,
                     HoVaTen = h.HoVaTen,
-                    MaKhoaHoc = selectedClass.MaKhoaHoc,
+                    MaKhoaHoc = selectedClass.MaKhoaHoc ?? string.Empty,
                     TenKhoaHoc = selectedClass.MaKhoaHocNavigation != null ? selectedClass.MaKhoaHocNavigation.TenKhoaHoc : selectedClass.MaKhoaHoc,
                     DiemListening = h.KetQuas.Where(k => k.MaKhoaHoc == selectedClass.MaKhoaHoc).Select(k => k.DiemListening).FirstOrDefault(),
                     DiemReading = h.KetQuas.Where(k => k.MaKhoaHoc == selectedClass.MaKhoaHoc).Select(k => k.DiemReading).FirstOrDefault(),

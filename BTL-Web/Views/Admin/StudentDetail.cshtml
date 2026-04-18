@@ -1,26 +1,27 @@
 @model BTL_Web.Models.HocVien
 @{
-    ViewData["Title"] = "Student Detail";
-    var name = Model?.HoVaTen ?? "Unknown";
+    ViewData["Title"] = "Chi tiết học viên";
+    var name = Model?.HoVaTen ?? "Không xác định";
     var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+    var imageUrl = ViewBag.StudentImageUrl as string;
 }
 
 <div class="page-header">
     <div>
         <a href="/Admin/HocVien" style="font-size:13px;color:var(--primary);text-decoration:none;display:flex;align-items:center;gap:4px;margin-bottom:8px;">
-            <i class="fas fa-arrow-left"></i> Back to Students
+            <i class="fas fa-arrow-left"></i> Quay lại danh sách học viên
         </a>
-        <h2>Student Profile</h2>
+        <h2>Hồ sơ học viên</h2>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-edit"></i> Edit</button>
-        <button class="btn-primary"><i class="fas fa-file-alt"></i> Report</button>
+        <button class="btn-outline"><i class="fas fa-edit"></i> Sửa</button>
+        <button class="btn-primary"><i class="fas fa-file-alt"></i> Báo cáo</button>
     </div>
 </div>
 
 @if (Model == null)
 {
-    <div class="empty-state"><i class="fas fa-user-graduate"></i><p>Student not found</p></div>
+    <div class="empty-state"><i class="fas fa-user-graduate"></i><p>Không tìm thấy học viên</p></div>
 }
 else
 {
@@ -28,25 +29,43 @@ else
         <!-- Profile Card -->
         <div style="display:flex;flex-direction:column;gap:24px;">
             <div class="card-plain" style="padding:32px;text-align:center;">
-                <div class="avatar" style="width:80px;height:80px;border-radius:20px;font-size:28px;margin:0 auto 16px;">@initials</div>
+                @if (!string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    <img src="@imageUrl" alt="Ảnh học viên" style="width:80px;height:80px;border-radius:20px;object-fit:cover;display:block;margin:0 auto 16px;">
+                }
+                else
+                {
+                    <div class="avatar" style="width:80px;height:80px;border-radius:20px;font-size:28px;margin:0 auto 16px;">@initials</div>
+                }
                 <h3 style="font-size:20px;margin-bottom:4px;">@name</h3>
                 <p class="text-muted small">@Model.MaHocVien</p>
-                <span class="chip chip-green" style="margin-top:8px;">Active Student</span>
+                <span class="chip chip-green" style="margin-top:8px;">Học viên đang hoạt động</span>
+
+                <form method="post" action="/Admin/UploadStudentImage" enctype="multipart/form-data" style="margin-top:16px;text-align:left;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@Model.MaHocVien">
+                    <label class="form-label" style="margin-bottom:8px;">Tải ảnh hồ sơ lên</label>
+                    <input type="file" name="image" class="form-control" accept=".jpg,.jpeg,.png,.webp" required>
+                    <button type="submit" class="btn-outline" style="margin-top:10px;width:100%;justify-content:center;">
+                        <i class="fas fa-upload"></i> Tải ảnh lên
+                    </button>
+                </form>
+
                 <div style="margin-top:24px;display:flex;flex-direction:column;gap:12px;text-align:left;">
                     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
-                        <span class="small text-muted">Phone</span>
+                        <span class="small text-muted">Số điện thoại</span>
                         <span class="small fw-semibold">@(Model.Sdt ?? "—")</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
-                        <span class="small text-muted">Gender</span>
+                        <span class="small text-muted">Giới tính</span>
                         <span class="small fw-semibold">@(Model.GioiTinh ?? "—")</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--surface-low);">
-                        <span class="small text-muted">Enrolled</span>
+                        <span class="small text-muted">Ngày ghi danh</span>
                         <span class="small fw-semibold">@(Model.NgayDangKi?.ToString("dd/MM/yyyy") ?? "—")</span>
                     </div>
                     <div style="display:flex;justify-content:space-between;padding:8px 0;">
-                        <span class="small text-muted">Staff Advisor</span>
+                        <span class="small text-muted">Nhân viên phụ trách</span>
                         <span class="small fw-semibold">@(Model.MaNvNavigation?.HoVaTen ?? "—")</span>
                     </div>
                 </div>
@@ -56,11 +75,11 @@ else
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div class="card-plain" style="padding:16px;text-align:center;">
                     <div class="stat-value" style="font-size:24px;">@Model.DangKis.Count</div>
-                    <div class="stat-label">Courses</div>
+                    <div class="stat-label">Khóa học</div>
                 </div>
                 <div class="card-plain" style="padding:16px;text-align:center;">
                     <div class="stat-value" style="font-size:24px;">@Model.MaLops.Count</div>
-                    <div class="stat-label">Classes</div>
+                    <div class="stat-label">Lớp học</div>
                 </div>
             </div>
         </div>
@@ -70,14 +89,14 @@ else
             <!-- Enrolled Courses -->
             <div class="card-plain" style="padding:0;">
                 <div class="card-header-plain">
-                    <h5>Enrolled Courses</h5>
+                    <h5>Khóa học đã ghi danh</h5>
                 </div>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Course</th>
-                            <th>Enrolled Date</th>
-                            <th>Status</th>
+                            <th>Khóa học</th>
+                            <th>Ngày ghi danh</th>
+                            <th>Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -91,13 +110,13 @@ else
                                         <div class="user-sub">@dk.MaKhoaHoc</div>
                                     </td>
                                     <td class="user-sub">@(dk.NgayDangKi?.ToString("dd/MM/yyyy") ?? "—")</td>
-                                    <td><span class="chip chip-green">Active</span></td>
+                                    <td><span class="chip chip-green">Đang hoạt động</span></td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="3"><div class="empty-state" style="padding:24px;"><i class="fas fa-book"></i><p>No courses enrolled</p></div></td></tr>
+                            <tr><td colspan="3"><div class="empty-state" style="padding:24px;"><i class="fas fa-book"></i><p>Chưa ghi danh khóa học nào</p></div></td></tr>
                         }
                     </tbody>
                 </table>
@@ -106,16 +125,16 @@ else
             <!-- Results -->
             <div class="card-plain" style="padding:0;">
                 <div class="card-header-plain">
-                    <h5>Assessment Results</h5>
+                    <h5>Kết quả đánh giá</h5>
                 </div>
                 <table class="data-table">
                     <thead>
                         <tr>
-                            <th>Course</th>
-                            <th>Listening</th>
-                            <th>Reading</th>
-                            <th>Total</th>
-                            <th>Status</th>
+                            <th>Khóa học</th>
+                            <th>Nghe</th>
+                            <th>Đọc</th>
+                            <th>Tổng điểm</th>
+                            <th>Trạng thái</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -129,13 +148,13 @@ else
                                     <td><span style="font-weight:700;">@(kq.DiemListening ?? 0)</span></td>
                                     <td><span style="font-weight:700;">@(kq.DiemReading ?? 0)</span></td>
                                     <td><span style="font-size:18px;font-weight:800;color:var(--primary);">@total</span></td>
-                                    <td><span class="chip @(total >= 60 ? "chip-green" : "chip-red")">@(total >= 60 ? "Passed" : "Failed")</span></td>
+                                    <td><span class="chip @(total >= 60 ? "chip-green" : "chip-red")">@(total >= 60 ? "Đạt" : "Không đạt")</span></td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="5"><div class="empty-state" style="padding:24px;"><i class="fas fa-poll-h"></i><p>No results yet</p></div></td></tr>
+                            <tr><td colspan="5"><div class="empty-state" style="padding:24px;"><i class="fas fa-poll-h"></i><p>Chưa có kết quả</p></div></td></tr>
                         }
                     </tbody>
                 </table>
@@ -143,10 +162,10 @@ else
 
             <!-- Classes -->
             <div class="card-plain" style="padding:0;">
-                <div class="card-header-plain"><h5>Enrolled Classes</h5></div>
+                <div class="card-header-plain"><h5>Lớp đã ghi danh</h5></div>
                 <table class="data-table">
                     <thead>
-                        <tr><th>Class</th><th>Course</th><th>Teacher</th><th>Status</th></tr>
+                        <tr><th>Lớp</th><th>Khóa học</th><th>Giáo viên</th><th>Trạng thái</th></tr>
                     </thead>
                     <tbody>
                         @if (Model.MaLops.Any())
@@ -157,13 +176,13 @@ else
                                     <td><div class="user-name">@(lop.TenLop ?? lop.MaLop)</div></td>
                                     <td class="user-sub">@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "—")</td>
                                     <td class="user-sub">@(lop.MaGvNavigation?.Ten ?? "—")</td>
-                                    <td><span class="chip chip-green">Active</span></td>
+                                    <td><span class="chip chip-green">Đang hoạt động</span></td>
                                 </tr>
                             }
                         }
                         else
                         {
-                            <tr><td colspan="4"><div class="empty-state" style="padding:24px;"><i class="fas fa-graduation-cap"></i><p>No classes</p></div></td></tr>
+                            <tr><td colspan="4"><div class="empty-state" style="padding:24px;"><i class="fas fa-graduation-cap"></i><p>Chưa có lớp nào</p></div></td></tr>
                         }
                     </tbody>
                 </table>

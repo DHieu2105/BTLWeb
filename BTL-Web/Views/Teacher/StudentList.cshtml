@@ -1,57 +1,65 @@
 @model IEnumerable<BTL_Web.Models.HocVien>
 @{
-    ViewData["Title"] = "My Students";
+    ViewData["Title"] = "Danh sách học viên";
 }
 
 <div class="page-header">
     <div>
-        <h2>My Students</h2>
-        <p>All students assigned to your classes</p>
+        <h2>Danh sách học viên</h2>
+        <p>Tất cả học viên được phân vào các lớp bạn phụ trách</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
-        <button class="btn-outline"><i class="fas fa-download"></i> Export</button>
+        <button type="button" class="btn-outline" onclick="toggleTeacherStudentFilterPanel()"><i class="fas fa-filter"></i> Lọc</button>
+        <button class="btn-outline"><i class="fas fa-download"></i> Xuất</button>
     </div>
 </div>
 
-<!-- Stats -->
+<div id="teacherStudentFilterPanel" class="card-plain" style="display:none;padding:12px 16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Bộ lọc nhanh</label>
+            <input id="teacherStudentFilterInput" type="text" class="form-control" placeholder="Lọc theo tên học viên, mã, trình độ..." oninput="applyTeacherStudentFilters()">
+        </div>
+        <button type="button" class="btn-outline" onclick="clearTeacherStudentFilter()">Xóa lọc</button>
+    </div>
+</div>
+
 <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
     <div class="stat-card blue">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">Active</span></div>
-        <div class="stat-label">Total Enrolled</div>
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">Đang hoạt động</span></div>
+        <div class="stat-label">Tổng số học viên</div>
         <div class="stat-value">@(Model?.Count() ?? 0)</div>
     </div>
     <div class="stat-card teal">
         <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-graduation-cap"></i></div></div>
-        <div class="stat-label">Advanced Level</div>
+        <div class="stat-label">Trình độ nâng cao</div>
         <div class="stat-value">42</div>
     </div>
     <div class="stat-card highlighted" style="background:var(--sidebar-bg);">
         <div class="stat-card-header"><div class="stat-icon white"><i class="fas fa-chart-line"></i></div></div>
-        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Avg. Attendance</div>
+        <div class="stat-label" style="color:rgba(255,255,255,0.7);">Tỷ lệ chuyên cần trung bình</div>
         <div class="stat-value" style="color:white;">94.2%</div>
     </div>
 </div>
 
-<!-- Table -->
 <div class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Student Roster</h5>
+        <h5>Danh sách học viên</h5>
         <div style="display:flex;gap:8px;">
-            <button class="filter-btn active">All</button>
-            <button class="filter-btn">Advanced</button>
-            <button class="filter-btn">Intermediate</button>
+            <button class="filter-btn active">Tất cả</button>
+            <button class="filter-btn">Nâng cao</button>
+            <button class="filter-btn">Trung cấp</button>
         </div>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Student</th>
-                <th>Level</th>
-                <th>Attendance</th>
-                <th>Progress</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Học viên</th>
+                <th>Trình độ</th>
+                <th>Chuyên cần</th>
+                <th>Tiến độ</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -62,7 +70,7 @@
                     var name = sv.HoVaTen ?? sv.MaHocVien;
                     var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
                     var avgScore = sv.KetQuas.Any() ? sv.KetQuas.Average(k => k.DiemTong ?? 0) : 0;
-                    <tr>
+                    <tr class="teacher-student-row" data-level="@(avgScore >= 80 ? "advanced" : avgScore >= 60 ? "intermediate" : "beginner")">
                         <td>
                             <div class="user-row">
                                 <div class="avatar">@initials</div>
@@ -74,7 +82,7 @@
                         </td>
                         <td>
                             <span class="chip @(avgScore >= 80 ? "chip-blue" : avgScore >= 60 ? "chip-green" : "chip-yellow")">
-                                @(avgScore >= 80 ? "Advanced C2" : avgScore >= 60 ? "Intermediate B2" : "Beginner A2")
+                                @(avgScore >= 80 ? "Nâng cao C2" : avgScore >= 60 ? "Trung cấp B2" : "Sơ cấp A2")
                             </span>
                         </td>
                         <td>
@@ -89,21 +97,22 @@
                             </div>
                             <span class="smaller text-muted">@avgScore.ToString("F0")%</span>
                         </td>
-                        <td><span class="chip chip-green">Active</span></td>
+                        <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
-                            <button class="btn-icon btn-outline btn-sm" title="View Profile"><i class="fas fa-eye"></i></button>
+                            <button class="btn-icon btn-outline btn-sm" title="Xem hồ sơ"><i class="fas fa-eye"></i></button>
                         </td>
                     </tr>
                 }
             }
             else
             {
-                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><p>No students assigned</p></div></td></tr>
+                <tr><td colspan="6"><div class="empty-state"><i class="fas fa-users"></i><p>Chưa có học viên nào được phân công</p></div></td></tr>
             }
+            <tr id="teacherStudentFilterEmptyRow" style="display:none;"><td colspan="6"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có học viên nào khớp với bộ lọc hiện tại</p></div></td></tr>
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) students</span>
+        <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) học viên</span>
         <div class="pagination-btns">
             <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
             <button class="page-btn active">1</button>
@@ -113,26 +122,68 @@
     </div>
 </div>
 
-<!-- Teaching Observation -->
 <div class="card-plain" style="padding:32px;margin-top:24px;display:grid;grid-template-columns:2fr 1fr;gap:32px;align-items:center;">
     <div>
-        <h4 style="margin-bottom:8px;">Academic Review Cycle 2024</h4>
-        <p class="text-muted" style="margin-bottom:16px;">Quarterly progress reports are due by end of next week. Ensure all attendance records are finalized.</p>
-        <button class="btn-primary"><i class="fas fa-file-alt"></i> Generate Reports</button>
+        <h4 style="margin-bottom:8px;">Chu kỳ đánh giá học tập 2024</h4>
+        <p class="text-muted" style="margin-bottom:16px;">Báo cáo tiến độ theo quý cần hoàn thành trước cuối tuần sau. Hãy đảm bảo mọi dữ liệu chuyên cần đã được chốt.</p>
+        <button class="btn-primary"><i class="fas fa-file-alt"></i> Tạo báo cáo</button>
     </div>
     <div style="text-align:center;">
         <div style="font-size:48px;color:rgba(43,84,191,0.2);"><i class="fas fa-chart-bar"></i></div>
-        <div class="stat-value" style="font-size:24px;color:var(--primary);">12 days</div>
-        <div class="stat-label">Until deadline</div>
+        <div class="stat-value" style="font-size:24px;color:var(--primary);">12 ngày</div>
+        <div class="stat-label">Đến hạn</div>
     </div>
 </div>
 
 @section Scripts {
 <script>
+let teacherStudentLevel = 'all';
+
+function toggleTeacherStudentFilterPanel() {
+    const panel = document.getElementById('teacherStudentFilterPanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+}
+
+function applyTeacherStudentFilters() {
+    const query = (document.getElementById('teacherStudentFilterInput')?.value || '').trim().toLowerCase();
+    const rows = document.querySelectorAll('.teacher-student-row');
+    let visible = 0;
+
+    rows.forEach(row => {
+        const level = row.getAttribute('data-level') || 'beginner';
+        const levelMatch = teacherStudentLevel === 'all' || teacherStudentLevel === level;
+        const text = (row.textContent || '').toLowerCase();
+        const queryMatch = !query || text.includes(query);
+        const show = levelMatch && queryMatch;
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('teacherStudentFilterEmptyRow');
+    if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+}
+
+function clearTeacherStudentFilter() {
+    const input = document.getElementById('teacherStudentFilterInput');
+    if (input) input.value = '';
+    teacherStudentLevel = 'all';
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    const allBtn = document.querySelector('.filter-btn');
+    if (allBtn) allBtn.classList.add('active');
+    applyTeacherStudentFilters();
+}
+
 document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
+    btn.addEventListener('click', function () {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
+        const text = (this.textContent || '').trim().toLowerCase();
+        if (text.includes('tất cả')) teacherStudentLevel = 'all';
+        else if (text.includes('nâng cao')) teacherStudentLevel = 'advanced';
+        else if (text.includes('trung cấp')) teacherStudentLevel = 'intermediate';
+        else teacherStudentLevel = 'beginner';
+        applyTeacherStudentFilters();
     });
 });
 </script>

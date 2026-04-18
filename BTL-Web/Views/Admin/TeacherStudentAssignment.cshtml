@@ -1,33 +1,43 @@
 @{
-    ViewData["Title"] = "Teacher-Student Assignment";
+    ViewData["Title"] = "Phân công giáo viên - học viên";
     var giaoViens = ViewBag.GiaoViens as IEnumerable<BTL_Web.Models.GiaoVien> ?? new List<BTL_Web.Models.GiaoVien>();
     var hocViens  = ViewBag.HocViens  as IEnumerable<BTL_Web.Models.HocVien>  ?? new List<BTL_Web.Models.HocVien>();
 }
 
 <div class="page-header">
     <div>
-        <h2>Teacher-Student Assignment</h2>
-        <p>Assign students to teachers for personalized mentoring</p>
+        <h2>Phân công giáo viên - học viên</h2>
+        <p>Phân công học viên cho giáo viên để hướng dẫn cá nhân hóa</p>
     </div>
     <div class="page-actions">
-        <button class="btn-outline"><i class="fas fa-filter"></i> Filter</button>
+        <button type="button" class="btn-outline" onclick="toggleTeacherStudentFilterPanel()"><i class="fas fa-filter"></i> Lọc</button>
         <a class="btn-primary" href="#create-assignment">
-            <i class="fas fa-plus"></i> New Assignment
+            <i class="fas fa-plus"></i> Phân công mới
         </a>
+    </div>
+</div>
+
+<div id="teacherStudentFilterPanel" class="card-plain" style="display:none;padding:12px 16px;margin-bottom:16px;">
+    <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
+        <div class="form-group" style="margin:0;">
+            <label class="form-label">Lọc nhanh</label>
+            <input id="teacherStudentFilterInput" type="text" class="form-control" placeholder="Lọc theo giáo viên, học viên, chuyên môn..." oninput="applyTeacherStudentAssignmentFilter()">
+        </div>
+        <button type="button" class="btn-outline" onclick="clearTeacherStudentAssignmentFilter()">Xóa lọc</button>
     </div>
 </div>
 
 <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
     <!-- Assignment Card -->
     <div class="card-plain" id="create-assignment" style="padding:32px;border-left:4px solid var(--primary);">
-        <h5 style="margin-bottom:24px;">Create Assignment</h5>
+        <h5 style="margin-bottom:24px;">Tạo phân công</h5>
         <form method="post" action="/Admin/AssignTeacherStudent">
             @Html.AntiForgeryToken()
             <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:end;">
                 <div class="form-group" style="margin:0;">
-                    <label class="form-label">Target Student</label>
+                    <label class="form-label">Học viên mục tiêu</label>
                     <select name="MaHocVien" class="form-control form-select">
-                        <option value="">— Select Student —</option>
+                        <option value="">— Chọn học viên —</option>
                         @foreach (var sv in hocViens)
                         {
                             <option value="@sv.MaHocVien">@sv.HoVaTen (@sv.MaHocVien)</option>
@@ -36,9 +46,9 @@
                 </div>
                 <div style="padding-bottom:4px;color:var(--outline);font-size:20px;">→</div>
                 <div class="form-group" style="margin:0;">
-                    <label class="form-label">Assigned Mentor</label>
+                    <label class="form-label">Giáo viên phụ trách</label>
                     <select name="MaGv" class="form-control form-select">
-                        <option value="">— Select Teacher —</option>
+                        <option value="">— Chọn giáo viên —</option>
                         @foreach (var gv in giaoViens)
                         {
                             <option value="@gv.MaGv">@gv.Ten (@gv.ChuyenMon)</option>
@@ -47,11 +57,11 @@
                 </div>
             </div>
             <div class="form-group" style="margin-top:16px;">
-                <label class="form-label">Assignment Note</label>
-                <input type="text" name="GhiChu" class="form-control" placeholder="Add specific goals for this student...">
+                <label class="form-label">Ghi chú phân công</label>
+                <input type="text" name="GhiChu" class="form-control" placeholder="Thêm mục tiêu cụ thể cho học viên này...">
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:20px;">
-                <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Create Assignment</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Tạo phân công</button>
             </div>
         </form>
     </div>
@@ -59,15 +69,15 @@
     <!-- Teacher Availability -->
     <div class="card-plain" style="padding:24px;">
         <div class="section-heading">
-            <h5>Available Teachers</h5>
-            <span class="chip chip-green">@giaoViens.Count() Active</span>
+            <h5>Giáo viên khả dụng</h5>
+            <span class="chip chip-green">@giaoViens.Count() đang hoạt động</span>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">
             @foreach (var gv in giaoViens)
             {
                 var n = gv.Ten ?? gv.MaGv;
                 var ini = string.Join("", n.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
-                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-low);border-radius:8px;">
+                <div class="teacher-availability-row" style="display:flex;align-items:center;justify-content:space-between;padding:10px;background:var(--surface-low);border-radius:8px;">
                     <div class="user-row">
                         <div class="avatar avatar-sm">@ini</div>
                         <div>
@@ -75,7 +85,7 @@
                             <div class="user-sub">@(gv.ChuyenMon ?? "—") • @gv.LopHocs.Count classes</div>
                         </div>
                     </div>
-                    <span class="chip chip-green" style="font-size:10px;">Available</span>
+                    <span class="chip chip-green" style="font-size:10px;">Khả dụng</span>
                 </div>
             }
         </div>
@@ -85,16 +95,16 @@
 <!-- Recent Assignments Table -->
 <div class="card-plain" style="padding:0;margin-top:24px;">
     <div class="card-header-plain">
-        <h5>Recent Assignments</h5>
+        <h5>Phân công gần đây</h5>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Student</th>
-                <th>Assigned Teacher</th>
-                <th>Specialization</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Học viên</th>
+                <th>Giáo viên phụ trách</th>
+                <th>Chuyên môn</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -104,7 +114,7 @@
                 {
                     var sn = sv.HoVaTen ?? sv.MaHocVien;
                     var si = string.Join("", sn.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
-                    <tr>
+                    <tr class="teacher-student-assignment-row">
                         <td>
                             <div class="user-row">
                                 <div class="avatar">@si</div>
@@ -121,7 +131,7 @@
                             </div>
                         </td>
                         <td class="user-sub">@(gv.ChuyenMon ?? "—")</td>
-                        <td><span class="chip chip-green">Active</span></td>
+                        <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
                             <button class="btn-icon btn-outline btn-sm"><i class="fas fa-ellipsis-v"></i></button>
                         </td>
@@ -130,8 +140,46 @@
             }
             @if (!giaoViens.Any(g => g.MaHocViens.Any()))
             {
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-plus"></i><p>No assignments yet</p></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-plus"></i><p>Chưa có phân công nào</p></div></td></tr>
             }
+            <tr id="teacherStudentAssignmentEmptyRow" style="display:none;"><td colspan="5"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có phân công nào phù hợp với bộ lọc hiện tại</p></div></td></tr>
         </tbody>
     </table>
 </div>
+
+@section Scripts {
+<script>
+function toggleTeacherStudentFilterPanel() {
+    const panel = document.getElementById('teacherStudentFilterPanel');
+    if (!panel) return;
+    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+}
+
+function applyTeacherStudentAssignmentFilter() {
+    const query = (document.getElementById('teacherStudentFilterInput')?.value || '').trim().toLowerCase();
+
+    document.querySelectorAll('.teacher-availability-row').forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        row.style.display = !query || text.includes(query) ? '' : 'none';
+    });
+
+    const rows = document.querySelectorAll('.teacher-student-assignment-row');
+    let visible = 0;
+    rows.forEach(row => {
+        const text = (row.textContent || '').toLowerCase();
+        const show = !query || text.includes(query);
+        row.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+
+    const emptyRow = document.getElementById('teacherStudentAssignmentEmptyRow');
+    if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+}
+
+function clearTeacherStudentAssignmentFilter() {
+    const input = document.getElementById('teacherStudentFilterInput');
+    if (input) input.value = '';
+    applyTeacherStudentAssignmentFilter();
+}
+</script>
+}

@@ -1,18 +1,18 @@
 @model BTL_Web.Models.PhongHoc
 @{
-    ViewData["Title"] = "Room Detail";
+    ViewData["Title"] = "Chi tiết phòng";
 }
 
 <div class="page-header">
     <div>
-        <h2>Room Detail</h2>
-        <p>Operational overview for selected classroom</p>
+        <h2>Chi tiết phòng</h2>
+        <p>Tổng quan hoạt động cho phòng học đã chọn</p>
     </div>
     <div class="page-actions">
-        <a href="/Admin/PhongHoc" class="btn-outline"><i class="fas fa-arrow-left"></i> Back</a>
+        <a href="/Admin/PhongHoc" class="btn-outline"><i class="fas fa-arrow-left"></i> Quay lại</a>
         @if (Model != null)
         {
-            <a href="/Admin/RoomEquipmentAssignment?roomId=@Model.MaPhong" class="btn-primary"><i class="fas fa-tools"></i> Manage Equipment</a>
+            <a href="/Admin/RoomEquipmentAssignment?roomId=@Model.MaPhong" class="btn-primary"><i class="fas fa-tools"></i> Quản lý thiết bị</a>
         }
     </div>
 </div>
@@ -20,27 +20,27 @@
 @if (Model == null)
 {
     <div class="card-plain" style="padding:32px;">
-        <div class="empty-state"><i class="fas fa-door-open"></i><p>Room not found</p></div>
+        <div class="empty-state"><i class="fas fa-door-open"></i><p>Không tìm thấy phòng</p></div>
     </div>
 }
 else
 {
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Room</div>
+            <div class="stat-label">Phòng</div>
             <div class="stat-value" style="font-size:20px;">@(Model.TenPhong ?? Model.MaPhong)</div>
             <div class="user-sub">@Model.MaPhong</div>
         </div>
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Center</div>
+            <div class="stat-label">Trung tâm</div>
             <div class="stat-value" style="font-size:18px;">@(Model.MaTrungTamNavigation?.TenTrungTam ?? "—")</div>
         </div>
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Schedules</div>
+            <div class="stat-label">Lịch học</div>
             <div class="stat-value" style="font-size:24px;">@(Model.LichHocs?.Count ?? 0)</div>
         </div>
         <div class="card-plain" style="padding:20px;">
-            <div class="stat-label">Equipment</div>
+            <div class="stat-label">Thiết bị</div>
             <div class="stat-value" style="font-size:24px;">@(Model.MaThietBis?.Count ?? 0)</div>
         </div>
     </div>
@@ -48,15 +48,15 @@ else
     <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
         <div class="card-plain" style="padding:0;">
             <div class="card-header-plain">
-                <h5>Schedules</h5>
+                <h5>Lịch học</h5>
             </div>
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Status</th>
+                        <th>Ngày</th>
+                        <th>Bắt đầu</th>
+                        <th>Kết thúc</th>
+                        <th>Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -68,20 +68,20 @@ else
                                 <td>@(sc.NgayHoc?.ToString("dd/MM/yyyy") ?? "—")</td>
                                 <td>@(sc.GioBatDau?.ToString(@"hh\:mm") ?? "—")</td>
                                 <td>@(sc.GioKetThuc?.ToString(@"hh\:mm") ?? "—")</td>
-                                <td><span class="chip chip-green">Active</span></td>
+                                <td><span class="chip chip-green">Đang hoạt động</span></td>
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="4"><div class="empty-state"><i class="fas fa-calendar"></i><p>No schedules</p></div></td></tr>
+                        <tr><td colspan="4"><div class="empty-state"><i class="fas fa-calendar"></i><p>Không có lịch học</p></div></td></tr>
                     }
                 </tbody>
             </table>
         </div>
 
         <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:12px;">Current Equipment</h5>
+            <h5 style="margin-bottom:12px;">Thiết bị hiện tại</h5>
             @if (Model.MaThietBis != null && Model.MaThietBis.Any())
             {
                 <div style="display:flex;flex-direction:column;gap:8px;">
@@ -99,7 +99,7 @@ else
             }
             else
             {
-                <div class="empty-state"><i class="fas fa-tools"></i><p>No equipment assigned</p></div>
+                <div class="empty-state"><i class="fas fa-tools"></i><p>Chưa gán thiết bị</p></div>
             }
         </div>
     </div>

@@ -1,61 +1,101 @@
 @model IEnumerable<BTL_Web.Models.TaiKhoan>
 @{
-    ViewData["Title"] = "Manage Accounts";
+    ViewData["Title"] = "Quản lý tài khoản";
+    var currentPage = ViewBag.Page != null ? (int)ViewBag.Page : 1;
+    var pageSize = ViewBag.PageSize != null ? (int)ViewBag.PageSize : 10;
+    var totalItems = ViewBag.TotalItems != null ? (int)ViewBag.TotalItems : (Model?.Count() ?? 0);
+    var totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    var keyword = ViewBag.Keyword as string ?? "";
+    var roleFilter = ViewBag.RoleFilter as string ?? "";
+    var adminCount = ViewBag.AdminCount != null ? (int)ViewBag.AdminCount : 0;
+    var staffCount = ViewBag.StaffCount != null ? (int)ViewBag.StaffCount : 0;
+    var teacherCount = ViewBag.TeacherCount != null ? (int)ViewBag.TeacherCount : 0;
+    var studentCount = ViewBag.StudentCount != null ? (int)ViewBag.StudentCount : 0;
+    var startItem = totalItems == 0 ? 0 : ((currentPage - 1) * pageSize + 1);
+    var endItem = totalItems == 0 ? 0 : Math.Min(currentPage * pageSize, totalItems);
+    var distributionTotal = Math.Max(totalItems, 1);
 }
 
 <div class="page-header">
     <div>
-        <h2>Manage Accounts</h2>
-        <p>User accounts, roles and access control management</p>
+        <h2>Quản lý tài khoản</h2>
+        <p>Quản lý tài khoản người dùng, vai trò và quyền truy cập</p>
     </div>
     <div class="page-actions">
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Create Account
+            <i class="fas fa-plus"></i> Tạo tài khoản
         </button>
     </div>
 </div>
 
-<!-- Stats -->
 <div class="stats-grid" style="margin-bottom:24px;">
     <div class="stat-card blue">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+5%</span></div>
-        <div class="stat-label">Total Accounts</div>
-        <div class="stat-value">@(Model?.Count() ?? 0)</div>
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">Tất cả</span></div>
+        <div class="stat-label">Tổng tài khoản</div>
+        <div class="stat-value">@totalItems</div>
     </div>
     <div class="stat-card teal">
-        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-users-cog"></i></div></div>
-        <div class="stat-label">Active Staff</div>
-        <div class="stat-value">@(Model?.Count(x => x.Role == "NhanVien") ?? 0)</div>
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-shield"></i></div></div>
+        <div class="stat-label">Tài khoản Admin</div>
+        <div class="stat-value">@adminCount</div>
     </div>
     <div class="stat-card orange">
-        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chalkboard-teacher"></i></div></div>
-        <div class="stat-label">Pending Teachers</div>
-        <div class="stat-value">@(Model?.Count(x => x.Role == "GiaoVien") ?? 0)</div>
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-users-cog"></i></div></div>
+        <div class="stat-label">Tài khoản nhân viên</div>
+        <div class="stat-value">@staffCount</div>
     </div>
     <div class="stat-card green">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-clock"></i></div></div>
-        <div class="stat-label">Avg. Session</div>
-        <div class="stat-value">48m</div>
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-chalkboard-teacher"></i></div></div>
+        <div class="stat-label">Tài khoản giáo viên</div>
+        <div class="stat-value">@teacherCount</div>
     </div>
 </div>
 
-<!-- Table -->
-<div class="card-plain" style="padding:0;">
+<div id="account-directory" class="card-plain" style="padding:0;">
     <div class="card-header-plain">
-        <h5>Account Directory</h5>
+        <h5>Danh bạ tài khoản</h5>
         <div style="display:flex;gap:8px;">
-            <button class="btn-icon btn-outline" title="Export"><i class="fas fa-filter"></i></button>
-            <button class="btn-icon btn-outline" title="Settings"><i class="fas fa-cog"></i></button>
+            <button type="button" class="btn-icon btn-outline" title="Lọc" onclick="toggleFilterBar()"><i class="fas fa-filter"></i></button>
+            <button type="button" class="btn-icon btn-outline" title="Cài đặt" onclick="document.getElementById('settingsModal').style.display='flex'"><i class="fas fa-cog"></i></button>
         </div>
+    </div>
+    <div id="filterBar" style="display:@((!string.IsNullOrWhiteSpace(keyword) || !string.IsNullOrWhiteSpace(roleFilter)) ? "block" : "none");padding:16px 24px;border-bottom:1px solid var(--surface-low);background:var(--surface);">
+        <form method="get" action="/Admin/TaiKhoan" style="display:grid;grid-template-columns:2fr 1fr auto auto;gap:12px;align-items:end;">
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="pageSize" value="@pageSize" />
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text" name="keyword" value="@keyword" class="form-control" placeholder="Tên đăng nhập, vai trò, mã nhân viên/giáo viên/học viên">
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Vai trò</label>
+                <select name="role" class="form-control form-select">
+                    @if (string.IsNullOrWhiteSpace(roleFilter))
+                    {
+                        <option value="" selected>Tất cả vai trò</option>
+                    }
+                    else
+                    {
+                        <option value="">Tất cả vai trò</option>
+                    }
+                    @if (roleFilter == "Admin") { <option value="Admin" selected>Admin</option> } else { <option value="Admin">Admin</option> }
+                    @if (roleFilter == "NhanVien") { <option value="NhanVien" selected>Nhân viên (NhanVien)</option> } else { <option value="NhanVien">Nhân viên (NhanVien)</option> }
+                    @if (roleFilter == "GiaoVien") { <option value="GiaoVien" selected>Giáo viên (GiaoVien)</option> } else { <option value="GiaoVien">Giáo viên (GiaoVien)</option> }
+                    @if (roleFilter == "HocVien") { <option value="HocVien" selected>Học viên (HocVien)</option> } else { <option value="HocVien">Học viên (HocVien)</option> }
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="height:42px;">Áp dụng</button>
+            <a href="/Admin/TaiKhoan?pageSize=@pageSize" class="btn-outline" style="height:42px;display:inline-flex;align-items:center;">Xóa lọc</a>
+        </form>
     </div>
     <table class="data-table">
         <thead>
             <tr>
-                <th>Account</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th style="text-align:right;">Actions</th>
+                <th>Tài khoản</th>
+                <th>Tên đăng nhập</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
         <tbody>
@@ -63,18 +103,20 @@
             {
                 @foreach (var tk in Model)
                 {
-                    var roleChip = tk.Role switch {
+                    var roleChip = tk.Role switch
+                    {
                         "Admin" => "chip-red",
                         "GiaoVien" => "chip-blue",
                         "HocVien" => "chip-green",
                         "NhanVien" => "chip-yellow",
                         _ => "chip-gray"
                     };
-                    var roleLabel = tk.Role switch {
+                    var roleLabel = tk.Role switch
+                    {
                         "Admin" => "Admin",
-                        "GiaoVien" => "Teacher",
-                        "HocVien" => "Student",
-                        "NhanVien" => "Staff",
+                        "GiaoVien" => "Giáo viên",
+                        "HocVien" => "Học viên",
+                        "NhanVien" => "Nhân viên",
                         _ => tk.Role
                     };
                     var initials = tk.Username?.Length > 0 ? tk.Username.Substring(0, Math.Min(2, tk.Username.Length)).ToUpper() : "?";
@@ -85,20 +127,22 @@
                                 <div>
                                     <div class="user-name">@tk.Username</div>
                                     <div class="user-sub">
-                                        @if (!string.IsNullOrEmpty(tk.MaNv)) { <span>Staff: @tk.MaNv</span> }
-                                        @if (!string.IsNullOrEmpty(tk.MaGv)) { <span>Teacher: @tk.MaGv</span> }
-                                        @if (!string.IsNullOrEmpty(tk.MaHocVien)) { <span>Student: @tk.MaHocVien</span> }
+                                        @if (!string.IsNullOrEmpty(tk.MaNv)) { <span>Nhân viên: @tk.MaNv</span> }
+                                        @if (!string.IsNullOrEmpty(tk.MaGv)) { <span>Giáo viên: @tk.MaGv</span> }
+                                        @if (!string.IsNullOrEmpty(tk.MaHocVien)) { <span>Học viên: @tk.MaHocVien</span> }
                                     </div>
                                 </div>
                             </div>
                         </td>
                         <td><code style="background:var(--surface-low);padding:2px 8px;border-radius:4px;font-size:13px;">@tk.Username</code></td>
                         <td><span class="chip @roleChip">@roleLabel</span></td>
-                        <td><span class="chip chip-green">Active</span></td>
+                        <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
-                                <button class="btn-icon btn-outline btn-sm" title="Edit"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon btn-outline btn-sm" title="Delete" onclick="deleteAccount('@tk.Username')">
+                                <button type="button" class="btn-icon btn-outline btn-sm" title="Sửa" data-username="@tk.Username" data-role="@tk.Role" onclick="openEditAccount(this)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button type="button" class="btn-icon btn-outline btn-sm" title="Xóa" onclick="deleteAccount('@tk.Username')">
                                     <i class="fas fa-trash" style="color:#ef4444;"></i>
                                 </button>
                             </div>
@@ -108,92 +152,149 @@
             }
             else
             {
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-shield"></i><p>No accounts found</p></div></td></tr>
+                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-user-shield"></i><p>Không tìm thấy tài khoản nào</p></div></td></tr>
             }
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Showing @(Model?.Count() ?? 0) accounts</span>
+        <span class="pagination-info">Đang hiển thị @startItem-@endItem trong tổng @totalItems tài khoản</span>
         <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            <a class="page-btn" href="@Url.Action("TaiKhoan", new { page = Math.Max(1, currentPage - 1), pageSize, keyword, role = roleFilter })"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+            @if (totalPages > 0)
+            {
+                for (var i = 1; i <= totalPages; i++)
+                {
+                    if (i == currentPage)
+                    {
+                        <button class="page-btn active">@i</button>
+                    }
+                    else
+                    {
+                        <a class="page-btn" href="@Url.Action("TaiKhoan", new { page = i, pageSize, keyword, role = roleFilter })">@i</a>
+                    }
+                }
+            }
+            <a class="page-btn" href="@Url.Action("TaiKhoan", new { page = Math.Min(Math.Max(totalPages, 1), currentPage + 1), pageSize, keyword, role = roleFilter })"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
         </div>
     </div>
 </div>
 
-<!-- Role Distribution -->
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;">
-    <div class="card-plain" style="padding:32px;">
-        <h5 style="margin-bottom:24px;">Role Distribution</h5>
-        @{
-            var total = Model?.Count() ?? 1;
-            var adminCount = Model?.Count(x => x.Role == "Admin") ?? 0;
-            var staffCount = Model?.Count(x => x.Role == "NhanVien") ?? 0;
-            var teacherCount = Model?.Count(x => x.Role == "GiaoVien") ?? 0;
-            var studentCount = Model?.Count(x => x.Role == "HocVien") ?? 0;
-        }
+    <div id="role-distribution" class="card-plain" style="padding:32px;">
+        <h5 style="margin-bottom:24px;">Phân bố vai trò</h5>
         <div style="display:flex;flex-direction:column;gap:16px;">
             <div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                    <span class="small fw-semibold">Students</span>
-                    <span class="small fw-bold">@((studentCount * 100 / total))%</span>
+                    <span class="small fw-semibold">Học viên</span>
+                    <span class="small fw-bold">@((studentCount * 100 / distributionTotal))%</span>
                 </div>
-                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((studentCount * 100 / total))%;"></div></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((studentCount * 100 / distributionTotal))%;"></div></div>
             </div>
             <div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                    <span class="small fw-semibold">Teachers</span>
-                    <span class="small fw-bold">@((teacherCount * 100 / total))%</span>
+                    <span class="small fw-semibold">Giáo viên</span>
+                    <span class="small fw-bold">@((teacherCount * 100 / distributionTotal))%</span>
                 </div>
-                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((teacherCount * 100 / total))%;background:#f97316;"></div></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((teacherCount * 100 / distributionTotal))%;background:#f97316;"></div></div>
             </div>
             <div>
                 <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
-                    <span class="small fw-semibold">Staff</span>
-                    <span class="small fw-bold">@((staffCount * 100 / total))%</span>
+                    <span class="small fw-semibold">Nhân viên</span>
+                    <span class="small fw-bold">@((staffCount * 100 / distributionTotal))%</span>
                 </div>
-                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((staffCount * 100 / total))%;background:#0891b2;"></div></div>
+                <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:@((staffCount * 100 / distributionTotal))%;background:#0891b2;"></div></div>
             </div>
         </div>
     </div>
     <div class="card-plain" style="padding:32px;">
-        <h5 style="margin-bottom:16px;">Access Logs</h5>
-        <p class="small text-muted" style="margin-bottom:24px;">Review the latest security logs and login attempts across all accounts.</p>
+        <h5 style="margin-bottom:16px;">Nhật ký truy cập</h5>
+        <p class="small text-muted" style="margin-bottom:24px;">Xem các nhật ký bảo mật và lượt đăng nhập gần đây trên toàn bộ tài khoản.</p>
         <a href="/Admin/Index" class="btn-outline" style="display:inline-flex;">
-            <i class="fas fa-shield-alt"></i> View Security Logs
+            <i class="fas fa-shield-alt"></i> Xem nhật ký bảo mật
             <i class="fas fa-arrow-right" style="font-size:10px;margin-left:4px;"></i>
         </a>
     </div>
 </div>
 
-<!-- Add Modal -->
 <div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
     <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Create Account</h4>
+        <h4 style="margin-bottom:24px;">Tạo tài khoản</h4>
         <form method="post" action="/Admin/AddTaiKhoan">
             @Html.AntiForgeryToken()
             <div class="form-group">
-                <label class="form-label">Username</label>
+                <label class="form-label">Tên đăng nhập</label>
                 <input type="text" name="Username" class="form-control" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Password</label>
+                <label class="form-label">Mật khẩu</label>
                 <input type="password" name="Password" class="form-control" required>
             </div>
             <div class="form-group">
-                <label class="form-label">Role</label>
+                <label class="form-label">Vai trò</label>
                 <select name="Role" class="form-control form-select">
                     <option value="Admin">Admin</option>
-                    <option value="NhanVien">Staff (NhanVien)</option>
-                    <option value="GiaoVien">Teacher (GiaoVien)</option>
-                    <option value="HocVien">Student (HocVien)</option>
+                    <option value="NhanVien">Nhân viên (NhanVien)</option>
+                    <option value="GiaoVien">Giáo viên (GiaoVien)</option>
+                    <option value="HocVien">Học viên (HocVien)</option>
                 </select>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Cancel</button>
-                <button type="submit" class="btn-primary">Create Account</button>
+                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Tạo tài khoản</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Sửa tài khoản</h4>
+        <form method="post" action="/Admin/UpdateTaiKhoan">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Tên đăng nhập</label>
+                <input type="text" id="editUsername" name="Username" class="form-control" readonly>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mật khẩu mới</label>
+                <input type="password" id="editPassword" name="Password" class="form-control" placeholder="Để trống nếu muốn giữ mật khẩu hiện tại">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Vai trò</label>
+                <select id="editRole" name="Role" class="form-control form-select">
+                    <option value="Admin">Admin</option>
+                    <option value="NhanVien">Nhân viên (NhanVien)</option>
+                    <option value="GiaoVien">Giáo viên (GiaoVien)</option>
+                    <option value="HocVien">Học viên (HocVien)</option>
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu thay đổi</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="settingsModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:420px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Cài đặt bảng</h4>
+        <form method="get" action="/Admin/TaiKhoan">
+            <input type="hidden" name="page" value="1" />
+            <input type="hidden" name="keyword" value="@keyword" />
+            <input type="hidden" name="role" value="@roleFilter" />
+            <div class="form-group">
+                <label class="form-label">Số dòng mỗi trang</label>
+                <select name="pageSize" class="form-control form-select">
+                    @if (pageSize == 10) { <option value="10" selected>10</option> } else { <option value="10">10</option> }
+                    @if (pageSize == 20) { <option value="20" selected>20</option> } else { <option value="20">20</option> }
+                    @if (pageSize == 50) { <option value="50" selected>50</option> } else { <option value="50">50</option> }
+                    @if (pageSize == 100) { <option value="100" selected>100</option> } else { <option value="100">100</option> }
+                </select>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('settingsModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu</button>
             </div>
         </form>
     </div>
@@ -201,8 +302,21 @@
 
 @section Scripts {
 <script>
+function toggleFilterBar() {
+    var filterBar = document.getElementById('filterBar');
+    if (!filterBar) return;
+    filterBar.style.display = filterBar.style.display === 'none' ? 'block' : 'none';
+}
+
+function openEditAccount(btn) {
+    document.getElementById('editUsername').value = btn.dataset.username || '';
+    document.getElementById('editPassword').value = '';
+    document.getElementById('editRole').value = btn.dataset.role || 'Admin';
+    document.getElementById('editModal').style.display = 'flex';
+}
+
 function deleteAccount(username) {
-    if (confirm('Delete account: ' + username + '?')) location.href = '/Admin/DeleteTaiKhoan/' + username;
+    if (confirm('Bạn có chắc muốn xóa tài khoản ' + username + '?')) location.href = '/Admin/DeleteTaiKhoan/' + username;
 }
 </script>
 }

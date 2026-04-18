@@ -4,20 +4,20 @@
     ViewData["Title"] = "Lop hoc";
 }
 
-<h1>Lop hoc</h1>
+<h1>Lớp học</h1>
 
 <p>
-    <a asp-action="Create" class="btn btn-primary">Them lop hoc</a>
+    <a asp-action="Create" class="btn btn-primary">Thêm lớp học</a>
 </p>
 
 <table class="table table-striped">
     <thead>
     <tr>
-        <th>Ma lop</th>
-        <th>Ten lop</th>
-        <th>Giao vien</th>
-        <th>Khoa hoc</th>
-        <th>Phong hoc</th>
+        <th>Mã lớp</th>
+        <th>Tên lớp</th>
+        <th>Giáo viên</th>
+        <th>Khóa học</th>
+        <th>Phòng học</th>
         <th></th>
     </tr>
     </thead>
@@ -31,9 +31,9 @@
             <td>@item.MaKhoaHocNavigation?.TenKhoaHoc</td>
             <td>@item.MaPhong</td>
             <td>
-                <a asp-action="Details" asp-route-id="@item.MaLop">Chi tiet</a> |
-                <a asp-action="Edit" asp-route-id="@item.MaLop">Sua</a> |
-                <a asp-action="Delete" asp-route-id="@item.MaLop">Xoa</a>
+                <a asp-action="Details" asp-route-id="@item.MaLop">Chi tiết</a> |
+                <a asp-action="Edit" asp-route-id="@item.MaLop">Sửa</a> |
+                <a asp-action="Delete" asp-route-id="@item.MaLop">Xóa</a>
             </td>
         </tr>
     }
