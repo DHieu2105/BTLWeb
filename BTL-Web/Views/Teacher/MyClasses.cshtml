@@ -70,8 +70,8 @@
                 </div>
             </div>
             <div style="display:flex;gap:8px;">
-                <a href="/Student/Schedule" class="btn-primary btn-sm"><i class="fas fa-calendar"></i> Xem lịch học</a>
-                <a href="/Student/Results" class="btn-outline btn-sm"><i class="fas fa-poll-h"></i> Kết quả của tôi</a>
+                <a href="/Teacher/Schedule" class="btn-primary btn-sm"><i class="fas fa-calendar"></i> Xem lịch học</a>
+                <a href="/Teacher/ScoreManagement" class="btn-outline btn-sm"><i class="fas fa-poll-h"></i> Nhập điểm lớp</a>
             </div>
         </div>
         <div style="background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;">
@@ -93,9 +93,9 @@
         <div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;">
             <div class="form-group" style="margin:0;">
                 <label class="form-label">Bộ lọc nhanh</label>
-                <input id="studentClassFilterInput" type="text" class="form-control" placeholder="Lọc theo lớp, khóa học, giáo viên, phòng..." oninput="applyStudentClassFilters()">
+                <input id="teacherClassFilterInput" type="text" class="form-control" placeholder="Lọc theo lớp, khóa học, phòng..." oninput="applyTeacherClassFilters()">
             </div>
-            <button type="button" class="btn-outline" onclick="clearStudentClassFilter()">Xóa lọc</button>
+            <button type="button" class="btn-outline" onclick="clearTeacherClassFilter()">Xóa lọc</button>
         </div>
     </div>
     <table class="data-table">
@@ -116,7 +116,7 @@
                 @for (int i = 0; i < classList.Count; i++)
                 {
                     var lop = classList[i];
-                    <tr class="student-class-row" data-students="@lop.MaHocViens.Count">
+                    <tr class="teacher-class-row" data-students="@lop.MaHocViens.Count">
                         <td>
                             <div class="user-name">@(lop.TenLop ?? lop.MaLop)</div>
                             <div class="user-sub">@lop.MaLop</div>
@@ -132,7 +132,8 @@
                         <td><span class="chip chip-blue">@lop.MaHocViens.Count</span></td>
                         <td><span class="chip chip-green">Đang hoạt động</span></td>
                         <td style="text-align:right;">
-                            <button type="button" class="btn-outline btn-sm feature-btn"
+                            <button type="button" class="btn-outline btn-sm quick-view-btn"
+                                    onclick="updateFeaturedCard(this)"
                                     data-title="@(lop.TenLop ?? lop.MaLop)"
                                     data-course="@(lop.MaKhoaHocNavigation?.TenKhoaHoc ?? "Chưa xác định")"
                                     data-teacher="@(lop.MaGvNavigation?.Ten ?? "—")"
@@ -170,15 +171,21 @@
     </div>
 </div>
 
+<style>
+    @@keyframes highlightCard {
+        0% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        50% { transform: scale(1.02); box-shadow: 0 8px 24px rgba(73,110,218,0.2); }
+        100% { transform: scale(1); box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    }
+    .featured-card-highlight {
+        animation: highlightCard 0.6s ease-in-out;
+    }
+</style>
+
 @section Scripts {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     let teacherClassStatus = 'all';
-    const featuredTitle = document.getElementById('featuredTitle');
-    const featuredCourse = document.getElementById('featuredCourse');
-    const featuredTeacher = document.getElementById('featuredTeacher');
-    const featuredRoom = document.getElementById('featuredRoom');
-    const featuredStudents = document.getElementById('featuredStudents');
 
     window.toggleTeacherClassFilterPanel = function () {
         const panel = document.getElementById('teacherClassFilterPanel');
@@ -232,22 +239,36 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    document.addEventListener('click', function (event) {
-        const button = event.target.closest('.feature-btn');
-        if (!button) {
-            return;
-        }
+    window.updateFeaturedCard = function(button) {
+        const featuredTitle = document.getElementById('featuredTitle');
+        const featuredCourse = document.getElementById('featuredCourse');
+        const featuredTeacher = document.getElementById('featuredTeacher');
+        const featuredRoom = document.getElementById('featuredRoom');
+        const featuredStudents = document.getElementById('featuredStudents');
+        const featuredCard = featuredTitle?.closest('.card-plain');
 
         if (!featuredTitle || !featuredCourse || !featuredTeacher || !featuredRoom || !featuredStudents) {
+            console.error('Featured card elements not found');
             return;
         }
 
+        // Update content
         featuredTitle.textContent = button.dataset.title || '—';
         featuredCourse.textContent = button.dataset.course || '—';
         featuredTeacher.textContent = button.dataset.teacher || '—';
         featuredRoom.textContent = button.dataset.room || 'Chưa xác định';
         featuredStudents.textContent = button.dataset.students || '0';
-    });
+
+        // Visual feedback
+        if (featuredCard) {
+            featuredCard.classList.remove('featured-card-highlight');
+            void featuredCard.offsetWidth; // Force reflow
+            featuredCard.classList.add('featured-card-highlight');
+            
+            // Scroll to card
+            featuredCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
 });
 </script>
 }

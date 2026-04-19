@@ -57,10 +57,10 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaKhoaHoc)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaHocVien)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaHocVienNavigation).WithMany(p => p.DangKis)
                 .HasForeignKey(d => d.MaHocVien)
@@ -81,26 +81,26 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaGv)
                 .HasMaxLength(10)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .HasColumnName("MaGV");
             entity.Property(e => e.ChuyenMon)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.GioiTinh)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaKhoaHoc)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaTrungTam)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.Sdt)
                 .HasMaxLength(15)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.Ten)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaKhoaHocNavigation).WithMany(p => p.GiaoViens)
                 .HasForeignKey(d => d.MaKhoaHoc)
@@ -127,11 +127,11 @@ public partial class TtanContext : DbContext
                         j.ToTable("GiangDay");
                         j.IndexerProperty<string>("MaGv")
                             .HasMaxLength(10)
-                            .IsUnicode(false)
+                            .IsUnicode(true)
                             .HasColumnName("MaGV");
                         j.IndexerProperty<string>("MaHocVien")
                             .HasMaxLength(10)
-                            .IsUnicode(false);
+                            .IsUnicode(true);
                     });
         });
 
@@ -143,20 +143,20 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaHocVien)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.GioiTinh)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.HoVaTen)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaNv)
                 .HasMaxLength(10)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .HasColumnName("MaNV");
             entity.Property(e => e.Sdt)
                 .HasMaxLength(15)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaNvNavigation).WithMany(p => p.HocViens)
                 .HasForeignKey(d => d.MaNv)
@@ -171,10 +171,10 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaHocVien)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaKhoaHoc)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.DiemTong).HasComputedColumnSql("([DiemListening]+[DiemReading])", false);
 
             entity.HasOne(d => d.MaHocVienNavigation).WithMany(p => p.KetQuas)
@@ -196,13 +196,13 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaKhoaHoc)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaTrungTam)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.TenKhoaHoc)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaTrungTamNavigation).WithMany(p => p.KhoaHocs)
                 .HasForeignKey(d => d.MaTrungTam)
@@ -217,13 +217,13 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaLichHoc)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaLop)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaPhong)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaLopNavigation).WithMany(p => p.LichHocs)
                 .HasForeignKey(d => d.MaLop);
@@ -241,20 +241,20 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaLop)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaGv)
                 .HasMaxLength(10)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .HasColumnName("MaGV");
             entity.Property(e => e.MaKhoaHoc)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaPhong)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.TenLop)
                 .HasMaxLength(40)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaGvNavigation).WithMany(p => p.LopHocs)
                 .HasForeignKey(d => d.MaGv)
@@ -285,10 +285,10 @@ public partial class TtanContext : DbContext
                         j.ToTable("ThamGia");
                         j.IndexerProperty<string>("MaLop")
                             .HasMaxLength(10)
-                            .IsUnicode(false);
+                            .IsUnicode(true);
                         j.IndexerProperty<string>("MaHocVien")
                             .HasMaxLength(10)
-                            .IsUnicode(false);
+                            .IsUnicode(true);
                     });
         });
 
@@ -300,20 +300,20 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaNv)
                 .HasMaxLength(10)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .HasColumnName("MaNV");
             entity.Property(e => e.ChucVu)
                 .HasMaxLength(30)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.GioiTinh)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.HoVaTen)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaTrungTam)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaTrungTamNavigation).WithMany(p => p.NhanViens)
                 .HasForeignKey(d => d.MaTrungTam)
@@ -336,11 +336,11 @@ public partial class TtanContext : DbContext
                         j.ToTable("PhanCong");
                         j.IndexerProperty<string>("MaNv")
                             .HasMaxLength(10)
-                            .IsUnicode(false)
+                            .IsUnicode(true)
                             .HasColumnName("MaNV");
                         j.IndexerProperty<string>("MaGv")
                             .HasMaxLength(10)
-                            .IsUnicode(false)
+                            .IsUnicode(true)
                             .HasColumnName("MaGV");
                     });
         });
@@ -353,13 +353,13 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaPhong)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaTrungTam)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.TenPhong)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaTrungTamNavigation).WithMany(p => p.PhongHocs)
                 .HasForeignKey(d => d.MaTrungTam)
@@ -382,10 +382,10 @@ public partial class TtanContext : DbContext
                         j.ToTable("SuDung");
                         j.IndexerProperty<string>("MaPhong")
                             .HasMaxLength(10)
-                            .IsUnicode(false);
+                            .IsUnicode(true);
                         j.IndexerProperty<string>("MaThietBi")
                             .HasMaxLength(10)
-                            .IsUnicode(false);
+                            .IsUnicode(true);
                     });
         });
 
@@ -397,24 +397,24 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.Username)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaGv)
                 .HasMaxLength(10)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .HasColumnName("MaGV");
             entity.Property(e => e.MaHocVien)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.MaNv)
                 .HasMaxLength(10)
-                .IsUnicode(false)
+                .IsUnicode(true)
                 .HasColumnName("MaNV");
             entity.Property(e => e.Password)
                 .HasMaxLength(100)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.Role)
                 .HasMaxLength(20)
-                .IsUnicode(false);
+                .IsUnicode(true);
 
             entity.HasOne(d => d.MaGvNavigation).WithMany(p => p.TaiKhoans)
                 .HasForeignKey(d => d.MaGv)
@@ -437,10 +437,10 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaThietBi)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.TenThietBi)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
         });
 
         modelBuilder.Entity<TrungTam>(entity =>
@@ -451,16 +451,16 @@ public partial class TtanContext : DbContext
 
             entity.Property(e => e.MaTrungTam)
                 .HasMaxLength(10)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.DiaChi)
                 .HasMaxLength(100)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.Sdt)
                 .HasMaxLength(15)
-                .IsUnicode(false);
+                .IsUnicode(true);
             entity.Property(e => e.TenTrungTam)
                 .HasMaxLength(50)
-                .IsUnicode(false);
+                .IsUnicode(true);
         });
 
         OnModelCreatingPartial(modelBuilder);

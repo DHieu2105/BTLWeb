@@ -578,8 +578,8 @@ namespace BTL_Web.Controllers
 
         public async Task<IActionResult> RoomEquipmentAssignment()
         {
-            ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            ViewBag.ThietBis = await _db.ThietBis.ToListAsync();
+            ViewBag.PhongHocs = await _db.PhongHocs.Include(p => p.MaThietBis).AsNoTracking().ToListAsync();
+            ViewBag.ThietBis = await _db.ThietBis.Include(t => t.MaPhongs).AsNoTracking().ToListAsync();
             return View();
         }
 
@@ -1174,6 +1174,7 @@ namespace BTL_Web.Controllers
         {
             if (string.IsNullOrWhiteSpace(MaThietBi) || string.IsNullOrWhiteSpace(MaPhong))
             {
+                TempData["Error"] = "Vui lòng chọn đầy đủ thiết bị và phòng.";
                 return RedirectToAction("RoomEquipmentAssignment");
             }
 
@@ -1182,10 +1183,47 @@ namespace BTL_Web.Controllers
                 .FirstOrDefaultAsync(t => t.MaThietBi == MaThietBi);
             var phongHoc = await _db.PhongHocs.FindAsync(MaPhong);
 
-            if (thietBi != null && phongHoc != null && !thietBi.MaPhongs.Any(p => p.MaPhong == MaPhong))
+            if (thietBi == null || phongHoc == null)
             {
-                thietBi.MaPhongs.Add(phongHoc);
-                await _db.SaveChangesAsync();
+                TempData["Error"] = "Không tìm thấy thiết bị hoặc phòng học.";
+                return RedirectToAction("RoomEquipmentAssignment");
+            }
+
+            if (thietBi.MaPhongs.Any(p => p.MaPhong == MaPhong))
+            {
+                TempData["Success"] = "Thiết bị đã có trong phòng này.";
+                return RedirectToAction("RoomEquipmentAssignment");
+            }
+
+            thietBi.MaPhongs.Add(phongHoc);
+            await _db.SaveChangesAsync();
+            TempData["Success"] = $"Đã gán thiết bị {thietBi.TenThietBi} cho phòng {phongHoc.TenPhong}.";
+
+            return RedirectToAction("RoomEquipmentAssignment");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnassignEquipmentFromRoom(string MaThietBi, string MaPhong)
+        {
+            if (string.IsNullOrWhiteSpace(MaThietBi) || string.IsNullOrWhiteSpace(MaPhong))
+            {
+                return RedirectToAction("RoomEquipmentAssignment");
+            }
+
+            var thietBi = await _db.ThietBis
+                .Include(t => t.MaPhongs)
+                .FirstOrDefaultAsync(t => t.MaThietBi == MaThietBi);
+
+            if (thietBi != null)
+            {
+                var phongHoc = thietBi.MaPhongs.FirstOrDefault(p => p.MaPhong == MaPhong);
+                if (phongHoc != null)
+                {
+                    thietBi.MaPhongs.Remove(phongHoc);
+                    await _db.SaveChangesAsync();
+                    TempData["Success"] = "Đã thu hồi thiết bị khỏi phòng.";
+                }
             }
 
             return RedirectToAction("RoomEquipmentAssignment");

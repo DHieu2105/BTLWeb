@@ -17,6 +17,20 @@
     </div>
 </div>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+    </div>
+}
+
 <div id="equipFilterPanel" class="card-plain" style="display:none;padding:16px 20px;margin-bottom:16px;">
     <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
         <div class="form-group" style="margin:0;">
@@ -52,7 +66,10 @@
             @foreach (var ph in phongHocs)
             {
                 var equipCount = ph.MaThietBis.Count;
-                 <div class="room-card" onclick="selectRoom('@ph.MaPhong','@ph.TenPhong')"
+                var equipIds = string.Join(",", ph.MaThietBis.Select(t => t.MaThietBi));
+                var equipNames = string.Join("|", ph.MaThietBis.Select(t => t.TenThietBi));
+
+                 <div class="room-card" onclick="selectRoom('@ph.MaPhong','@ph.TenPhong','@equipCount','@equipIds','@equipNames')"
                      id="room-@ph.MaPhong"
                      style="padding:16px;border-radius:8px;cursor:pointer;border:2px solid var(--surface-high);transition:all 0.15s;"
                      onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--surface-high)'">
@@ -86,34 +103,14 @@
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                 <div style="padding:12px;background:var(--surface-low);border-radius:8px;">
-                    <div class="stat-label">Thiết bị hình ảnh</div>
-                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-                        @foreach (var tb in thietBis.Where(t => t.MaPhongs.Any()).Take(2))
-                        {
-                            <div style="display:flex;align-items:center;gap:8px;padding:8px;background:white;border-radius:6px;">
-                                <i class="fas fa-tv" style="color:var(--primary);"></i>
-                                <div>
-                                    <div class="user-name" style="font-size:12px;">@tb.TenThietBi</div>
-                                    <div class="user-sub">@tb.MaThietBi</div>
-                                </div>
-                            </div>
-                        }
+                    <div class="stat-label">Các thiết bị trong phòng</div>
+                    <div id="roomEquipList" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+                        <p class="small text-muted">Chọn phòng để xem danh sách...</p>
                     </div>
                 </div>
-                <div style="padding:12px;background:var(--surface-low);border-radius:8px;">
-                    <div class="stat-label">Thiết bị âm thanh</div>
-                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
-                        @foreach (var tb in thietBis.Skip(2).Take(2))
-                        {
-                            <div style="display:flex;align-items:center;gap:8px;padding:8px;background:white;border-radius:6px;">
-                                <i class="fas fa-microphone" style="color:#0891b2;"></i>
-                                <div>
-                                    <div class="user-name" style="font-size:12px;">@tb.TenThietBi</div>
-                                    <div class="user-sub">@tb.MaThietBi</div>
-                                </div>
-                            </div>
-                        }
-                    </div>
+                <div style="padding:12px;background:rgba(219,225,255,0.2);border-radius:8px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;">
+                    <i class="fas fa-tools" style="font-size:24px;color:var(--primary);margin-bottom:8px;"></i>
+                    <p class="small">Bạn có thể gán thêm thiết bị từ danh sách bên dưới</p>
                 </div>
             </div>
         </div>
@@ -131,7 +128,7 @@
                 <thead>
                     <tr>
                         <th>Thiết bị</th>
-                        <th>Phòng đã gán</th>
+                        <th>Phòng đang gán</th>
                         <th>Số lượng</th>
                         <th>Trạng thái</th>
                         <th style="text-align:right;">Thao tác</th>
@@ -155,10 +152,22 @@
                             <td>
                                 @if (tb.MaPhongs.Any())
                                 {
-                                    @foreach (var ph in tb.MaPhongs.Take(2))
-                                    {
-                                        <span class="chip chip-blue" style="font-size:11px;margin-right:4px;">@ph.TenPhong</span>
-                                    }
+                                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                        @foreach (var ph in tb.MaPhongs)
+                                        {
+                                            <div class="chip chip-blue" style="font-size:11px; display:flex; align-items:center; gap:6px;">
+                                                @ph.TenPhong
+                                                <form method="post" action="/Admin/UnassignEquipmentFromRoom" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="MaThietBi" value="@tb.MaThietBi" />
+                                                    <input type="hidden" name="MaPhong" value="@ph.MaPhong" />
+                                                    <button type="submit" style="background:none; border:none; padding:0; cursor:pointer; color:inherit; display:flex; align-items:center;">
+                                                        <i class="fas fa-times" style="font-size:9px;"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </div>
                                 }
                                 else
                                 {
@@ -193,7 +202,7 @@
             @Html.AntiForgeryToken()
             <div class="form-group">
                 <label class="form-label">Thiết bị</label>
-                <select name="MaThietBi" id="equipSelect" class="form-control form-select">
+                <select name="MaThietBi" id="equipSelect" class="form-control form-select" required>
                     <option value="">— Chọn thiết bị —</option>
                     @foreach (var tb in thietBis)
                     {
@@ -203,24 +212,36 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Phòng</label>
-                <select name="MaPhong" class="form-control form-select">
+                <select name="MaPhong" id="roomSelectInput" class="form-control form-select" required>
                     <option value="">— Chọn phòng —</option>
                     @foreach (var ph in phongHocs)
                     {
-                        <option value="@ph.MaPhong">@ph.TenPhong</option>
+                        <option value="@ph.MaPhong">@ph.TenPhong (@ph.MaPhong)</option>
                     }
                 </select>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                 <button type="button" class="btn-outline" onclick="document.getElementById('assignModal').style.display='none'">Hủy</button>
-                <button type="submit" class="btn-primary"><i class="fas fa-link"></i> Gán</button>
+                <button type="submit" class="btn-primary"><i class="fas fa-link"></i> Gán ngay</button>
             </div>
         </form>
     </div>
 </div>
 
+<style>
+    .room-card.active {
+        border-color: var(--primary) !important;
+        background: rgba(219,225,255,0.1);
+    }
+    .chip form button:hover {
+        color: #ef4444;
+    }
+</style>
+
 @section Scripts {
 <script>
+let currentSelectedRoomId = "";
+
 function toggleEquipFilter() {
     const panel = document.getElementById('equipFilterPanel');
     if (!panel) return;
@@ -254,15 +275,51 @@ function clearEquipFilter() {
     applyEquipFilter();
 }
 
-function selectRoom(id, name) {
-    document.querySelectorAll('[id^="room-"]').forEach(r => r.style.borderColor = 'var(--surface-high)');
+function selectRoom(id, name, count, ids, names) {
+    currentSelectedRoomId = id;
+    document.querySelectorAll('.room-card').forEach(r => r.classList.remove('active'));
+    
     const el = document.getElementById('room-' + id);
-    if (el) el.style.borderColor = 'var(--primary)';
+    if (el) el.classList.add('active');
+    
     document.getElementById('selectedRoomName').textContent = name;
-    document.getElementById('selectedRoomId').textContent = id;
+    document.getElementById('selectedRoomId').textContent = "Mã phòng: " + id;
+    
+    // Update pre-selection in modal
+    const roomSelectInput = document.getElementById('roomSelectInput');
+    if (roomSelectInput) roomSelectInput.value = id;
+
+    // Update Room Equipment List in featured card
+    const listContainer = document.getElementById('roomEquipList');
+    if (listContainer) {
+        listContainer.innerHTML = '';
+        if (count === "0" || !ids) {
+            listContainer.innerHTML = '<p class="small text-muted">Phòng này chưa có thiết bị nào.</p>';
+        } else {
+            const idList = ids.split(',');
+            const nameList = names.split('|');
+            for (let i = 0; i < idList.length; i++) {
+                const item = document.createElement('div');
+                item.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px;background:white;border-radius:6px;border:1px solid var(--surface-low);';
+                item.innerHTML = `
+                    <i class="fas fa-laptop" style="color:var(--primary);"></i>
+                    <div style="flex:1;">
+                        <div class="user-name" style="font-size:12px;">${nameList[i]}</div>
+                        <div class="user-sub" style="font-size:10px;">${idList[i]}</div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            }
+        }
+    }
 }
+
 function assignEquip(id) {
     document.getElementById('equipSelect').value = id;
+    // If a room is already selected, ensure it's set in modal
+    if (currentSelectedRoomId) {
+        document.getElementById('roomSelectInput').value = currentSelectedRoomId;
+    }
     document.getElementById('assignModal').style.display = 'flex';
 }
 </script>

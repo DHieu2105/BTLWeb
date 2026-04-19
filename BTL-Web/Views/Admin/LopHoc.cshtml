@@ -10,9 +10,7 @@
         <p>Lên lịch và quản lý tất cả các buổi học đang hoạt động</p>
     </div>
     <div class="page-actions">
-        <button type="button" class="btn-outline" title="Filter" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
-            <button type="button" class="btn-outline" title="Lọc" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
-            <button type="button" class="btn-outline" title="Lọc" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
+        <button type="button" class="btn-outline" title="Lọc" onclick="toggleClassFilterPanel()"><i class="fas fa-filter"></i></button>
         <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
             <i class="fas fa-plus"></i> Lên lịch lớp mới
         </button>
@@ -69,9 +67,9 @@
 
 <div class="card-plain" style="padding:0;">
     <div style="padding:16px 24px;border-bottom:1px solid var(--surface-low);display:flex;align-items:center;gap:8px;">
-        <button class="filter-btn active">Tất cả lớp</button>
-        <button class="filter-btn">Đang hoạt động</button>
-        <button class="filter-btn">Đã hoàn thành</button>
+        <button class="filter-btn active" data-filter="all">Tất cả lớp</button>
+        <button class="filter-btn" data-filter="active">Đang hoạt động</button>
+        <button class="filter-btn" data-filter="completed">Đã hoàn thành</button>
     </div>
     <table class="data-table">
         <thead>

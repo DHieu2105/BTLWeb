@@ -23,6 +23,8 @@ namespace BTL_Web.Controllers
         {
             ViewBag.TotalStudents = await _db.HocViens.CountAsync();
             ViewBag.TotalClasses = await _db.LopHocs.CountAsync();
+            ViewBag.TotalTeachers = await _db.GiaoViens.CountAsync();
+            ViewBag.TotalCourses = await _db.KhoaHocs.CountAsync();
             return View();
         }
 
@@ -641,6 +643,58 @@ namespace BTL_Web.Controllers
             }
 
             return candidate;
+        }
+
+        public async Task<IActionResult> TeacherAssignment()
+        {
+            var maNv = GetMaNv();
+            if (string.IsNullOrWhiteSpace(maNv))
+            {
+                return RedirectToAction("Index");
+            }
+
+            var assignedTeachers = await _db.GiaoViens
+                .Where(g => g.MaNvs.Any(n => n.MaNv == maNv))
+                .Include(g => g.MaKhoaHocNavigation)
+                .Include(g => g.LopHocs)
+                .ToListAsync();
+
+            var availableClasses = await _db.LopHocs
+                .Include(l => l.MaKhoaHocNavigation)
+                .OrderBy(l => l.TenLop)
+                .ToListAsync();
+
+            var viewModel = new TeacherAssignmentViewModel
+            {
+                AssignedTeachers = assignedTeachers,
+                AvailableClasses = availableClasses
+            };
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignTeacherToClass(string maGv, string maLop)
+        {
+            if (string.IsNullOrWhiteSpace(maGv) || string.IsNullOrWhiteSpace(maLop))
+            {
+                TempData["Error"] = "Thông tin không hợp lệ.";
+                return RedirectToAction(nameof(TeacherAssignment));
+            }
+
+            var lopHoc = await _db.LopHocs.FindAsync(maLop);
+            if (lopHoc == null)
+            {
+                TempData["Error"] = "Không tìm thấy lớp học.";
+                return RedirectToAction(nameof(TeacherAssignment));
+            }
+
+            lopHoc.MaGv = maGv;
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = $"Đã gán giáo viên {maGv} cho lớp {maLop} thành công.";
+            return RedirectToAction(nameof(TeacherAssignment));
         }
     }
 

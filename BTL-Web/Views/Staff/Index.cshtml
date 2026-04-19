@@ -4,140 +4,58 @@
 
 <div class="page-header">
     <div>
-        <h2>Bảng điều khiển nhân viên</h2>
-        <p>Chào mừng trở lại, @User.Identity?.Name. Quản lý học viên và lớp học hiệu quả hơn.</p>
+        <h2>Chào mừng trở lại!</h2>
+        <p>Hôm nay là @DateTime.Now.ToString("dddd, dd/MM/yyyy")</p>
     </div>
     <div class="page-actions">
-        <a href="/Staff/ClassManagement" class="btn-primary">
-            <i class="fas fa-user-plus"></i> Quản lý ghi danh lớp học
+        <a href="/Staff/TeacherAssignment" class="btn-primary">
+            <i class="fas fa-people-arrows"></i> Phân công giáo viên
         </a>
     </div>
 </div>
 
-<!-- Stats -->
-<div class="stats-grid" style="margin-bottom:24px;">
+<div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 24px;">
     <div class="stat-card blue">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div><span class="stat-badge blue">+8%</span></div>
+        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-users"></i></div></div>
         <div class="stat-label">Tổng học viên</div>
-        <div class="stat-value">@(ViewBag.TotalStudents ?? 342)</div>
+        <div class="stat-value">@(ViewBag.TotalStudents ?? 0)</div>
     </div>
     <div class="stat-card teal">
-        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-user-clock"></i></div></div>
-        <div class="stat-label">Học thử đang chờ</div>
-        <div class="stat-value">42</div>
+        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-chalkboard-teacher"></i></div></div>
+        <div class="stat-label">Tổng giáo viên</div>
+        <div class="stat-value">@(ViewBag.TotalTeachers ?? 0)</div>
     </div>
     <div class="stat-card orange">
-        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-bar"></i></div></div>
-        <div class="stat-label">Hiệu suất nhân sự</div>
-        <div class="stat-value">94%</div>
+        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-door-open"></i></div></div>
+        <div class="stat-label">Tổng lớp học</div>
+        <div class="stat-value">@(ViewBag.TotalClasses ?? 0)</div>
     </div>
-    <div class="stat-card green">
-        <div class="stat-card-header"><div class="stat-icon blue"><i class="fas fa-graduation-cap"></i></div></div>
-        <div class="stat-label">Lớp đang hoạt động</div>
-        <div class="stat-value">@(ViewBag.TotalClasses ?? 18)</div>
+    <div class="stat-card purple">
+        <div class="stat-card-header"><div class="stat-icon purple"><i class="fas fa-book"></i></div></div>
+        <div class="stat-label">Khóa học</div>
+        <div class="stat-value">@(ViewBag.TotalCourses ?? 0)</div>
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;">
-    <!-- Recent Registrations -->
-    <div class="card-plain" style="padding:0;">
-        <div class="card-header-plain">
-            <h5>Ghi danh đang chờ</h5>
-            <a href="/Staff/StudentManagement" class="small" style="color:var(--primary);font-weight:700;text-decoration:none;">Xem tất cả</a>
-        </div>
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Học viên</th>
-                    <th>Khóa học</th>
-                    <th>Ngày</th>
-                    <th>Trạng thái</th>
-                    <th style="text-align:right;">Thao tác</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (ViewBag.RecentRegistrations != null)
-                {
-                    @foreach (var reg in (IEnumerable<dynamic>)ViewBag.RecentRegistrations)
-                    {
-                        <tr>
-                            <td>
-                                <div class="user-row">
-                                    <div class="avatar">@(reg.HoTen?.ToString().Substring(0,2).ToUpper() ?? "?")</div>
-                                    <div>
-                                        <div class="user-name">@reg.HoTen</div>
-                                        <div class="user-sub">@reg.MaHocVien</div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>@reg.TenKhoaHoc</td>
-                            <td class="user-sub">@reg.NgayDangKy</td>
-                            <td><span class="chip chip-yellow">Đang chờ</span></td>
-                            <td style="text-align:right;">
-                                <button class="btn-outline btn-sm">Duyệt</button>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td><div class="user-row"><div class="avatar">SJ</div><div><div class="user-name">Sarah Jenkins</div><div class="user-sub">HV001</div></div></div></td>
-                        <td>IELTS Prep B2</td>
-                        <td class="user-sub">Hôm nay</td>
-                        <td><span class="chip chip-yellow">Đang chờ</span></td>
-                        <td style="text-align:right;"><button class="btn-outline btn-sm">Duyệt</button></td>
-                    </tr>
-                    <tr>
-                        <td><div class="user-row"><div class="avatar">MO</div><div><div class="user-name">Marc Oliver</div><div class="user-sub">HV002</div></div></div></td>
-                        <td>Business English</td>
-                        <td class="user-sub">Hôm qua</td>
-                        <td><span class="chip chip-green">Đã ghi danh</span></td>
-                        <td style="text-align:right;"><button class="btn-outline btn-sm">Xem</button></td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<div class="card-plain">
+    <div class="card-header-plain">
+        <h5>Thao tác quản lý</h5>
     </div>
-
-    <!-- Quick Actions + Inquiries -->
-    <div style="display:flex;flex-direction:column;gap:24px;">
-        <div class="card-plain" style="padding:24px;">
-            <h5 style="margin-bottom:16px;">Thao tác nhanh</h5>
-            <div style="display:flex;flex-direction:column;gap:8px;">
-                <a href="/Staff/ClassManagement" class="btn-outline" style="justify-content:flex-start;">
-                    <i class="fas fa-user-plus"></i> Quản lý ghi danh lớp học
-                </a>
-                <a href="/Staff/ClassManagement" class="btn-outline" style="justify-content:flex-start;">
-                    <i class="fas fa-list"></i> Xem tất cả lớp học
-                </a>
-                <a href="/Staff/ScheduleManagement" class="btn-outline" style="justify-content:flex-start;">
-                    <i class="fas fa-calendar"></i> Quản lý lịch học
-                </a>
-            </div>
-        </div>
-
-        <div class="card-plain" style="padding:24px;">
-            <div class="section-heading">
-                <h5>Yêu cầu gần đây</h5>
-                <a href="/Staff/StudentManagement">Xem tất cả</a>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon blue"><i class="fas fa-comment"></i></div>
-                <div class="activity-content">
-                    <div class="activity-title">Elena Rodriguez</div>
-                    <div class="activity-desc">Quan tâm đến khóa luyện TOEFL buổi tối...</div>
-                    <div class="activity-time">2 phút trước</div>
-                </div>
-            </div>
-            <div class="activity-item">
-                <div class="activity-icon orange"><i class="fas fa-comment"></i></div>
-                <div class="activity-content">
-                    <div class="activity-title">Kenji Tanaka</div>
-                    <div class="activity-desc">Cần đổi lịch đánh giá nói...</div>
-                    <div class="activity-time">1 giờ trước</div>
-                </div>
-            </div>
-        </div>
+    <div style="padding: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px;">
+        <a href="/Staff/StudentManagement" class="btn-outline" style="justify-content: flex-start; padding: 16px;">
+            <i class="fas fa-user-graduate" style="margin-right: 12px;"></i> Quản lý học viên
+        </a>
+        <a href="/Staff/ClassManagement" class="btn-outline" style="justify-content: flex-start; padding: 16px;">
+            <i class="fas fa-chalkboard" style="margin-right: 12px;"></i> Quản lý lớp học
+        </a>
+        <a href="/Staff/TeacherAssignment" class="btn-outline" style="justify-content: flex-start; padding: 16px;">
+            <i class="fas fa-people-arrows" style="margin-right: 12px;"></i> Phân công giáo viên
+        </a>
+        <a href="/Staff/ScheduleManagement" class="btn-outline" style="justify-content: flex-start; padding: 16px;">
+            <i class="fas fa-calendar-alt" style="margin-right: 12px;"></i> Quản lý lịch học
+        </a>
+        <a href="/Staff/ResultManagement" class="btn-outline" style="justify-content: flex-start; padding: 16px;">
+            <i class="fas fa-poll" style="margin-right: 12px;"></i> Kết quả học tập
+        </a>
     </div>
 </div>

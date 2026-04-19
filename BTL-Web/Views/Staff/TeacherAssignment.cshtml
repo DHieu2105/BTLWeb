@@ -1,0 +1,120 @@
+@model BTL_Web.ViewModels.TeacherAssignmentViewModel
+@{
+    ViewData["Title"] = "Phân công giáo viên cho lớp học";
+    var assignedTeachers = Model.AssignedTeachers;
+    var availableClasses = Model.AvailableClasses;
+}
+
+<div class="page-header">
+    <div>
+        <h2>Phân công giáo viên</h2>
+        <p>Gán giáo viên đang phụ giữ cho các lớp học hiện có</p>
+    </div>
+    <div class="page-actions">
+        <a href="/Staff/Index" class="btn-outline">
+            <i class="fas fa-arrow-left"></i> Quay lại bảng điều khiển
+        </a>
+    </div>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-circle"></i> @TempData["Error"]
+    </div>
+}
+
+<div class="card-plain" style="padding:0;">
+    <div class="card-header-plain">
+        <h5>Danh sách giáo viên hỗ trợ</h5>
+        <span class="chip chip-blue">@assignedTeachers.Count giáo viên</span>
+    </div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã GV</th>
+                <th>Họ tên</th>
+                <th>Chuyên môn</th>
+                <th>Lớp đang dạy</th>
+                <th style="width: 300px;">Gán cho lớp mới</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (assignedTeachers.Any())
+            {
+                foreach (var teacher in assignedTeachers.OrderBy(t => t.MaGv))
+                {
+                    <tr>
+                        <td><div class="user-name">@teacher.MaGv</div></td>
+                        <td>
+                            <div class="user-name">@(teacher.Ten ?? "-")</div>
+                            <div class="user-sub">@(teacher.Sdt ?? "-")</div>
+                        </td>
+                        <td>@(teacher.ChuyenMon ?? "-")</td>
+                        <td>
+                            @if (teacher.LopHocs.Any())
+                            {
+                                <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                                    @foreach (var lop in teacher.LopHocs)
+                                    {
+                                        <span class="chip chip-gray">@lop.TenLop (@lop.MaLop)</span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="small text-muted">Chưa có lớp</span>
+                            }
+                        </td>
+                        <td>
+                            <form method="post" action="/Staff/AssignTeacherToClass" class="form-inline" style="display:flex; gap:8px;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="maGv" value="@teacher.MaGv" />
+                                <select name="maLop" class="form-control form-select" required style="flex-grow:1;">
+                                    <option value="">— Chọn lớp —</option>
+                                    @foreach (var lop in availableClasses)
+                                    {
+                                        <option value="@lop.MaLop">@lop.TenLop (@lop.MaLop)</option>
+                                    }
+                                </select>
+                                <button type="submit" class="btn-primary btn-sm">Gán</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <p>Không có giáo viên nào được phân công cho bạn quản lý.</p>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<style>
+    .form-inline select {
+        padding: 4px 8px;
+        font-size: 13px;
+        height: 32px;
+    }
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+        height: 32px;
+        white-space: nowrap;
+    }
+</style>
