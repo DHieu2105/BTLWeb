@@ -156,10 +156,41 @@ namespace BTL_Web.Controllers
             return View(items);
         }
 
-        public async Task<IActionResult> KhoaHoc()
+        public async Task<IActionResult> KhoaHoc(int page = 1, int pageSize = 10, string? keyword = null)
         {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _db.KhoaHocs.AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var search = keyword.Trim().ToLower();
+                query = query.Where(k =>
+                    k.MaKhoaHoc.ToLower().Contains(search) ||
+                    (k.TenKhoaHoc != null && k.TenKhoaHoc.ToLower().Contains(search)));
+            }
+
+            query = query.OrderBy(k => k.MaKhoaHoc);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
             ViewBag.TrungTams = await _db.TrungTams.AsNoTracking().OrderBy(t => t.TenTrungTam).ToListAsync();
-            return View(await _db.KhoaHocs.AsNoTracking().ToListAsync());
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Keyword = keyword ?? string.Empty;
+
+            return View(items);
         }
 
         public async Task<IActionResult> LopHoc(int page = 1, int pageSize = 10)
@@ -200,31 +231,124 @@ namespace BTL_Web.Controllers
             return View(vm);
         }
 
-        public async Task<IActionResult> PhongHoc()
+        public async Task<IActionResult> PhongHoc(int page = 1, int pageSize = 10)
         {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
             ViewBag.TrungTams = await _db.TrungTams.ToListAsync();
-            return View(await _db.PhongHocs.Include(p => p.MaTrungTamNavigation).ToListAsync());
+
+            var query = _db.PhongHocs
+                .Include(p => p.MaTrungTamNavigation)
+                .AsNoTracking()
+                .OrderBy(p => p.MaPhong);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View(items);
         }
 
-        public async Task<IActionResult> ThietBi()
+        public async Task<IActionResult> ThietBi(int page = 1, int pageSize = 10)
         {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
             ViewBag.PhongHocs = await _db.PhongHocs.AsNoTracking().OrderBy(p => p.TenPhong).ToListAsync();
-            return View(await _db.ThietBis.Include(t => t.MaPhongs).ToListAsync());
+
+            var query = _db.ThietBis
+                .Include(t => t.MaPhongs)
+                .AsNoTracking()
+                .OrderBy(t => t.MaThietBi);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View(items);
         }
 
-        public async Task<IActionResult> TrungTam()
-            => View(await _db.TrungTams.ToListAsync());
-
-        public async Task<IActionResult> LichHoc()
+        public async Task<IActionResult> TrungTam(int page = 1, int pageSize = 10)
         {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var query = _db.TrungTams
+                .AsNoTracking()
+                .OrderBy(t => t.MaTrungTam);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View(items);
+        }
+
+        public async Task<IActionResult> LichHoc(int page = 1, int pageSize = 10)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
             ViewBag.LopHocs = await _db.LopHocs.ToListAsync();
             ViewBag.PhongHocs = await _db.PhongHocs.ToListAsync();
-            return View(await _db.LichHocs
+
+            var query = _db.LichHocs
                 .Include(l => l.MaLopNavigation)
                 .Include(l => l.MaPhongNavigation)
                 .OrderBy(l => l.NgayHoc)
                 .ThenBy(l => l.GioBatDau)
-                .ToListAsync());
+                .AsNoTracking();
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+
+            return View(items);
         }
 
         public async Task<IActionResult> TaiKhoan(int page = 1, int pageSize = 10, string? keyword = null, string? role = null)

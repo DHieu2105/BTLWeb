@@ -2,6 +2,11 @@
 @{
     ViewData["Title"] = "Quản lý khóa học";
     var trungTams = ViewBag.TrungTams as IEnumerable<BTL_Web.Models.TrungTam> ?? new List<BTL_Web.Models.TrungTam>();
+    var currentPage = ViewBag.Page != null ? (int)ViewBag.Page : 1;
+    var totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
+    var pageSize = ViewBag.PageSize != null ? (int)ViewBag.PageSize : 10;
+    var totalItems = ViewBag.TotalItems != null ? (int)ViewBag.TotalItems : (Model?.Count() ?? 0);
+    var keyword = ViewBag.Keyword as string ?? string.Empty;
     var trungTamLookup = trungTams
         .Where(t => !string.IsNullOrWhiteSpace(t.MaTrungTam))
         .ToDictionary(t => t.MaTrungTam!, t => t.TenTrungTam ?? t.MaTrungTam!);
@@ -48,7 +53,7 @@
         <p style="color:rgba(255,255,255,0.7);font-size:14px;margin-bottom:24px;">Danh mục khóa học đầy đủ với theo dõi ghi danh và phân tích hiệu suất.</p>
         <div style="display:flex;gap:32px;">
             <div>
-                <div style="font-size:30px;font-weight:800;color:white;">@(Model?.Count() ?? 0)</div>
+                <div style="font-size:30px;font-weight:800;color:white;">@totalItems</div>
                 <div style="font-size:12px;color:rgba(255,255,255,0.6);">Tổng khóa học</div>
             </div>
             <div style="width:1px;background:rgba(255,255,255,0.2);"></div>
@@ -94,7 +99,7 @@
     <div class="card-header-plain">
         <div>
             <h5 style="margin-bottom:4px;">Danh mục khóa học</h5>
-            <p class="small text-muted">@(Model?.Count() ?? 0) khóa học khả dụng</p>
+            <p class="small text-muted">@totalItems khóa học khả dụng</p>
         </div>
         <div style="display:flex;gap:8px;">
             <button type="button" class="btn-outline btn-sm" title="Filter" onclick="toggleCourseFilter()"><i class="fas fa-filter"></i></button>
@@ -173,12 +178,21 @@
         </tbody>
     </table>
     <div class="pagination-bar">
-        <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) khóa học</span>
+        <span class="pagination-info">Trang @currentPage / @totalPages • @totalItems khóa học</span>
         <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+            <a class="page-btn" href="@Url.Action("KhoaHoc", new { page = currentPage > 1 ? currentPage - 1 : 1, pageSize, keyword })"><i class="fas fa-chevron-left" style="font-size:10px;"></i></a>
+            @for (var i = 1; i <= totalPages; i++)
+            {
+                if (i == currentPage)
+                {
+                    <button class="page-btn active">@i</button>
+                }
+                else
+                {
+                    <a class="page-btn" href="@Url.Action("KhoaHoc", new { page = i, pageSize, keyword })">@i</a>
+                }
+            }
+            <a class="page-btn" href="@Url.Action("KhoaHoc", new { page = currentPage < totalPages ? currentPage + 1 : totalPages, pageSize, keyword })"><i class="fas fa-chevron-right" style="font-size:10px;"></i></a>
         </div>
     </div>
 </div>
