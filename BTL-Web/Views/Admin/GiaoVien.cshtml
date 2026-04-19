@@ -7,6 +7,8 @@
     var currentPage = ViewBag.Page != null ? (int)ViewBag.Page : 1;
     var totalPages = ViewBag.TotalPages != null ? (int)ViewBag.TotalPages : 1;
     var keyword = ViewBag.Keyword as string ?? "";
+    var khoaHocs = ViewBag.KhoaHocs as IEnumerable<BTL_Web.Models.KhoaHoc> ?? new List<BTL_Web.Models.KhoaHoc>();
+    var trungTams = ViewBag.TrungTams as IEnumerable<BTL_Web.Models.TrungTam> ?? new List<BTL_Web.Models.TrungTam>();
 }
 
 <div class="page-header">
@@ -94,6 +96,8 @@
                                             data-sdt="@gv.Sdt"
                                             data-chuyenmon="@gv.ChuyenMon"
                                             data-gioitinh="@gv.GioiTinh"
+                                            data-makhoahoc="@gv.MaKhoaHoc"
+                                            data-matrungtam="@gv.MaTrungTam"
                                             onclick="openEditTeacher(this)">
                                         <i class="fas fa-edit"></i>
                                     </button>
@@ -153,6 +157,36 @@
                         <input type="text" name="Sdt" class="form-control">
                     </div>
                 </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Khóa học phụ trách</label>
+                        <select name="MaKhoaHoc" class="form-control form-select">
+                            <option value="">- Chọn khóa học -</option>
+                            @foreach (var kh in khoaHocs)
+                            {
+                                <option value="@kh.MaKhoaHoc">@(kh.TenKhoaHoc ?? kh.MaKhoaHoc) (@kh.MaKhoaHoc)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trung tâm</label>
+                        <select name="MaTrungTam" class="form-control form-select">
+                            <option value="">- Chọn trung tâm -</option>
+                            @foreach (var tt in trungTams)
+                            {
+                                <option value="@tt.MaTrungTam">@(tt.TenTrungTam ?? tt.MaTrungTam) (@tt.MaTrungTam)</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Giới tính</label>
+                    <select name="GioiTinh" class="form-control form-select">
+                        <option value="">- Chọn giới tính -</option>
+                        <option value="Nam">Nam</option>
+                        <option value="Nữ">Nữ</option>
+                    </select>
+                </div>
                 <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                     <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
                     <button type="submit" class="btn-primary">Thêm Giáo Viên</button>
@@ -167,6 +201,10 @@
             <form method="post" action="/Admin/UpdateGiaoVien">
                 @Html.AntiForgeryToken()
                 <input type="hidden" id="editMaGv" name="MaGv" />
+                <div class="form-group">
+                    <label class="form-label">Mã giáo viên</label>
+                    <input type="text" id="editMaGvDisplay" class="form-control" readonly>
+                </div>
                 <div class="form-group">
                     <label class="form-label">Họ và Tên</label>
                     <input type="text" id="editTen" name="Ten" class="form-control" required>
@@ -184,6 +222,28 @@
                 <div class="form-group">
                     <label class="form-label">Giới tính</label>
                     <input type="text" id="editGioiTinh" name="GioiTinh" class="form-control">
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                    <div class="form-group">
+                        <label class="form-label">Khóa học phụ trách</label>
+                        <select id="editMaKhoaHoc" name="MaKhoaHoc" class="form-control form-select">
+                            <option value="">- Chọn khóa học -</option>
+                            @foreach (var kh in khoaHocs)
+                            {
+                                <option value="@kh.MaKhoaHoc">@(kh.TenKhoaHoc ?? kh.MaKhoaHoc) (@kh.MaKhoaHoc)</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Trung tâm</label>
+                        <select id="editMaTrungTam" name="MaTrungTam" class="form-control form-select">
+                            <option value="">- Chọn trung tâm -</option>
+                            @foreach (var tt in trungTams)
+                            {
+                                <option value="@tt.MaTrungTam">@(tt.TenTrungTam ?? tt.MaTrungTam) (@tt.MaTrungTam)</option>
+                            }
+                        </select>
+                    </div>
                 </div>
                 <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                     <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Hủy</button>
@@ -219,9 +279,14 @@ function buildTeacherRow(teacher) {
         .join('');
     const safeId = escapeHtml(teacher.maGv);
     const safeName = escapeHtml(name);
-    const safeSpecialization = escapeHtml(teacher.chuyenMon || '—');
-    const safePhone = escapeHtml(teacher.sdt || '—');
-    const safeGender = escapeHtml(teacher.gioiTinh || '—');
+    const rawSpecialization = teacher.chuyenMon || '';
+    const rawPhone = teacher.sdt || '';
+    const rawGender = teacher.gioiTinh || '';
+    const safeSpecialization = escapeHtml(rawSpecialization || '—');
+    const safePhone = escapeHtml(rawPhone || '—');
+    const safeGender = escapeHtml(rawGender || '');
+    const safeCourseId = escapeHtml(teacher.maKhoaHoc || '');
+    const safeCenterId = escapeHtml(teacher.maTrungTam || '');
 
     return `
         <tr>
@@ -244,9 +309,11 @@ function buildTeacherRow(teacher) {
                     <button class="btn-icon btn-outline btn-sm"
                             data-id="${safeId}"
                             data-ten="${safeName}"
-                            data-sdt="${safePhone}"
-                            data-chuyenmon="${safeSpecialization}"
+                            data-sdt="${escapeHtml(rawPhone)}"
+                            data-chuyenmon="${escapeHtml(rawSpecialization)}"
                             data-gioitinh="${safeGender}"
+                            data-makhoahoc="${safeCourseId}"
+                            data-matrungtam="${safeCenterId}"
                             onclick="openEditTeacher(this)">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -318,10 +385,13 @@ function deleteTeacher(id) {
 
 function openEditTeacher(btn) {
     document.getElementById('editMaGv').value = btn.dataset.id || '';
+    document.getElementById('editMaGvDisplay').value = btn.dataset.id || '';
     document.getElementById('editTen').value = btn.dataset.ten || '';
     document.getElementById('editSdt').value = btn.dataset.sdt || '';
     document.getElementById('editChuyenMon').value = btn.dataset.chuyenmon || '';
     document.getElementById('editGioiTinh').value = btn.dataset.gioitinh || '';
+    document.getElementById('editMaKhoaHoc').value = btn.dataset.makhoahoc || '';
+    document.getElementById('editMaTrungTam').value = btn.dataset.matrungtam || '';
     document.getElementById('editModal').style.display = 'flex';
 }
 </script>

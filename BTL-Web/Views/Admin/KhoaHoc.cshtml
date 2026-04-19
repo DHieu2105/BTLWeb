@@ -1,6 +1,10 @@
 @model IEnumerable<BTL_Web.Models.KhoaHoc>
 @{
     ViewData["Title"] = "Quản lý khóa học";
+    var trungTams = ViewBag.TrungTams as IEnumerable<BTL_Web.Models.TrungTam> ?? new List<BTL_Web.Models.TrungTam>();
+    var trungTamLookup = trungTams
+        .Where(t => !string.IsNullOrWhiteSpace(t.MaTrungTam))
+        .ToDictionary(t => t.MaTrungTam!, t => t.TenTrungTam ?? t.MaTrungTam!);
 }
 
 <div class="page-header">
@@ -104,8 +108,8 @@
             <tr>
                 <th>Tên khóa học</th>
                 <th>Thời lượng</th>
-                <th>Cấp độ</th>
-                <th>Ghi danh</th>
+                <th>Học phí</th>
+                <th>Trung tâm</th>
                 <th style="text-align:right;">Thao tác</th>
             </tr>
         </thead>
@@ -130,12 +134,18 @@
                             <div class="user-name">@(kh.ThoiLuong ?? 0) tuần</div>
                             <div class="user-sub">@((kh.ThoiLuong ?? 0) * 6) giờ học</div>
                         </td>
-                        <td><span class="chip chip-blue">Chung</span></td>
                         <td>
-                            <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
-                                <div class="progress-bar-fill" style="width:70%;"></div>
-                            </div>
-                            <span class="smaller text-muted">70%</span>
+                            @if (kh.HocPhi.HasValue)
+                            {
+                                <span class="chip chip-blue">@kh.HocPhi.Value.ToString("N0") VNĐ</span>
+                            }
+                            else
+                            {
+                                <span class="user-sub">-</span>
+                            }
+                        </td>
+                        <td>
+                            <span class="user-sub">@(kh.MaTrungTam != null && trungTamLookup.ContainsKey(kh.MaTrungTam) ? trungTamLookup[kh.MaTrungTam] : (kh.MaTrungTam ?? "-"))</span>
                         </td>
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
@@ -144,6 +154,7 @@
                                         data-ten="@kh.TenKhoaHoc"
                                         data-thoiluong="@kh.ThoiLuong"
                                         data-hocphi="@kh.HocPhi"
+                                        data-matrungtam="@kh.MaTrungTam"
                                         onclick="openEditCourse(this)">
                                     <i class="fas fa-edit"></i>
                                 </button>
@@ -179,6 +190,10 @@
             @Html.AntiForgeryToken()
             <input type="hidden" id="editMaKhoaHoc" name="maKhoaHoc" />
             <div class="form-group">
+                <label class="form-label">Mã khóa học</label>
+                <input type="text" id="editMaKhoaHocDisplay" class="form-control" readonly>
+            </div>
+            <div class="form-group">
                 <label class="form-label">Tên khóa học</label>
                 <input type="text" id="editTenKhoaHoc" name="tenKhoaHoc" class="form-control" required>
             </div>
@@ -191,6 +206,16 @@
                     <label class="form-label">Học phí</label>
                     <input type="number" id="editHocPhi" name="hocPhi" class="form-control" min="0">
                 </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Trung tâm</label>
+                <select id="editMaTrungTam" name="maTrungTam" class="form-control form-select">
+                    <option value="">- Chọn trung tâm -</option>
+                    @foreach (var tt in trungTams)
+                    {
+                        <option value="@tt.MaTrungTam">@(tt.TenTrungTam ?? tt.MaTrungTam) (@tt.MaTrungTam)</option>
+                    }
+                </select>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                 <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Hủy</button>
@@ -215,13 +240,19 @@
                     <input type="number" name="ThoiLuong" class="form-control" min="1">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Cấp độ</label>
-                    <input type="text" name="CapDo" class="form-control" placeholder="A1, B2, C1...">
+                    <label class="form-label">Học phí</label>
+                    <input type="number" name="HocPhi" class="form-control" min="0">
                 </div>
             </div>
             <div class="form-group">
-                <label class="form-label">Mô tả</label>
-                <textarea name="MoTa" class="form-control rich-editor" rows="3"></textarea>
+                <label class="form-label">Trung tâm</label>
+                <select name="MaTrungTam" class="form-control form-select">
+                    <option value="">- Chọn trung tâm -</option>
+                    @foreach (var tt in trungTams)
+                    {
+                        <option value="@tt.MaTrungTam">@(tt.TenTrungTam ?? tt.MaTrungTam) (@tt.MaTrungTam)</option>
+                    }
+                </select>
             </div>
             <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
                 <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
@@ -251,9 +282,12 @@ function buildCourseRow(course) {
     const safeCourseName = escapeHtml(course.tenKhoaHoc || course.maKhoaHoc);
     const duration = Number(course.thoiLuong || 0);
     const hours = duration * 6;
-    const safeHocPhi = Number(course.hocPhi || 0);
+    const rawHocPhi = course.hocPhi ?? '';
     const safeTenRaw = escapeHtml(course.tenKhoaHoc || '');
     const safeThoiLuongRaw = Number(course.thoiLuong || 0);
+    const safeCenterId = escapeHtml(course.maTrungTam || '');
+    const safeCenterName = escapeHtml(course.centerName || course.maTrungTam || '-');
+    const feeDisplay = rawHocPhi === '' ? '<span class="user-sub">-</span>' : `<span class="chip chip-blue">${Number(rawHocPhi).toLocaleString('vi-VN')} VNĐ</span>`;
 
     return `
         <tr class="course-row">
@@ -272,12 +306,11 @@ function buildCourseRow(course) {
                 <div class="user-name">${duration} tuần</div>
                 <div class="user-sub">${hours} giờ học</div>
             </td>
-            <td><span class="chip chip-blue">Chung</span></td>
             <td>
-                <div class="progress-bar-wrap" style="width:80px;margin-bottom:4px;">
-                    <div class="progress-bar-fill" style="width:70%;"></div>
-                </div>
-                <span class="smaller text-muted">70%</span>
+                ${feeDisplay}
+            </td>
+            <td>
+                <span class="user-sub">${safeCenterName}</span>
             </td>
             <td style="text-align:right;">
                 <div style="display:flex;gap:4px;justify-content:flex-end;">
@@ -285,7 +318,8 @@ function buildCourseRow(course) {
                             data-id="${safeCourseId}"
                             data-ten="${safeTenRaw}"
                             data-thoiluong="${safeThoiLuongRaw}"
-                            data-hocphi="${safeHocPhi}"
+                            data-hocphi="${escapeHtml(rawHocPhi)}"
+                            data-matrungtam="${safeCenterId}"
                             onclick="openEditCourse(this)">
                         <i class="fas fa-edit"></i>
                     </button>
@@ -366,9 +400,11 @@ function deleteCourse(id) {
 
 function openEditCourse(btn) {
     document.getElementById('editMaKhoaHoc').value = btn.dataset.id || '';
+    document.getElementById('editMaKhoaHocDisplay').value = btn.dataset.id || '';
     document.getElementById('editTenKhoaHoc').value = btn.dataset.ten || '';
     document.getElementById('editThoiLuong').value = btn.dataset.thoiluong || '';
     document.getElementById('editHocPhi').value = btn.dataset.hocphi || '';
+    document.getElementById('editMaTrungTam').value = btn.dataset.matrungtam || '';
     document.getElementById('editModal').style.display = 'flex';
 }
 </script>

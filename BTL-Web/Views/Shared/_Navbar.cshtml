@@ -2,6 +2,7 @@
 @{
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     var controller = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["Action"]?.ToString() ?? "";
     var navSection = role;
     if (controller == "Admin" && role == "Admin")
     {
@@ -68,6 +69,48 @@
         "HocVien" => "Kết quả",
         _ => "Báo cáo"
     };
+
+    var activeTab = "overview";
+    if (navSection == "Admin")
+    {
+        var featureActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "TrungTam", "PhongHoc", "ThietBi", "LichHoc"
+        };
+        var reportActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "ReportCenter", "RevenueReport"
+        };
+
+        if (controller.Equals("Admin", StringComparison.OrdinalIgnoreCase) && reportActions.Contains(action))
+        {
+            activeTab = "reports";
+        }
+        else if (controller.Equals("Admin", StringComparison.OrdinalIgnoreCase) && featureActions.Contains(action))
+        {
+            activeTab = "feature";
+        }
+        else
+        {
+            activeTab = "overview";
+        }
+    }
+    else
+    {
+        var currentPath = Context.Request.Path.Value ?? string.Empty;
+        if (!string.IsNullOrWhiteSpace(reportsUrl) && currentPath.StartsWith(reportsUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            activeTab = "reports";
+        }
+        else if (!string.IsNullOrWhiteSpace(featureUrl) && currentPath.StartsWith(featureUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            activeTab = "feature";
+        }
+        else
+        {
+            activeTab = "overview";
+        }
+    }
 }
 
 <nav class="top-navbar">
@@ -77,9 +120,9 @@
             <input type="text" placeholder="Tìm kiếm học viên, nhân viên hoặc tài nguyên...">
         </div>
         <div class="navbar-nav-links">
-            <a href="@overviewUrl" class="active">Bảng điều khiển</a>
-            <a href="@featureUrl">@featureLabel</a>
-            <a href="@reportsUrl">@reportsLabel</a>
+            <a href="@overviewUrl" class="@(activeTab == "overview" ? "active" : "")">Bảng điều khiển</a>
+            <a href="@featureUrl" class="@(activeTab == "feature" ? "active" : "")">@featureLabel</a>
+            <a href="@reportsUrl" class="@(activeTab == "reports" ? "active" : "")">@reportsLabel</a>
         </div>
     </div>
 

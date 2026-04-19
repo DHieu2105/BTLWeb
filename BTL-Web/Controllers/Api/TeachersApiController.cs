@@ -49,6 +49,8 @@ public class TeachersApiController : ControllerBase
                 g.Sdt,
                 g.ChuyenMon,
                 g.GioiTinh,
+                g.MaKhoaHoc,
+                g.MaTrungTam,
                 g.MaKhoaHocNavigation != null ? g.MaKhoaHocNavigation.TenKhoaHoc : null))
             .ToListAsync();
 
@@ -69,7 +71,15 @@ public class TeachersApiController : ControllerBase
             .Include(g => g.MaKhoaHocNavigation)
             .AsNoTracking()
             .Where(g => g.MaGv == id)
-            .Select(g => new TeacherResponse(g.MaGv, g.Ten, g.Sdt, g.ChuyenMon, g.GioiTinh, g.MaKhoaHocNavigation != null ? g.MaKhoaHocNavigation.TenKhoaHoc : null))
+            .Select(g => new TeacherResponse(
+                g.MaGv,
+                g.Ten,
+                g.Sdt,
+                g.ChuyenMon,
+                g.GioiTinh,
+                g.MaKhoaHoc,
+                g.MaTrungTam,
+                g.MaKhoaHocNavigation != null ? g.MaKhoaHocNavigation.TenKhoaHoc : null))
             .FirstOrDefaultAsync();
 
         return item == null ? NotFound() : Ok(item);
@@ -93,7 +103,8 @@ public class TeachersApiController : ControllerBase
             Sdt = request.Sdt?.Trim(),
             ChuyenMon = request.ChuyenMon?.Trim(),
             GioiTinh = request.GioiTinh?.Trim(),
-            MaKhoaHoc = request.MaKhoaHoc?.Trim()
+            MaKhoaHoc = request.MaKhoaHoc?.Trim(),
+            MaTrungTam = request.MaTrungTam?.Trim()
         };
 
         _db.GiaoViens.Add(teacher);
@@ -109,6 +120,8 @@ public class TeachersApiController : ControllerBase
             teacher.Sdt,
             teacher.ChuyenMon,
             teacher.GioiTinh,
+            teacher.MaKhoaHoc,
+            teacher.MaTrungTam,
             khoaHoc?.TenKhoaHoc));
     }
 
@@ -131,6 +144,7 @@ public class TeachersApiController : ControllerBase
         teacher.ChuyenMon = request.ChuyenMon?.Trim();
         teacher.GioiTinh = request.GioiTinh?.Trim();
         teacher.MaKhoaHoc = request.MaKhoaHoc?.Trim();
+        teacher.MaTrungTam = request.MaTrungTam?.Trim();
 
         await _db.SaveChangesAsync();
         return NoContent();
@@ -150,7 +164,7 @@ public class TeachersApiController : ControllerBase
         return NoContent();
     }
 
-    public record TeacherResponse(string MaGv, string? Ten, string? Sdt, string? ChuyenMon, string? GioiTinh, string? CourseName);
+    public record TeacherResponse(string MaGv, string? Ten, string? Sdt, string? ChuyenMon, string? GioiTinh, string? MaKhoaHoc, string? MaTrungTam, string? CourseName);
 
     public class TeacherUpsertRequest
     {
@@ -169,5 +183,8 @@ public class TeachersApiController : ControllerBase
 
         [StringLength(50)]
         public string? MaKhoaHoc { get; set; }
+
+        [StringLength(50)]
+        public string? MaTrungTam { get; set; }
     }
 }

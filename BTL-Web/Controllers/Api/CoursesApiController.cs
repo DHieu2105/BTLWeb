@@ -47,6 +47,7 @@ public class CoursesApiController : ControllerBase
                 k.TenKhoaHoc,
                 k.ThoiLuong,
                 k.HocPhi,
+                k.MaTrungTam,
                 k.MaTrungTamNavigation != null ? k.MaTrungTamNavigation.TenTrungTam : null))
             .ToListAsync();
 
@@ -72,6 +73,7 @@ public class CoursesApiController : ControllerBase
                 k.TenKhoaHoc,
                 k.ThoiLuong,
                 k.HocPhi,
+                k.MaTrungTam,
                 k.MaTrungTamNavigation != null ? k.MaTrungTamNavigation.TenTrungTam : null))
             .FirstOrDefaultAsync();
 
@@ -110,6 +112,7 @@ public class CoursesApiController : ControllerBase
             course.TenKhoaHoc,
             course.ThoiLuong,
             course.HocPhi,
+            course.MaTrungTam,
             trungTam?.TenTrungTam));
     }
 
@@ -150,7 +153,7 @@ public class CoursesApiController : ControllerBase
         return NoContent();
     }
 
-    public record CourseResponse(string MaKhoaHoc, string? TenKhoaHoc, int? ThoiLuong, int? HocPhi, string? CenterName);
+    public record CourseResponse(string MaKhoaHoc, string? TenKhoaHoc, int? ThoiLuong, int? HocPhi, string? MaTrungTam, string? CenterName);
 
     public class CourseUpsertRequest
     {

@@ -103,6 +103,8 @@ namespace BTL_Web.Controllers
             ViewBag.TotalItems = totalItems;
             ViewBag.TotalPages = totalPages;
             ViewBag.Keyword = keyword ?? string.Empty;
+            ViewBag.KhoaHocs = await _db.KhoaHocs.AsNoTracking().OrderBy(k => k.TenKhoaHoc).ToListAsync();
+            ViewBag.TrungTams = await _db.TrungTams.AsNoTracking().OrderBy(t => t.TenTrungTam).ToListAsync();
 
             return View(items);
         }
@@ -155,7 +157,10 @@ namespace BTL_Web.Controllers
         }
 
         public async Task<IActionResult> KhoaHoc()
-            => View(await _db.KhoaHocs.AsNoTracking().ToListAsync());
+        {
+            ViewBag.TrungTams = await _db.TrungTams.AsNoTracking().OrderBy(t => t.TenTrungTam).ToListAsync();
+            return View(await _db.KhoaHocs.AsNoTracking().ToListAsync());
+        }
 
         public async Task<IActionResult> LopHoc(int page = 1, int pageSize = 10)
         {
@@ -622,7 +627,7 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateKhoaHoc(string maKhoaHoc, string? tenKhoaHoc, int? thoiLuong, int? hocPhi)
+        public async Task<IActionResult> UpdateKhoaHoc(string maKhoaHoc, string? tenKhoaHoc, int? thoiLuong, int? hocPhi, string? maTrungTam)
         {
             if (string.IsNullOrWhiteSpace(maKhoaHoc))
             {
@@ -640,6 +645,7 @@ namespace BTL_Web.Controllers
             existing.TenKhoaHoc = tenKhoaHoc;
             existing.ThoiLuong = thoiLuong;
             existing.HocPhi = hocPhi;
+            existing.MaTrungTam = string.IsNullOrWhiteSpace(maTrungTam) ? null : maTrungTam;
 
             await _db.SaveChangesAsync();
             TempData["Success"] = "Cập nhật khóa học thành công.";
@@ -648,7 +654,7 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateGiaoVien(string maGv, string? ten, string? sdt, string? chuyenMon, string? gioiTinh)
+        public async Task<IActionResult> UpdateGiaoVien(string maGv, string? ten, string? sdt, string? chuyenMon, string? gioiTinh, string? maKhoaHoc, string? maTrungTam)
         {
             if (string.IsNullOrWhiteSpace(maGv))
             {
@@ -667,6 +673,8 @@ namespace BTL_Web.Controllers
             existing.Sdt = sdt;
             existing.ChuyenMon = chuyenMon;
             existing.GioiTinh = gioiTinh;
+            existing.MaKhoaHoc = string.IsNullOrWhiteSpace(maKhoaHoc) ? null : maKhoaHoc;
+            existing.MaTrungTam = string.IsNullOrWhiteSpace(maTrungTam) ? null : maTrungTam;
 
             await _db.SaveChangesAsync();
             TempData["Success"] = "Cập nhật giáo viên thành công.";
