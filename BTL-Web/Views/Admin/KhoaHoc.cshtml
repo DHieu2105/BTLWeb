@@ -16,6 +16,15 @@
     </div>
 </div>
 
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success" style="margin-bottom:16px;">@success</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="alert alert-danger" style="margin-bottom:16px;">@error</div>
+}
+
 <div id="courseFilterPanel" class="card-plain" style="display:none;padding:16px 20px;margin-bottom:16px;">
     <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
         <div class="form-group" style="margin:0;">
@@ -130,7 +139,14 @@
                         </td>
                         <td style="text-align:right;">
                             <div style="display:flex;gap:4px;justify-content:flex-end;">
-                                <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                                <button class="btn-icon btn-outline btn-sm"
+                                        data-id="@kh.MaKhoaHoc"
+                                        data-ten="@kh.TenKhoaHoc"
+                                        data-thoiluong="@kh.ThoiLuong"
+                                        data-hocphi="@kh.HocPhi"
+                                        onclick="openEditCourse(this)">
+                                    <i class="fas fa-edit"></i>
+                                </button>
                                 <button class="btn-icon btn-outline btn-sm" onclick="deleteCourse('@kh.MaKhoaHoc')">
                                     <i class="fas fa-trash" style="color:#ef4444;"></i>
                                 </button>
@@ -153,6 +169,34 @@
             <button class="page-btn">2</button>
             <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
         </div>
+    </div>
+</div>
+
+<div id="editModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;padding:32px;width:520px;max-width:90vw;">
+        <h4 style="margin-bottom:24px;">Sửa khóa học</h4>
+        <form method="post" action="/Admin/UpdateKhoaHoc">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editMaKhoaHoc" name="maKhoaHoc" />
+            <div class="form-group">
+                <label class="form-label">Tên khóa học</label>
+                <input type="text" id="editTenKhoaHoc" name="tenKhoaHoc" class="form-control" required>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group">
+                    <label class="form-label">Thời lượng (tuần)</label>
+                    <input type="number" id="editThoiLuong" name="thoiLuong" class="form-control" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Học phí</label>
+                    <input type="number" id="editHocPhi" name="hocPhi" class="form-control" min="0">
+                </div>
+            </div>
+            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                <button type="button" class="btn-outline" onclick="document.getElementById('editModal').style.display='none'">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu thay đổi</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -207,6 +251,9 @@ function buildCourseRow(course) {
     const safeCourseName = escapeHtml(course.tenKhoaHoc || course.maKhoaHoc);
     const duration = Number(course.thoiLuong || 0);
     const hours = duration * 6;
+    const safeHocPhi = Number(course.hocPhi || 0);
+    const safeTenRaw = escapeHtml(course.tenKhoaHoc || '');
+    const safeThoiLuongRaw = Number(course.thoiLuong || 0);
 
     return `
         <tr class="course-row">
@@ -234,7 +281,14 @@ function buildCourseRow(course) {
             </td>
             <td style="text-align:right;">
                 <div style="display:flex;gap:4px;justify-content:flex-end;">
-                    <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon btn-outline btn-sm"
+                            data-id="${safeCourseId}"
+                            data-ten="${safeTenRaw}"
+                            data-thoiluong="${safeThoiLuongRaw}"
+                            data-hocphi="${safeHocPhi}"
+                            onclick="openEditCourse(this)">
+                        <i class="fas fa-edit"></i>
+                    </button>
                     <button class="btn-icon btn-outline btn-sm" onclick="deleteCourse('${safeCourseId}')">
                         <i class="fas fa-trash" style="color:#ef4444;"></i>
                     </button>
@@ -308,6 +362,14 @@ if (courseFilterInput) {
 
 function deleteCourse(id) {
     if (confirm('Bạn có chắc muốn xóa khóa học ' + id + '?')) location.href = '/Admin/DeleteKhoaHoc/' + id;
+}
+
+function openEditCourse(btn) {
+    document.getElementById('editMaKhoaHoc').value = btn.dataset.id || '';
+    document.getElementById('editTenKhoaHoc').value = btn.dataset.ten || '';
+    document.getElementById('editThoiLuong').value = btn.dataset.thoiluong || '';
+    document.getElementById('editHocPhi').value = btn.dataset.hocphi || '';
+    document.getElementById('editModal').style.display = 'flex';
 }
 </script>
 }

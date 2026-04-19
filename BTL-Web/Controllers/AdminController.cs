@@ -68,11 +68,91 @@ namespace BTL_Web.Controllers
             return View(items);
         }
 
-        public async Task<IActionResult> GiaoVien()
-            => View(await _db.GiaoViens.Include(g => g.LopHocs).ToListAsync());
+        public async Task<IActionResult> GiaoVien(int page = 1, int pageSize = 10, string? keyword = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
 
-        public async Task<IActionResult> NhanVien()
-            => View(await _db.NhanViens.Include(n => n.MaTrungTamNavigation).ToListAsync());
+            var query = _db.GiaoViens
+                .Include(g => g.LopHocs)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var search = keyword.Trim().ToLower();
+                query = query.Where(g =>
+                    g.MaGv.ToLower().Contains(search) ||
+                    (g.Ten != null && g.Ten.ToLower().Contains(search)) ||
+                    (g.ChuyenMon != null && g.ChuyenMon.ToLower().Contains(search)));
+            }
+
+            query = query.OrderBy(g => g.MaGv);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Keyword = keyword ?? string.Empty;
+
+            return View(items);
+        }
+
+        public async Task<IActionResult> NhanVien(int page = 1, int pageSize = 10, string? keyword = null, string? center = null)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            ViewBag.TrungTams = await _db.TrungTams.AsNoTracking().OrderBy(t => t.TenTrungTam).ToListAsync();
+
+            var query = _db.NhanViens
+                .Include(n => n.MaTrungTamNavigation)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var search = keyword.Trim().ToLower();
+                query = query.Where(n =>
+                    n.MaNv.ToLower().Contains(search) ||
+                    (n.HoVaTen != null && n.HoVaTen.ToLower().Contains(search)) ||
+                    (n.ChucVu != null && n.ChucVu.ToLower().Contains(search)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(center))
+            {
+                query = query.Where(n => n.MaTrungTam == center);
+            }
+
+            query = query.OrderBy(n => n.MaNv);
+
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Keyword = keyword ?? string.Empty;
+            ViewBag.Center = center ?? string.Empty;
+
+            return View(items);
+        }
 
         public async Task<IActionResult> KhoaHoc()
             => View(await _db.KhoaHocs.AsNoTracking().ToListAsync());
@@ -302,10 +382,68 @@ namespace BTL_Web.Controllers
             return View();
         }
 
-        public async Task<IActionResult> StaffTeacherAssignment()
+        public async Task<IActionResult> StaffTeacherAssignment(int page = 1, int pageSize = 10, string? keyword = null, string? center = null, bool unassignedOnly = false)
         {
-            ViewBag.NhanViens = await _db.NhanViens.ToListAsync();
-            ViewBag.GiaoViens = await _db.GiaoViens.ToListAsync();
+            if (page < 1) page = 1;
+            if (pageSize < 1) pageSize = 10;
+            if (pageSize > 100) pageSize = 100;
+
+            var allStaff = _db.NhanViens
+                .Include(n => n.MaTrungTamNavigation)
+                .Include(n => n.MaGvs)
+                .AsNoTracking();
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var search = keyword.Trim().ToLower();
+                allStaff = allStaff.Where(n =>
+                    n.MaNv.ToLower().Contains(search) ||
+                    (n.HoVaTen != null && n.HoVaTen.ToLower().Contains(search)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(center))
+            {
+                allStaff = allStaff.Where(n => n.MaTrungTam == center);
+            }
+
+            if (unassignedOnly)
+            {
+                allStaff = allStaff.Where(n => !n.MaGvs.Any());
+            }
+
+            allStaff = allStaff.OrderBy(n => n.MaNv);
+
+            var totalItems = await allStaff.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+            if (totalPages > 0 && page > totalPages) page = totalPages;
+
+            var pagedStaff = await allStaff
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var teachers = await _db.GiaoViens
+                .Include(g => g.MaNvs)
+                .AsNoTracking()
+                .OrderBy(g => g.MaGv)
+                .ToListAsync();
+
+            ViewBag.NhanViens = pagedStaff;
+            ViewBag.AllNhanViens = await _db.NhanViens.AsNoTracking().OrderBy(n => n.MaNv).ToListAsync();
+            ViewBag.GiaoViens = teachers;
+            ViewBag.TrungTams = await _db.TrungTams.AsNoTracking().OrderBy(t => t.TenTrungTam).ToListAsync();
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.TotalItems = totalItems;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.Keyword = keyword ?? string.Empty;
+            ViewBag.Center = center ?? string.Empty;
+            ViewBag.UnassignedOnly = unassignedOnly;
+            ViewBag.TotalStaff = await _db.NhanViens.CountAsync();
+            ViewBag.TotalTeachers = teachers.Count;
+            ViewBag.UnassignedTeachers = teachers.Count(g => !g.MaNvs.Any());
+            ViewBag.MaxTeachersPerStaff = 8;
+
             return View();
         }
 
@@ -480,6 +618,86 @@ namespace BTL_Web.Controllers
             m.MaKhoaHoc = "KH" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.KhoaHocs.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("KhoaHoc");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateKhoaHoc(string maKhoaHoc, string? tenKhoaHoc, int? thoiLuong, int? hocPhi)
+        {
+            if (string.IsNullOrWhiteSpace(maKhoaHoc))
+            {
+                TempData["Error"] = "Mã khóa học không hợp lệ.";
+                return RedirectToAction(nameof(KhoaHoc));
+            }
+
+            var existing = await _db.KhoaHocs.FindAsync(maKhoaHoc);
+            if (existing == null)
+            {
+                TempData["Error"] = "Không tìm thấy khóa học cần cập nhật.";
+                return RedirectToAction(nameof(KhoaHoc));
+            }
+
+            existing.TenKhoaHoc = tenKhoaHoc;
+            existing.ThoiLuong = thoiLuong;
+            existing.HocPhi = hocPhi;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật khóa học thành công.";
+            return RedirectToAction(nameof(KhoaHoc));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateGiaoVien(string maGv, string? ten, string? sdt, string? chuyenMon, string? gioiTinh)
+        {
+            if (string.IsNullOrWhiteSpace(maGv))
+            {
+                TempData["Error"] = "Mã giáo viên không hợp lệ.";
+                return RedirectToAction(nameof(GiaoVien));
+            }
+
+            var existing = await _db.GiaoViens.FindAsync(maGv);
+            if (existing == null)
+            {
+                TempData["Error"] = "Không tìm thấy giáo viên cần cập nhật.";
+                return RedirectToAction(nameof(GiaoVien));
+            }
+
+            existing.Ten = ten;
+            existing.Sdt = sdt;
+            existing.ChuyenMon = chuyenMon;
+            existing.GioiTinh = gioiTinh;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật giáo viên thành công.";
+            return RedirectToAction(nameof(GiaoVien));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateNhanVien(string maNv, string? hoVaTen, string? chucVu, string? gioiTinh, string? maTrungTam)
+        {
+            if (string.IsNullOrWhiteSpace(maNv))
+            {
+                TempData["Error"] = "Mã nhân viên không hợp lệ.";
+                return RedirectToAction(nameof(NhanVien));
+            }
+
+            var existing = await _db.NhanViens.FindAsync(maNv);
+            if (existing == null)
+            {
+                TempData["Error"] = "Không tìm thấy nhân viên cần cập nhật.";
+                return RedirectToAction(nameof(NhanVien));
+            }
+
+            existing.HoVaTen = hoVaTen;
+            existing.ChucVu = chucVu;
+            existing.GioiTinh = gioiTinh;
+            existing.MaTrungTam = string.IsNullOrWhiteSpace(maTrungTam) ? null : maTrungTam;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật nhân viên thành công.";
+            return RedirectToAction(nameof(NhanVien));
         }
 
         [HttpPost]
@@ -796,6 +1014,30 @@ namespace BTL_Web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UnassignStaffTeacher(string MaNv, string MaGv)
+        {
+            if (string.IsNullOrWhiteSpace(MaNv) || string.IsNullOrWhiteSpace(MaGv))
+            {
+                return RedirectToAction(nameof(StaffTeacherAssignment));
+            }
+
+            var nhanVien = await _db.NhanViens
+                .Include(n => n.MaGvs)
+                .FirstOrDefaultAsync(n => n.MaNv == MaNv);
+
+            var giaoVien = nhanVien?.MaGvs.FirstOrDefault(g => g.MaGv == MaGv);
+            if (giaoVien != null)
+            {
+                nhanVien!.MaGvs.Remove(giaoVien);
+                await _db.SaveChangesAsync();
+                TempData["Success"] = "Đã bỏ phân công giáo viên khỏi nhân viên.";
+            }
+
+            return RedirectToAction(nameof(StaffTeacherAssignment));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AssignEquipmentToRoom(string MaThietBi, string MaPhong)
         {
             if (string.IsNullOrWhiteSpace(MaThietBi) || string.IsNullOrWhiteSpace(MaPhong))
@@ -1017,6 +1259,43 @@ namespace BTL_Web.Controllers
             await _db.SaveChangesAsync();
             TempData["Success"] = "Đã xóa học viên.";
             return RedirectToAction("HocVien");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteNhanVien(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                TempData["Error"] = "Mã nhân viên không hợp lệ.";
+                return RedirectToAction(nameof(NhanVien));
+            }
+
+            var nhanVien = await _db.NhanViens
+                .Include(n => n.HocViens)
+                .Include(n => n.TaiKhoans)
+                .Include(n => n.MaGvs)
+                .FirstOrDefaultAsync(n => n.MaNv == id);
+
+            if (nhanVien == null)
+            {
+                TempData["Error"] = "Không tìm thấy nhân viên để xóa.";
+                return RedirectToAction(nameof(NhanVien));
+            }
+
+            if (nhanVien.HocViens.Any())
+            {
+                TempData["Error"] = "Không thể xóa nhân viên vì đang quản lý học viên.";
+                return RedirectToAction(nameof(NhanVien));
+            }
+
+            nhanVien.MaGvs.Clear();
+            _db.TaiKhoans.RemoveRange(nhanVien.TaiKhoans);
+            _db.NhanViens.Remove(nhanVien);
+            await _db.SaveChangesAsync();
+
+            TempData["Success"] = "Đã xóa nhân viên.";
+            return RedirectToAction(nameof(NhanVien));
         }
         public async Task<IActionResult> DeleteGiaoVien(string id)
         {
