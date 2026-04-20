@@ -1,4 +1,5 @@
 @using System.Security.Claims
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment WebHostEnvironment
 @{
     var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
     var controller = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "";
@@ -29,6 +30,41 @@
     };
     var name = User.Identity?.Name ?? "User";
     var initials = string.Join("", name.Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
+    string? profileImageUrl = null;
+
+    var imageKey = navSection switch
+    {
+        "Admin" => $"admin-{User.FindFirst(ClaimTypes.NameIdentifier)?.Value}",
+        "NhanVien" => !string.IsNullOrWhiteSpace(User.FindFirst("MaNV")?.Value)
+            ? $"nhanvien-{User.FindFirst("MaNV")?.Value}"
+            : $"nhanvien-{User.FindFirst(ClaimTypes.NameIdentifier)?.Value}",
+        "GiaoVien" => !string.IsNullOrWhiteSpace(User.FindFirst("MaGV")?.Value)
+            ? $"giaovien-{User.FindFirst("MaGV")?.Value}"
+            : $"giaovien-{User.FindFirst(ClaimTypes.NameIdentifier)?.Value}",
+        "HocVien" => !string.IsNullOrWhiteSpace(User.FindFirst("MaHocVien")?.Value)
+            ? $"hocvien-{User.FindFirst("MaHocVien")?.Value}"
+            : $"hocvien-{User.FindFirst(ClaimTypes.NameIdentifier)?.Value}",
+        _ => null
+    };
+
+    if (!string.IsNullOrWhiteSpace(imageKey))
+    {
+        var uploadDir = System.IO.Path.Combine(WebHostEnvironment.WebRootPath, "uploads", "profiles");
+        if (System.IO.Directory.Exists(uploadDir))
+        {
+            var allowed = new[] { ".jpg", ".jpeg", ".png", ".webp" };
+            foreach (var ext in allowed)
+            {
+                var fileName = $"{imageKey}{ext}";
+                var fullPath = System.IO.Path.Combine(uploadDir, fileName);
+                if (System.IO.File.Exists(fullPath))
+                {
+                    profileImageUrl = $"/uploads/profiles/{fileName}?v={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                    break;
+                }
+            }
+        }
+    }
     var overviewUrl = navSection switch
     {
         "Admin" => "/Admin/Index",
@@ -115,6 +151,9 @@
 
 <nav class="top-navbar">
     <div style="display:flex;align-items:center;gap:24px;flex:1;">
+        <button type="button" class="mobile-menu-toggle" aria-label="Mở menu điều hướng" data-sidebar-toggle>
+            <i class="fas fa-bars" style="font-size:16px;"></i>
+        </button>
         <div class="search-box" style="max-width:360px;">
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Tìm kiếm học viên, nhân viên hoặc tài nguyên...">
@@ -140,7 +179,16 @@
                 <div class="user-name">@name</div>
                 <div class="user-role">@roleDisplay</div>
             </div>
-            <div class="user-avatar">@initials</div>
+            <div class="user-avatar">
+                @if (!string.IsNullOrWhiteSpace(profileImageUrl))
+                {
+                    <img src="@profileImageUrl" alt="Ảnh hồ sơ" />
+                }
+                else
+                {
+                    @initials
+                }
+            </div>
         </a>
     </div>
 </nav>

@@ -1,29 +1,45 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewData["Title"] - Academic Editorial</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" asp-append-version="true">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
-</head>
-<body>
-    <div class="app-wrapper">
-        @await Html.PartialAsync("_Sidebar")
-        
-        <div class="main-content">
-            @await Html.PartialAsync("_Navbar")
-            
-            <main class="page-content">
-                @RenderBody()
-            </main>
-        </div>
-    </div>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="~/css/site.css" asp-append-version="true">
+        </head>
 
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
-</body>
-</html>
+        <body>
+            <div class="app-wrapper">
+                @await Html.PartialAsync("_Sidebar")
+                <div class="sidebar-backdrop" data-sidebar-backdrop></div>
+        
+                <div class="main-content">
+                    @await Html.PartialAsync("_Navbar")
+            
+                    <main class="page-content">
+                        @RenderBody()
+                    </main>
+                </div>
+            </div>
+
+            <div class="cookie-consent" data-cookie-consent hidden>
+                <div class="cookie-consent__content">
+                    <h6>Thông báo cookie</h6>
+                    <p>Hệ thống sử dụng cookie để duy trì phiên đăng nhập và cải thiện trải nghiệm. Bạn có đồng ý cho phép
+                        cookie không thiết yếu không?</p>
+                    </div>
+                    <div class="cookie-consent__actions">
+                        <button type="button" class="btn-outline" data-cookie-decline>Từ chối</button>
+                        <button type="button" class="btn-primary" data-cookie-accept>Đồng ý</button>
+                    </div>
+                </div>
+
+                <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js" asp-append-version="true"></script>
+                <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js" referrerpolicy="origin"></script>
+                <script src="~/js/site.js" asp-append-version="true"></script>
+                @await RenderSectionAsync("Scripts", required: false)
+            </body>
+
+        </html>
