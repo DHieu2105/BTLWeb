@@ -44,7 +44,7 @@ namespace BTL_Web.Controllers
             if (!string.IsNullOrWhiteSpace(searchStudent))
             {
                 var search = searchStudent.Trim().ToLower();
-                query = query.Where(h => h.MaHocVien.ToLower().Contains(search) || 
+                query = query.Where(h => h.MaHocVien.ToLower().Contains(search) ||
                                          (h.HoVaTen != null && h.HoVaTen.ToLower().Contains(search)));
             }
 
@@ -906,11 +906,38 @@ namespace BTL_Web.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddTrungTam(TrungTam m)
         {
             m.MaTrungTam = "TT" + DateTime.Now.Ticks.ToString().Substring(10);
             _db.TrungTams.Add(m); await _db.SaveChangesAsync();
             return RedirectToAction("TrungTam");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateTrungTam(string maTrungTam, string? tenTrungTam, string? diaChi, string? sdt)
+        {
+            if (string.IsNullOrWhiteSpace(maTrungTam))
+            {
+                TempData["Error"] = "Mã trung tâm không hợp lệ.";
+                return RedirectToAction(nameof(TrungTam));
+            }
+
+            var existing = await _db.TrungTams.FindAsync(maTrungTam);
+            if (existing == null)
+            {
+                TempData["Error"] = "Không tìm thấy trung tâm cần cập nhật.";
+                return RedirectToAction(nameof(TrungTam));
+            }
+
+            existing.TenTrungTam = tenTrungTam;
+            existing.DiaChi = diaChi;
+            existing.Sdt = sdt;
+
+            await _db.SaveChangesAsync();
+            TempData["Success"] = "Cập nhật trung tâm thành công.";
+            return RedirectToAction(nameof(TrungTam));
         }
 
         [HttpPost]
@@ -1404,28 +1431,28 @@ namespace BTL_Web.Controllers
                 .Include(h => h.MaGvs)
                 .Include(h => h.MaLops)
                 .FirstOrDefaultAsync(h => h.MaHocVien == id);
-            
+
             if (hocVien == null)
                 return RedirectToAction("HocVien");
 
             // Delete relationship with teachers (GiaoVien)
             hocVien.MaGvs.Clear();
-            
+
             // Delete relationship with classes (LopHoc)
             hocVien.MaLops.Clear();
-            
+
             // Delete accounts (foreign key constraint)
             _db.TaiKhoans.RemoveRange(hocVien.TaiKhoans);
-            
+
             // Delete registrations
             _db.DangKis.RemoveRange(hocVien.DangKis);
-            
+
             // Delete results
             _db.KetQuas.RemoveRange(hocVien.KetQuas);
-            
+
             // Delete the student
             _db.HocViens.Remove(hocVien);
-            
+
             await _db.SaveChangesAsync();
             TempData["Success"] = "Đã xóa học viên.";
             return RedirectToAction("HocVien");

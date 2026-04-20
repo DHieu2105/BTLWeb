@@ -9,210 +9,303 @@
         <p>Quản lý vị trí trung tâm học thuật và các chi nhánh</p>
     </div>
     <div class="page-actions">
-        <button type="button" class="btn-outline" title="Lọc" onclick="toggleCenterFilter()"><i class="fas fa-filter"></i></button>
-        <button class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
-            <i class="fas fa-plus"></i> Thêm trung tâm
-        </button>
-    </div>
-</div>
-
-<div id="centerFilterPanel" class="card-plain" style="display:none;padding:16px 20px;margin-bottom:16px;">
-    <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
-        <div class="form-group" style="margin:0;">
-            <label class="form-label">Tìm trung tâm</label>
-            <input id="centerFilterInput" type="text" class="form-control" placeholder="Tên trung tâm, mã, địa chỉ hoặc số điện thoại" oninput="applyCenterFilter()" />
-        </div>
-        <button type="button" class="btn-outline" onclick="clearCenterFilter()">Xóa lọc</button>
-    </div>
-</div>
-
-<!-- Stats -->
-<div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
-    <div class="stat-card blue">
-        <div class="stat-card-header">
-            <div class="stat-icon blue"><i class="fas fa-building"></i></div>
-            <span class="stat-badge blue">+1</span>
-        </div>
-        <div class="stat-label">Tổng trung tâm</div>
-        <div class="stat-value">@(Model?.Count() ?? 0)</div>
-    </div>
-    <div class="stat-card teal">
-        <div class="stat-card-header"><div class="stat-icon teal"><i class="fas fa-users"></i></div></div>
-        <div class="stat-label">Nhân sự đang hoạt động</div>
-        <div class="stat-value">142</div>
-    </div>
-    <div class="stat-card orange">
-        <div class="stat-card-header"><div class="stat-icon orange"><i class="fas fa-chart-line"></i></div></div>
-        <div class="stat-label">Mức sử dụng trung bình</div>
-        <div class="stat-value">87%</div>
-    </div>
-</div>
-
-<!-- Table -->
-<div class="card-plain" style="padding:0;">
-    <div class="card-header-plain">
-        <h5>Danh bạ trung tâm</h5>
-        <div style="display:flex;gap:8px;">
-            <button type="button" class="btn-outline btn-sm" title="Lọc" onclick="toggleCenterFilter()"><i class="fas fa-filter"></i></button>
-            <button class="btn-outline btn-sm"><i class="fas fa-edit"></i> Sửa</button>
+        <button type="button" class="btn-outline" title="Lọc" onclick="toggleCenterFilter()"><i
+            class="fas fa-filter"></i></button>
+            <button type="button" class="btn-primary" onclick="document.getElementById('addModal').style.display='flex'">
+                <i class="fas fa-plus"></i> Thêm trung tâm
+            </button>
         </div>
     </div>
-    <table class="data-table">
-        <thead>
-            <tr>
-                <th>Trung tâm</th>
-                <th>Địa chỉ</th>
-                <th>Liên hệ</th>
-                <th>Quản lý</th>
-                <th style="text-align:right;">Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Any())
-            {
-                @foreach (var tt in Model)
-                {
-                    var initials = string.Join("", (tt.TenTrungTam ?? "?").Split(' ').Take(2).Select(w => w.FirstOrDefault().ToString().ToUpper()));
-                    <tr class="center-row">
-                        <td>
-                            <div style="display:flex;align-items:center;gap:12px;">
-                                <div class="avatar" style="background:rgba(219,225,255,0.3);color:var(--primary);font-size:12px;">
-                                    @initials
-                                </div>
-                                <div>
-                                    <div class="user-name">@tt.TenTrungTam</div>
-                                    <div class="user-sub">@tt.MaTrungTam</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="user-name">@(tt.DiaChi ?? "—")</div>
-                            <div class="user-sub">@(tt.MaTrungTam ?? "—")</div>
-                        </td>
-                        <td>
-                            <div style="display:flex;align-items:center;gap:6px;" class="user-sub">
-                                <i class="fas fa-phone" style="font-size:11px;"></i> @(tt.Sdt ?? "—")
-                            </div>
-                        </td>
-                        <td>
-                            <div class="user-row">
-                                <div class="avatar avatar-sm">M</div>
-                                <div class="user-name" style="font-size:13px;">Quản lý</div>
-                            </div>
-                        </td>
-                        <td style="text-align:right;">
-                            <div style="display:flex;gap:4px;justify-content:flex-end;">
-                                <button class="btn-icon btn-outline btn-sm"><i class="fas fa-edit"></i></button>
-                                <button class="btn-icon btn-outline btn-sm" onclick="deleteCenter('@tt.MaTrungTam')">
-                                    <i class="fas fa-trash" style="color:#ef4444;"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                }
-            }
-            else
-            {
-                <tr><td colspan="5"><div class="empty-state"><i class="fas fa-building"></i><p>Không tìm thấy trung tâm nào</p></div></td></tr>
-            }
-            <tr id="centerFilterEmptyRow" style="display:none;">
-                <td colspan="5"><div class="empty-state"><i class="fas fa-filter"></i><p>Không có trung tâm nào phù hợp với bộ lọc hiện tại</p></div></td>
-            </tr>
-        </tbody>
-    </table>
-    <div class="pagination-bar">
-        <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) trung tâm</span>
-        <div class="pagination-btns">
-            <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
-            <button class="page-btn active">1</button>
-            <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
-        </div>
-    </div>
-</div>
 
-<!-- Info Banner -->
-<div class="card-plain" style="padding:32px;background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));color:white;margin-top:24px;display:flex;align-items:center;justify-content:space-between;">
-    <div>
-        <h4 style="color:white;margin-bottom:8px;">Mở rộng hệ thống của bạn</h4>
-        <p style="color:rgba(255,255,255,0.75);font-size:14px;max-width:500px;">
-            Thêm địa điểm chi nhánh mới để mở rộng phạm vi đào tạo. Mỗi trung tâm có thể có phòng, nhân sự và khóa học riêng.
-        </p>
-    </div>
-    <button class="btn-primary" style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);white-space:nowrap;"
-            onclick="document.getElementById('addModal').style.display='flex'">
-        <i class="fas fa-plus"></i> Thêm trung tâm mới
-    </button>
-</div>
-
-<!-- Add Modal -->
-<div id="addModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
-    <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
-        <h4 style="margin-bottom:24px;">Thêm trung tâm mới</h4>
-        <form method="post" action="/Admin/AddTrungTam">
-            @Html.AntiForgeryToken()
-            <div class="form-group">
-                <label class="form-label">Tên trung tâm</label>
-                <input type="text" name="TenTrungTam" class="form-control" required>
+    <div id="centerFilterPanel" class="card-plain" style="display:none;padding:16px 20px;margin-bottom:16px;">
+        <div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;">
+            <div class="form-group" style="margin:0;">
+                <label class="form-label">Tìm trung tâm</label>
+                <input id="centerFilterInput" type="text" class="form-control"
+                       placeholder="Tên trung tâm, mã, địa chỉ hoặc số điện thoại" oninput="applyCenterFilter()" />
             </div>
-            <div class="form-group">
-                <label class="form-label">Địa chỉ</label>
-                <input type="text" name="DiaChi" class="form-control">
+            <button type="button" class="btn-outline" onclick="clearCenterFilter()">Xóa lọc</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+        <div class="stat-card blue">
+            <div class="stat-card-header">
+                <div class="stat-icon blue"><i class="fas fa-building"></i></div>
+                <span class="stat-badge blue">+1</span>
             </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-                <div class="form-group">
-                    <label class="form-label">Thành phố</label>
-                    <input type="text" name="ThanhPho" class="form-control">
+            <div class="stat-label">Tổng trung tâm</div>
+            <div class="stat-value">@(Model?.Count() ?? 0)</div>
+        </div>
+        <div class="stat-card teal">
+            <div class="stat-card-header">
+                <div class="stat-icon teal"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="stat-label">Nhân sự đang hoạt động</div>
+            <div class="stat-value">142</div>
+        </div>
+        <div class="stat-card orange">
+            <div class="stat-card-header">
+                <div class="stat-icon orange"><i class="fas fa-chart-line"></i></div>
+            </div>
+            <div class="stat-label">Mức sử dụng trung bình</div>
+            <div class="stat-value">87%</div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card-plain" style="padding:0;">
+        <div class="card-header-plain">
+            <h5>Danh bạ trung tâm</h5>
+            <div style="display:flex;gap:8px;">
+                <button type="button" class="btn-outline btn-sm" title="Lọc" onclick="toggleCenterFilter()"><i
+                    class="fas fa-filter"></i></button>
+                    <button type="button" class="btn-outline btn-sm"
+                            onclick="document.querySelector('.center-row [data-ma]')?.click()"><i class="fas fa-edit"></i>
+                        Sửa</button>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">Số điện thoại</label>
-                    <input type="text" name="Sdt" class="form-control">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Trung tâm</th>
+                            <th>Địa chỉ</th>
+                            <th>Liên hệ</th>
+                            <th>Quản lý</th>
+                            <th style="text-align:right;">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Any())
+                        {
+                            @foreach (var tt in Model)
+                            {
+                                var initials = string.Join("", (tt.TenTrungTam ?? "?").Split(' ').Take(2).Select(w =>
+                        w.FirstOrDefault().ToString().ToUpper()));
+                                <tr class="center-row">
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:12px;">
+                                            <div class="avatar"
+                                                 style="background:rgba(219,225,255,0.3);color:var(--primary);font-size:12px;">
+                                                @initials
+                                            </div>
+                                            <div>
+                                                <div class="user-name">@tt.TenTrungTam</div>
+                                                <div class="user-sub">@tt.MaTrungTam</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="user-name">@(tt.DiaChi ?? "—")</div>
+                                        <div class="user-sub">@(tt.MaTrungTam ?? "—")</div>
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:6px;" class="user-sub">
+                                            <i class="fas fa-phone" style="font-size:11px;"></i> @(tt.Sdt ?? "—")
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="user-row">
+                                            <div class="avatar avatar-sm">M</div>
+                                            <div class="user-name" style="font-size:13px;">Quản lý</div>
+                                        </div>
+                                    </td>
+                                    <td style="text-align:right;">
+                                        <div style="display:flex;gap:4px;justify-content:flex-end;">
+                                            <button type="button" class="btn-icon btn-outline btn-sm" data-ma="@tt.MaTrungTam"
+                                                    data-ten="@(tt.TenTrungTam ?? string.Empty)" data-diachi="@(tt.DiaChi ?? string.Empty)"
+                                                    data-sdt="@(tt.Sdt ?? string.Empty)" onclick="openEditCenterModalFromButton(this)">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn-icon btn-outline btn-sm" onclick="deleteCenter('@tt.MaTrungTam')">
+                                                <i class="fas fa-trash" style="color:#ef4444;"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state"><i class="fas fa-building"></i>
+                                        <p>Không tìm thấy trung tâm nào</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                        <tr id="centerFilterEmptyRow" style="display:none;">
+                            <td colspan="5">
+                                <div class="empty-state"><i class="fas fa-filter"></i>
+                                    <p>Không có trung tâm nào phù hợp với bộ lọc hiện tại</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="pagination-bar">
+                    <span class="pagination-info">Đang hiển thị @(Model?.Count() ?? 0) trung tâm</span>
+                    <div class="pagination-btns">
+                        <button class="page-btn"><i class="fas fa-chevron-left" style="font-size:10px;"></i></button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn"><i class="fas fa-chevron-right" style="font-size:10px;"></i></button>
+                    </div>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" name="Email" class="form-control">
+
+            <!-- Edit Modal -->
+            <div id="editModal"
+                 style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+                <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+                    <h4 style="margin-bottom:24px;">Sửa trung tâm</h4>
+                    <form method="post" action="/Admin/UpdateTrungTam">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="editMaTrungTam" name="maTrungTam" />
+                        <div class="form-group">
+                            <label class="form-label">Mã trung tâm</label>
+                            <input type="text" id="editMaTrungTamDisplay" class="form-control" readonly />
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tên trung tâm</label>
+                            <input type="text" id="editTenTrungTam" name="tenTrungTam" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" id="editDiaChi" name="diaChi" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Số điện thoại</label>
+                            <input type="text" id="editSdt" name="sdt" class="form-control">
+                        </div>
+                        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                            <button type="button" class="btn-outline" onclick="closeEditCenterModal()">Hủy</button>
+                            <button type="submit" class="btn-primary">Lưu thay đổi</button>
+                        </div>
+                    </form>
+                </div>
             </div>
-            <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
-                <button type="button" class="btn-outline" onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
-                <button type="submit" class="btn-primary">Thêm trung tâm</button>
+
+            <!-- Info Banner -->
+            <div class="card-plain"
+                 style="padding:32px;background:linear-gradient(135deg,var(--sidebar-bg),var(--primary));color:white;margin-top:24px;display:flex;align-items:center;justify-content:space-between;">
+                <div>
+                    <h4 style="color:white;margin-bottom:8px;">Mở rộng hệ thống của bạn</h4>
+                    <p style="color:rgba(255,255,255,0.75);font-size:14px;max-width:500px;">
+                        Thêm địa điểm chi nhánh mới để mở rộng phạm vi đào tạo. Mỗi trung tâm có thể có phòng, nhân sự và khóa học
+                        riêng.
+                    </p>
+                </div>
+                <button class="btn-primary"
+                        style="background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);white-space:nowrap;"
+                        onclick="document.getElementById('addModal').style.display='flex'">
+                    <i class="fas fa-plus"></i> Thêm trung tâm mới
+                </button>
             </div>
-        </form>
-    </div>
-</div>
 
-@section Scripts {
-<script>
-function toggleCenterFilter() {
-    const panel = document.getElementById('centerFilterPanel');
-    if (!panel) return;
-    panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
-}
+            <!-- Add Modal -->
+            <div id="addModal"
+                 style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;align-items:center;justify-content:center;">
+                <div style="background:white;border-radius:12px;padding:32px;width:480px;max-width:90vw;">
+                    <h4 style="margin-bottom:24px;">Thêm trung tâm mới</h4>
+                    <form method="post" action="/Admin/AddTrungTam">
+                        @Html.AntiForgeryToken()
+                        <div class="form-group">
+                            <label class="form-label">Tên trung tâm</label>
+                            <input type="text" name="TenTrungTam" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Địa chỉ</label>
+                            <input type="text" name="DiaChi" class="form-control">
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                            <div class="form-group">
+                                <label class="form-label">Thành phố</label>
+                                <input type="text" name="ThanhPho" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="text" name="Sdt" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="Email" class="form-control">
+                        </div>
+                        <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:24px;">
+                            <button type="button" class="btn-outline"
+                                    onclick="document.getElementById('addModal').style.display='none'">Hủy</button>
+                            <button type="submit" class="btn-primary">Thêm trung tâm</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-function applyCenterFilter() {
-    const input = document.getElementById('centerFilterInput');
-    const query = (input?.value || '').trim().toLowerCase();
-    const rows = document.querySelectorAll('.center-row');
-    let visible = 0;
+            @section Scripts {
+                <script>
+                    function toggleCenterFilter() {
+                        const panel = document.getElementById('centerFilterPanel');
+                        if (!panel) return;
+                        panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'block' : 'none';
+                    }
 
-    rows.forEach(row => {
-        const text = (row.textContent || '').toLowerCase();
-        const show = !query || text.includes(query);
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
-    });
+                    function applyCenterFilter() {
+                        const input = document.getElementById('centerFilterInput');
+                        const query = (input?.value || '').trim().toLowerCase();
+                        const rows = document.querySelectorAll('.center-row');
+                        let visible = 0;
 
-    const emptyRow = document.getElementById('centerFilterEmptyRow');
-    if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
-}
+                        rows.forEach(row => {
+                            const text = (row.textContent || '').toLowerCase();
+                            const show = !query || text.includes(query);
+                            row.style.display = show ? '' : 'none';
+                            if (show) visible++;
+                        });
 
-function clearCenterFilter() {
-    const input = document.getElementById('centerFilterInput');
-    if (input) input.value = '';
-    applyCenterFilter();
-}
+                        const emptyRow = document.getElementById('centerFilterEmptyRow');
+                        if (emptyRow) emptyRow.style.display = visible === 0 ? '' : 'none';
+                    }
 
-function deleteCenter(id) {
-    if (confirm('Bạn có chắc muốn xóa trung tâm ' + id + '?')) location.href = '/Admin/DeleteTrungTam/' + id;
-}
-</script>
-}
+                    function clearCenterFilter() {
+                        const input = document.getElementById('centerFilterInput');
+                        if (input) input.value = '';
+                        applyCenterFilter();
+                    }
+
+                    function openEditCenterModal(maTrungTam, tenTrungTam, diaChi, sdt) {
+                        const modal = document.getElementById('editModal');
+                        const maInput = document.getElementById('editMaTrungTam');
+                        const maDisplay = document.getElementById('editMaTrungTamDisplay');
+                        const tenInput = document.getElementById('editTenTrungTam');
+                        const diaChiInput = document.getElementById('editDiaChi');
+                        const sdtInput = document.getElementById('editSdt');
+
+                        if (maInput) maInput.value = maTrungTam || '';
+                        if (maDisplay) maDisplay.value = maTrungTam || '';
+                        if (tenInput) tenInput.value = tenTrungTam || '';
+                        if (diaChiInput) diaChiInput.value = diaChi || '';
+                        if (sdtInput) sdtInput.value = sdt || '';
+                        if (modal) modal.style.display = 'flex';
+                    }
+
+                    function openEditCenterModalFromButton(button) {
+                        if (!button) return;
+                        openEditCenterModal(
+                            button.dataset.ma || '',
+                            button.dataset.ten || '',
+                            button.dataset.diachi || '',
+                            button.dataset.sdt || ''
+                        );
+                    }
+
+                    function closeEditCenterModal() {
+                        const modal = document.getElementById('editModal');
+                        if (modal) modal.style.display = 'none';
+                    }
+
+                    function deleteCenter(id) {
+                        if (confirm('Bạn có chắc muốn xóa trung tâm ' + id + '?')) location.href = '/Admin/DeleteTrungTam/' + id;
+                    }
+                </script>
+            }
