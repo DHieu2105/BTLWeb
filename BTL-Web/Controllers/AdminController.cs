@@ -1270,10 +1270,30 @@ namespace BTL_Web.Controllers
             if (lop != null && sv != null && !lop.MaHocViens.Contains(sv))
             {
                 lop.MaHocViens.Add(sv);
+                await EnsureStudentCourseRegistrationAsync(maHocVien, lop.MaKhoaHoc);
                 await _db.SaveChangesAsync();
                 TempData["Success"] = "Đã thêm học viên vào lớp.";
             }
             return RedirectToAction("StudentsInClass", new { id = maLop });
+        }
+
+        private async Task EnsureStudentCourseRegistrationAsync(string maHocVien, string? maKhoaHoc)
+        {
+            if (string.IsNullOrWhiteSpace(maHocVien) || string.IsNullOrWhiteSpace(maKhoaHoc))
+            {
+                return;
+            }
+
+            var existed = await _db.DangKis.AnyAsync(d => d.MaHocVien == maHocVien && d.MaKhoaHoc == maKhoaHoc);
+            if (!existed)
+            {
+                _db.DangKis.Add(new DangKi
+                {
+                    MaHocVien = maHocVien,
+                    MaKhoaHoc = maKhoaHoc,
+                    NgayDangKi = DateOnly.FromDateTime(DateTime.Now)
+                });
+            }
         }
 
         [HttpPost]

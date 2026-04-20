@@ -442,10 +442,30 @@ namespace BTL_Web.Controllers
             if (lop != null && sv != null && !lop.MaHocViens.Contains(sv))
             {
                 lop.MaHocViens.Add(sv);
+                await EnsureStudentCourseRegistrationAsync(MaHocVien, lop.MaKhoaHoc);
                 await _db.SaveChangesAsync();
                 TempData["Success"] = "Đã thêm học viên vào lớp.";
             }
             return RedirectToAction(nameof(ClassDetail), new { id = MaLop });
+        }
+
+        private async Task EnsureStudentCourseRegistrationAsync(string maHocVien, string? maKhoaHoc)
+        {
+            if (string.IsNullOrWhiteSpace(maHocVien) || string.IsNullOrWhiteSpace(maKhoaHoc))
+            {
+                return;
+            }
+
+            var existed = await _db.DangKis.AnyAsync(d => d.MaHocVien == maHocVien && d.MaKhoaHoc == maKhoaHoc);
+            if (!existed)
+            {
+                _db.DangKis.Add(new DangKi
+                {
+                    MaHocVien = maHocVien,
+                    MaKhoaHoc = maKhoaHoc,
+                    NgayDangKi = DateOnly.FromDateTime(DateTime.Now)
+                });
+            }
         }
 
         [HttpPost]
@@ -516,6 +536,7 @@ namespace BTL_Web.Controllers
 
             oldClass.MaHocViens.Remove(student);
             newClass.MaHocViens.Add(student);
+            await EnsureStudentCourseRegistrationAsync(maHocVien, newClass.MaKhoaHoc);
             await _db.SaveChangesAsync();
 
             TempData["Success"] = "Đã chuyển học viên sang lớp mới.";
@@ -584,24 +605,24 @@ namespace BTL_Web.Controllers
                 .Include(h => h.MaGvs)
                 .Include(h => h.MaLops)
                 .FirstOrDefaultAsync(h => h.MaHocVien == maHocVien);
-            
+
             if (student != null)
             {
                 // Delete relationship with teachers (GiaoVien)
                 student.MaGvs.Clear();
-                
+
                 // Delete relationship with classes (LopHoc)
                 student.MaLops.Clear();
-                
+
                 // Delete accounts (foreign key constraint)
                 _db.TaiKhoans.RemoveRange(student.TaiKhoans);
-                
+
                 // Delete registrations
                 _db.DangKis.RemoveRange(student.DangKis);
-                
+
                 // Delete results
                 _db.KetQuas.RemoveRange(student.KetQuas);
-                
+
                 // Delete the student
                 _db.HocViens.Remove(student);
                 await _db.SaveChangesAsync();
@@ -972,10 +993,54 @@ namespace BTL_Web.Controllers
         public async Task<IActionResult> MyCourses()
         {
             var maHv = GetMaHocVien();
-            return View(await _db.DangKis
+            if (string.IsNullOrWhiteSpace(maHv))
+            {
+                return View(new List<DangKi>());
+            }
+
+            var registrations = await _db.DangKis
                 .Where(d => d.MaHocVien == maHv)
                 .Include(d => d.MaKhoaHocNavigation)
-                .ToListAsync());
+                .ToListAsync();
+
+            var courseById = registrations
+                .Where(d => !string.IsNullOrWhiteSpace(d.MaKhoaHoc))
+                .ToDictionary(d => d.MaKhoaHoc, d => d, StringComparer.OrdinalIgnoreCase);
+
+            var student = await _db.HocViens
+                .Include(h => h.MaLops)
+                    .ThenInclude(l => l.MaKhoaHocNavigation)
+                .FirstOrDefaultAsync(h => h.MaHocVien == maHv);
+
+            if (student?.MaLops != null)
+            {
+                foreach (var lop in student.MaLops)
+                {
+                    var khoaHoc = lop.MaKhoaHocNavigation;
+                    if (khoaHoc == null || string.IsNullOrWhiteSpace(khoaHoc.MaKhoaHoc))
+                    {
+                        continue;
+                    }
+
+                    if (courseById.ContainsKey(khoaHoc.MaKhoaHoc))
+                    {
+                        continue;
+                    }
+
+                    courseById[khoaHoc.MaKhoaHoc] = new DangKi
+                    {
+                        MaHocVien = maHv,
+                        MaKhoaHoc = khoaHoc.MaKhoaHoc,
+                        MaKhoaHocNavigation = khoaHoc,
+                        NgayDangKi = null
+                    };
+                }
+            }
+
+            return View(courseById.Values
+                .OrderByDescending(d => d.NgayDangKi ?? DateOnly.MinValue)
+                .ThenBy(d => d.MaKhoaHoc)
+                .ToList());
         }
 
         public async Task<IActionResult> MyClasses()
